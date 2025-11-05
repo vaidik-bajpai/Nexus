@@ -1,0 +1,57 @@
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+ 
+generator db {
+    provider = "go run github.com/steebchen/prisma-client-go"
+}
+ 
+model User {
+    id            String    @id @default(uuid())
+    firstName     String?
+    lastName      String?
+    username      String    
+    email         String    @unique
+    password      String?
+    emailVerified DateTime?
+    avatar        String?
+    accessToken   String?
+    refreshToken  String?
+    createdAt     DateTime  @default(now())
+    updatedAt     DateTime  @updatedAt
+    
+    token             Token[]
+    accounts          Account[]
+    
+    @@index([email])
+    @@map("users")
+}
+
+model Token {
+    uID   String
+    token String   @unique
+    ttl   DateTime
+    scope String
+    user  User     @relation(fields: [uID], references: [id], onDelete: Cascade)
+
+    @@unique([uID, scope])
+    @@index([uID])
+}
+
+model Account {
+    id                String   @id @default(uuid())
+    userId            String
+    type              String   // "oauth" or "credentials"
+    provider          String   // "google", "github", "credentials", etc.
+    providerAccountId String   // Provider's unique ID for this account
+    
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    
+    @@unique([provider, providerAccountId])
+    @@index([userId])
+    @@map("accounts")
+}
