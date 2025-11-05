@@ -33,3 +33,39 @@ func (s *Store) CreateCredentialsUser(ctx context.Context, user *types.CreateCre
 
 	return nil
 }
+
+func (s *Store) GetUserByEmail(ctx context.Context, email string) (*types.User, error) {
+	user, err := s.db.User.FindFirst(
+		db.User.Email.Equals(email),
+	).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	password, ok := user.Password()
+	if !ok {
+		password = ""
+	}
+
+	return &types.User{
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		Password:  password,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}, nil
+}
+
+func (s *Store) UpdateUserRefreshToken(ctx context.Context, userID string, refreshToken string) error {
+	_, err := s.db.User.FindUnique(
+		db.User.ID.Equals(userID),
+	).Update(
+		db.User.RefreshToken.Set(refreshToken),
+	).Exec(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

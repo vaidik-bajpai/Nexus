@@ -63,7 +63,7 @@ Before features, let's define what we're working with:
 - [ ] OAuth
 
 **Login with JWT token generation**
-- [ ] Credentials
+- [x] Credentials
 - [ ] OAuth
 
 - [ ] Token refresh mechanism

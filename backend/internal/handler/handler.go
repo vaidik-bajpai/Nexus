@@ -28,7 +28,8 @@ func NewHandler(store *store.Store) *handler {
 func (h *handler) SetupRoutes() *http.ServeMux {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/api/v1/register", h.handleUserRegistration)
+	mux.HandleFunc("/api/v1/users/register", h.handleUserRegistration)
+	mux.HandleFunc("/api/v1/users/login", h.handleUserLogin)
 
 	return mux
 }
