@@ -1,15 +1,18 @@
 package helper
 
 import (
-	"math/rand"
+	"crypto/rand"
+	"encoding/base64"
+	"io"
+	mathrand "math/rand"
 	"time"
 
 	"github.com/golang-jwt/jwt"
 )
 
 func CreateRandomToken() int {
-	rand.New(rand.NewSource(time.Now().UnixNano()))
-	return rand.Intn(1000000)
+	r := mathrand.New(mathrand.NewSource(time.Now().UnixNano()))
+	return r.Intn(1000000)
 }
 
 func GenerateAccessAndRefreshTokens(userID string) (string, string, error) {
@@ -32,4 +35,13 @@ func GenerateAccessAndRefreshTokens(userID string) (string, string, error) {
 	}
 
 	return accessTokenString, refreshTokenString, nil
+}
+
+func GenerateOAuthState() (string, error) {
+	nonceBytes := make([]byte, 64)
+	_, err := io.ReadFull(rand.Reader, nonceBytes)
+	if err != nil {
+		return "", err
+	}
+	return base64.URLEncoding.EncodeToString(nonceBytes), nil
 }

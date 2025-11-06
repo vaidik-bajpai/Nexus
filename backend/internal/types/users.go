@@ -25,3 +25,21 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
+
+type CreateOAuthUser struct {
+	ID                string `json:"id"`
+	Email             string `json:"email" validate:"required,email"`
+	Provider          string `json:"provider" validate:"required,oneof=google"`
+	ProviderAccountID string `json:"provider_account_id" validate:"required"`
+}
+
+type GoogleOAuthUserInfo struct {
+	ID            string `json:"id"`
+	Email         string `json:"email"`
+	VerifiedEmail bool   `json:"verified_email"`
+	Name          string `json:"name"`
+	GivenName     string `json:"given_name"`
+	FamilyName    string `json:"family_name"`
+	Picture       string `json:"picture"`
+	Locale        string `json:"locale"`
+}

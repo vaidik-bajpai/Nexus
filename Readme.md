@@ -60,11 +60,11 @@ Before features, let's define what we're working with:
 
 **User registration with email validation**
 - [x] Credentials
-- [ ] OAuth
+- [x] OAuth
 
 **Login with JWT token generation**
 - [x] Credentials
-- [ ] OAuth
+- [x] OAuth
 
 - [ ] Token refresh mechanism
 - [ ] Password reset flow (email-based)

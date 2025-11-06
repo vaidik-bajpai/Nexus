@@ -11,9 +11,11 @@ require (
 	github.com/steebchen/prisma-client-go v0.47.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.42.0
+	golang.org/x/oauth2 v0.32.0
 )
 
 require (
+	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.10 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect

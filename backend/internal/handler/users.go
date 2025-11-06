@@ -1,7 +1,10 @@
 package handler
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -10,6 +13,7 @@ import (
 	"github.com/vaidik-bajpai/Nexus/backend/internal/mailer"
 	"github.com/vaidik-bajpai/Nexus/backend/internal/types"
 	"go.uber.org/zap"
+	"golang.org/x/oauth2"
 )
 
 func (h *handler) handleUserRegistration(w http.ResponseWriter, r *http.Request) {
@@ -169,6 +173,210 @@ func (h *handler) handleUserLogin(w http.ResponseWriter, r *http.Request) {
 	helper.WriteJSON(w, http.StatusOK, &types.Response{
 		Status:  http.StatusOK,
 		Message: "user logged in successfully",
+		Data: map[string]string{
+			"accessToken":  accessToken,
+			"refreshToken": refreshToken,
+		},
+	})
+}
+
+func (h *handler) handleUserOAuthFlow(w http.ResponseWriter, r *http.Request) {
+	h.logger.Debug("handling user oauth flow")
+
+	provider := r.PathValue("provider")
+	if provider != "google" {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "provider not supported",
+			Data:    nil,
+		})
+		return
+	}
+
+	h.logger.Debug("provider", zap.String("provider", provider))
+
+	oAuthCfg := h.oauth2[provider]
+	if oAuthCfg == nil {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "provider not supported",
+		})
+		return
+	}
+
+	state, err := helper.GenerateOAuthState()
+	if err != nil {
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to generate state token",
+		})
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "oauth_state",
+		Value:    state,
+		Path:     "/",
+		MaxAge:   600,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	h.logger.Debug("oAuthCfg", zap.Any("oAuthCfg", oAuthCfg))
+
+	authURL := oAuthCfg.AuthCodeURL(state, oauth2.AccessTypeOffline, oauth2.ApprovalForce)
+
+	h.logger.Debug("authURL", zap.String("authURL", authURL))
+	h.logger.Info("redirecting to authURL", zap.String("authURL", authURL))
+
+	http.Redirect(w, r, authURL, http.StatusTemporaryRedirect)
+}
+
+func (h *handler) handleUserOAuthCallback(w http.ResponseWriter, r *http.Request) {
+	h.logger.Debug("handling user oauth callback")
+
+	provider := r.PathValue("provider")
+	if provider != "google" {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "provider not supported",
+		})
+		return
+	}
+
+	// Verify state token
+	stateCookie, err := r.Cookie("oauth_state")
+	if err != nil || stateCookie == nil {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "state cookie not found",
+		})
+		return
+	}
+
+	returnedState := r.URL.Query().Get("state")
+	if returnedState == "" || returnedState != stateCookie.Value {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "invalid state parameter",
+		})
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "oauth_state",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+	})
+
+	code := r.URL.Query().Get("code")
+	if code == "" {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "code is required",
+		})
+		return
+	}
+
+	oAuthCfg := h.oauth2[provider]
+	if oAuthCfg == nil {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "provider not supported",
+		})
+		return
+	}
+
+	token, err := oAuthCfg.Exchange(context.Background(), code)
+	if err != nil {
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to exchange code for token",
+		})
+		return
+	}
+
+	h.logger.Debug("token exchanged successfully", zap.Any("token", token))
+
+	client := h.oauth2[provider].Client(context.Background(), token)
+
+	resp, err := client.Get("https://www.googleapis.com/oauth2/v3/userinfo")
+	if err != nil {
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to get user info",
+		})
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to read user info",
+			Data:    nil,
+		})
+		return
+	}
+
+	var userInfo types.GoogleOAuthUserInfo
+	if err := json.Unmarshal(body, &userInfo); err != nil {
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to unmarshal user info",
+			Data:    nil,
+		})
+		return
+	}
+
+	h.logger.Debug("user info", zap.Any("userInfo", userInfo))
+
+	createOAuthUser := &types.CreateOAuthUser{
+		Email:             userInfo.Email,
+		Provider:          provider,
+		ProviderAccountID: userInfo.ID,
+	}
+
+	if err := h.store.CreateOAuthUser(r.Context(), createOAuthUser); err != nil {
+		h.logger.Error("failed to create oauth user", zap.Error(err))
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to create oauth user",
+		})
+		return
+	}
+
+	h.logger.Debug("oauth user created", zap.Any("oauthUser", createOAuthUser))
+
+	accessToken, refreshToken, err := helper.GenerateAccessAndRefreshTokens(token.AccessToken)
+	if err != nil {
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to generate access and refresh tokens",
+		})
+		return
+	}
+
+	h.logger.Debug("access token", zap.String("accessToken", accessToken))
+	h.logger.Debug("refresh token", zap.String("refreshToken", refreshToken))
+
+	err = h.store.UpdateUserRefreshToken(r.Context(), createOAuthUser.ID, refreshToken)
+	if err != nil {
+		h.logger.Error("failed to update user refresh token", zap.Error(err))
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to update user refresh token",
+			Data:    nil,
+		})
+		return
+	}
+
+	helper.WriteJSON(w, http.StatusOK, &types.Response{
+		Status:  http.StatusOK,
+		Message: "user oauth callback successfully",
 		Data: map[string]string{
 			"accessToken":  accessToken,
 			"refreshToken": refreshToken,

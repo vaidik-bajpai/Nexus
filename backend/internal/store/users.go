@@ -2,6 +2,8 @@ package store
 
 import (
 	"context"
+	"errors"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/vaidik-bajpai/Nexus/backend/internal/db/db"
@@ -12,10 +14,10 @@ func (s *Store) CreateCredentialsUser(ctx context.Context, user *types.CreateCre
 	userID := uuid.New().String()
 
 	userTx := s.db.User.CreateOne(
-		db.User.Username.Set(user.Username),
 		db.User.Email.Set(user.Email),
 		db.User.Password.Set(user.PasswordHash),
 		db.User.ID.Set(userID),
+		db.User.Username.Set(user.Username),
 	).Tx()
 
 	tokenTx := s.db.Token.CreateOne(
@@ -47,10 +49,15 @@ func (s *Store) GetUserByEmail(ctx context.Context, email string) (*types.User, 
 		password = ""
 	}
 
+	username, ok := user.Username()
+	if !ok {
+		username = ""
+	}
+
 	return &types.User{
 		ID:        user.ID,
-		Username:  user.Username,
-		Email:     user.Email,
+		Username:  username,
+		Email:     email,
 		Password:  password,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
@@ -66,6 +73,49 @@ func (s *Store) UpdateUserRefreshToken(ctx context.Context, userID string, refre
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (s *Store) CreateOAuthUser(ctx context.Context, user *types.CreateOAuthUser) error {
+	userID := uuid.New().String()
+
+	userTx := s.db.User.UpsertOne(
+		db.User.Email.Equals(user.Email),
+	).Create(
+		db.User.Email.Set(user.Email),
+		db.User.ID.Set(userID),
+		db.User.EmailVerified.Set(time.Now()),
+	).Update(
+		db.User.Email.Set(user.Email),
+	).Tx()
+
+	accTx := s.db.Account.UpsertOne(
+		db.Account.ProviderProviderAccountID(
+			db.Account.Provider.Equals(user.Provider),
+			db.Account.ProviderAccountID.Equals(user.ProviderAccountID),
+		),
+	).Create(
+		db.Account.Type.Set("oauth"),
+		db.Account.Provider.Set(user.Provider),
+		db.Account.ProviderAccountID.Set(user.ProviderAccountID),
+		db.Account.User.Link(
+			db.User.ID.Equals(userID),
+		),
+	).Update(
+		db.Account.Provider.Set(user.Provider),
+	).Tx()
+
+	if err := s.db.Prisma.Transaction(userTx, accTx).Exec(ctx); err != nil {
+		return err
+	}
+
+	usr := userTx.Result()
+	if user == nil {
+		return errors.New("user not found")
+	}
+
+	user.ID = usr.ID
 
 	return nil
 }
