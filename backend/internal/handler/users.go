@@ -137,9 +137,10 @@ func (h *handler) handleUserLogin(w http.ResponseWriter, r *http.Request) {
 	if err := helper.ComparePassword(user.Password, usr.Password); err != nil {
 		helper.WriteJSON(w, http.StatusUnauthorized, &types.Response{
 			Status:  http.StatusUnauthorized,
-			Message: "invalid password",
+			Message: "invalid user credentials",
 			Data:    nil,
 		})
+		return
 	}
 
 	h.logger.Debug("password is correct")
@@ -411,5 +412,165 @@ func (h *handler) handleUserLogout(w http.ResponseWriter, r *http.Request) {
 	helper.WriteJSON(w, http.StatusOK, &types.Response{
 		Status:  http.StatusOK,
 		Message: "user logged out successfully",
+	})
+}
+
+func (h *handler) handlePasswordResetFlow(w http.ResponseWriter, r *http.Request) {
+	h.logger.Debug("handling password reset flow")
+
+	var passwordResetRequest types.PasswordResetRequest
+	if err := helper.ReadJSON(r, &passwordResetRequest); err != nil {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "failed to read request body",
+			Data:    nil,
+		})
+		return
+	}
+
+	if err := h.validator.Struct(passwordResetRequest); err != nil {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "failed to validate request body",
+			Data:    nil,
+		})
+		return
+	}
+
+	h.logger.Debug("password reset request", zap.Any("passwordResetRequest", passwordResetRequest))
+
+	user, err := h.store.GetUserByEmail(r.Context(), passwordResetRequest.Email)
+	if err != nil {
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to get user by email",
+		})
+		return
+	}
+
+	if user.Password == "" {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "invalid user credentials",
+			Data:    nil,
+		})
+		return
+	}
+
+	token := &types.Token{
+		UserID: user.ID,
+		Token:  strconv.Itoa(helper.CreateRandomToken()),
+		TTL:    time.Now().Add(1 * time.Hour),
+		Scope:  "reset_password",
+	}
+
+	err = h.store.CreateToken(r.Context(), token)
+	if err != nil {
+		h.logger.Error("failed to create password reset token", zap.Error(err))
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to create password reset token",
+			Data:    nil,
+		})
+		return
+	}
+
+	if err := mailer.SendPasswordResetEmail(
+		[]string{passwordResetRequest.Email},
+		"Password Reset",
+		fmt.Sprintf("http://localhost:3000/reset-password?token=%s", token.Token),
+	); err != nil {
+		h.logger.Error("failed to send password reset email", zap.Error(err))
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to send password reset email",
+			Data:    nil,
+		})
+		return
+	}
+
+	h.logger.Debug("password reset email sent", zap.Any("passwordResetEmail", passwordResetRequest.Email))
+
+	helper.WriteJSON(w, http.StatusOK, &types.Response{
+		Status:  http.StatusOK,
+		Message: "password reset flow successfully",
+	})
+}
+
+func (h *handler) handlePasswordReset(w http.ResponseWriter, r *http.Request) {
+	h.logger.Debug("handling password reset")
+
+	token := r.URL.Query().Get("token")
+	if token == "" {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "token is required",
+		})
+		return
+	}
+
+	usr, err := h.store.GetUserByToken(r.Context(), token)
+	if err != nil {
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to get user by token",
+		})
+		return
+	}
+
+	if usr.Password == "" || usr.Token.Scope != "reset_password" || time.Now().After(usr.Token.TTL) {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "invalid or expired token",
+			Data:    nil,
+		})
+		return
+	}
+
+	var passwordReset types.PasswordReset
+	if err := helper.ReadJSON(r, &passwordReset); err != nil {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "failed to read request body",
+			Data:    nil,
+		})
+		return
+	}
+
+	if err := h.validator.Struct(passwordReset); err != nil {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "failed to validate request body",
+			Data:    nil,
+		})
+		return
+	}
+
+	h.logger.Debug("user", zap.Any("user", usr.User))
+
+	hashedPassword, err := helper.HashPassword(passwordReset.Password)
+	if err != nil {
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to hash password",
+			Data:    nil,
+		})
+		return
+	}
+
+	err = h.store.UpdateUserPassword(r.Context(), usr.ID, hashedPassword)
+	if err != nil {
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to update user password",
+		})
+		return
+	}
+
+	h.logger.Debug("user password updated")
+
+	helper.WriteJSON(w, http.StatusOK, &types.Response{
+		Status:  http.StatusOK,
+		Message: "password reset successfully",
 	})
 }

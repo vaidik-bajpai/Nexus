@@ -47,3 +47,21 @@ type GoogleOAuthUserInfo struct {
 type UserContextKey string
 
 var UserCtxKey = UserContextKey("user")
+
+type PasswordResetRequest struct {
+	Email string `json:"email" validate:"required,email"`
+}
+type Token struct {
+	UserID string    `json:"user_id"`
+	Token  string    `json:"token"`
+	TTL    time.Time `json:"ttl"`
+	Scope  string    `json:"scope"`
+}
+type TokenUser struct {
+	Token
+	User
+}
+
+type PasswordReset struct {
+	Password string `json:"password" validate:"required,min=8,max=72"`
+}

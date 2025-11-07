@@ -11,7 +11,7 @@ import (
 	"github.com/vaidik-bajpai/Nexus/backend/internal/types"
 )
 
-func VerifyAccessToken(next http.Handler) http.Handler {
+func (m *Middleware) VerifyAccessToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Println("verifying access token")
 
@@ -43,9 +43,19 @@ func VerifyAccessToken(next http.Handler) http.Handler {
 			return
 		}
 
-		log.Println("user", user)
+		usr, err := m.store.GetUserByEmail(r.Context(), user.Email)
+		if err != nil {
+			log.Println("error getting user by email", err)
+			helper.WriteJSON(w, http.StatusUnauthorized, &types.Response{
+				Status:  http.StatusUnauthorized,
+				Message: "unauthorized",
+			})
+			return
+		}
 
-		ctx := context.WithValue(r.Context(), types.UserCtxKey, user)
+		log.Println("user", usr)
+
+		ctx := context.WithValue(r.Context(), types.UserCtxKey, usr)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

@@ -67,9 +67,9 @@ Before features, let's define what we're working with:
 - [x] OAuth
 
 - [ ] Token refresh mechanism
-- [ ] Password reset flow (email-based)
+- [x] Password reset flow (email-based)
 - [x] Logout (token invalidation)
-- [ ] Middleware: Protect routes, verify tokens
+- [x] Middleware: Protect routes, verify tokens
 - [ ] Role-based access control (RBAC)
 
 ### **User Management**

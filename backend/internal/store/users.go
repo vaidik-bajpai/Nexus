@@ -119,3 +119,83 @@ func (s *Store) CreateOAuthUser(ctx context.Context, user *types.CreateOAuthUser
 
 	return nil
 }
+
+func (s *Store) CreateToken(ctx context.Context, token *types.Token) error {
+	_, err := s.db.Token.UpsertOne(
+		db.Token.UIDScope(
+			db.Token.UID.Equals(token.UserID),
+			db.Token.Scope.Equals(token.Scope),
+		),
+	).Create(
+		db.Token.Token.Set(token.Token),
+		db.Token.TTL.Set(token.TTL),
+		db.Token.Scope.Set(token.Scope),
+		db.Token.User.Link(
+			db.User.ID.Equals(token.UserID),
+		),
+	).Update(
+		db.Token.Token.Set(token.Token),
+		db.Token.TTL.Set(token.TTL),
+	).Exec(ctx)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Store) GetUserByToken(ctx context.Context, token string) (*types.TokenUser, error) {
+	t, err := s.db.Token.FindFirst(
+		db.Token.Token.Equals(token),
+	).With(
+		db.Token.User.Fetch(),
+	).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	usr := t.User()
+	if usr == nil {
+		return nil, errors.New("user not found")
+	}
+
+	username, ok := usr.Username()
+	if !ok {
+		username = ""
+	}
+
+	password, ok := usr.Password()
+	if !ok {
+		password = ""
+	}
+
+	return &types.TokenUser{
+		Token: types.Token{
+			UserID: usr.ID,
+			Token:  t.Token,
+			TTL:    t.TTL,
+			Scope:  t.Scope,
+		},
+		User: types.User{
+			ID:        usr.ID,
+			Username:  username,
+			Email:     usr.Email,
+			Password:  password,
+			CreatedAt: usr.CreatedAt,
+			UpdatedAt: usr.UpdatedAt,
+		},
+	}, nil
+}
+
+func (s *Store) UpdateUserPassword(ctx context.Context, userID string, password string) error {
+	_, err := s.db.User.FindUnique(
+		db.User.ID.Equals(userID),
+	).Update(
+		db.User.Password.Set(password),
+	).Exec(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
+}

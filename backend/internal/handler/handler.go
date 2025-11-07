@@ -14,10 +14,11 @@ import (
 )
 
 type handler struct {
-	logger    *zap.Logger
-	validator *validator.Validate
-	store     *store.Store
-	oauth2    map[string]*oauth2.Config
+	logger     *zap.Logger
+	validator  *validator.Validate
+	store      *store.Store
+	oauth2     map[string]*oauth2.Config
+	middleware *m.Middleware
 }
 
 func NewHandler(store *store.Store) *handler {
@@ -36,10 +37,11 @@ func NewHandler(store *store.Store) *handler {
 	}
 
 	return &handler{
-		logger:    l,
-		validator: v,
-		store:     store,
-		oauth2:    oauth2Configs,
+		logger:     l,
+		validator:  v,
+		store:      store,
+		oauth2:     oauth2Configs,
+		middleware: m.NewMiddleware(store),
 	}
 }
 
@@ -50,7 +52,8 @@ func (h *handler) SetupRoutes() *http.ServeMux {
 	mux.HandleFunc("POST /api/v1/users/login", h.handleUserLogin)
 	mux.HandleFunc("GET /api/v1/users/{provider}", h.handleUserOAuthFlow)
 	mux.HandleFunc("GET /api/v1/users/{provider}/callback", h.handleUserOAuthCallback)
-	mux.Handle("POST /api/v1/users/logout", m.VerifyAccessToken(http.HandlerFunc(h.handleUserLogout)))
-
+	mux.Handle("POST /api/v1/users/logout", h.middleware.VerifyAccessToken(http.HandlerFunc(h.handleUserLogout)))
+	mux.HandleFunc("POST /api/v1/users/reset-password", h.handlePasswordResetFlow)
+	mux.HandleFunc("POST /api/v1/users/password/reset", h.handlePasswordReset)
 	return mux
 }
