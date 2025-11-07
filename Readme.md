@@ -83,7 +83,9 @@ Before features, let's define what we're working with:
 - [ ] Get workspace details
 - [ ] Update workspace
 - [ ] Delete workspace (owner only)
-- [ ] List user's workspaces
+**List user's workspaces**
+- [x] basic
+- [ ] paginated
 
 ### **Project Management**
 - [ ] Create project within workspace

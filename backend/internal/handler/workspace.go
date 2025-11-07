@@ -35,6 +35,7 @@ func (h *handler) handleCreateWorkspace(w http.ResponseWriter, r *http.Request) 
 	workspace.UserID = user.ID
 
 	if err := h.store.CreateWorkspace(r.Context(), &workspace); err != nil {
+		h.logger.Error("failed to create workspace", zap.Error(err))
 		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
 			Status:  http.StatusInternalServerError,
 			Message: "failed to create workspace",
@@ -48,5 +49,29 @@ func (h *handler) handleCreateWorkspace(w http.ResponseWriter, r *http.Request) 
 		Status:  http.StatusCreated,
 		Message: "workspace created successfully",
 		Data:    nil,
+	})
+}
+
+func (h *handler) handleListWorkspaces(w http.ResponseWriter, r *http.Request) {
+	h.logger.Debug("handling workspace list")
+
+	user := r.Context().Value(types.UserCtxKey).(*types.User)
+	h.logger.Debug("user", zap.Any("user", user))
+
+	workspaces, err := h.store.ListWorkspaces(r.Context(), user.ID)
+	if err != nil {
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to list workspaces",
+		})
+		return
+	}
+
+	h.logger.Debug("workspaces listed successfully", zap.Any("workspaces", workspaces))
+
+	helper.WriteJSON(w, http.StatusOK, &types.Response{
+		Status:  http.StatusOK,
+		Message: "workspaces listed successfully",
+		Data:    workspaces,
 	})
 }

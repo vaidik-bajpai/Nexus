@@ -9,7 +9,7 @@ import (
 
 func (s *Store) CreateWorkspace(ctx context.Context, workspace *types.CreateWorkspace) error {
 	_, err := s.db.Workspace.CreateOne(
-		db.Workspace.Name.Equals(workspace.Name),
+		db.Workspace.Name.Set(workspace.Name),
 		db.Workspace.Description.Set(workspace.Description),
 		db.Workspace.User.Link(
 			db.User.ID.Equals(workspace.UserID),
@@ -20,4 +20,27 @@ func (s *Store) CreateWorkspace(ctx context.Context, workspace *types.CreateWork
 	}
 
 	return nil
+}
+
+func (s *Store) ListWorkspaces(ctx context.Context, userID string) ([]*types.Workspace, error) {
+	workspaces, err := s.db.Workspace.FindMany(
+		db.Workspace.UserID.Equals(userID),
+	).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var workspacesList []*types.Workspace
+	for _, workspace := range workspaces {
+		workspacesList = append(workspacesList, &types.Workspace{
+			ID:          workspace.ID,
+			UserID:      workspace.UserID,
+			Name:        workspace.Name,
+			Description: workspace.Description,
+			CreatedAt:   workspace.CreatedAt,
+			UpdatedAt:   workspace.UpdatedAt,
+		})
+	}
+
+	return workspacesList, nil
 }

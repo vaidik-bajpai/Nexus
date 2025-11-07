@@ -58,6 +58,7 @@ func (h *handler) SetupRoutes() *http.ServeMux {
 	mux.HandleFunc("POST /api/v1/users/refresh-token", h.handleRefreshToken)
 
 	mux.Handle("POST /api/v1/workspace/create", h.middleware.VerifyAccessToken(http.HandlerFunc(h.handleCreateWorkspace)))
+	mux.Handle("GET /api/v1/workspace/list", h.middleware.VerifyAccessToken(http.HandlerFunc(h.handleListWorkspaces)))
 
 	return mux
 }
