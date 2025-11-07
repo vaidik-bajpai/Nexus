@@ -68,7 +68,7 @@ Before features, let's define what we're working with:
 
 - [ ] Token refresh mechanism
 - [ ] Password reset flow (email-based)
-- [ ] Logout (token invalidation)
+- [x] Logout (token invalidation)
 - [ ] Middleware: Protect routes, verify tokens
 - [ ] Role-based access control (RBAC)
 

@@ -145,7 +145,11 @@ func (h *handler) handleUserLogin(w http.ResponseWriter, r *http.Request) {
 	h.logger.Debug("password is correct")
 
 	// generate token
-	accessToken, refreshToken, err := helper.GenerateAccessAndRefreshTokens(user.ID)
+	accessToken, refreshToken, err := helper.GenerateAccessAndRefreshTokens(&types.User{
+		ID:       user.ID,
+		Email:    user.Email,
+		Username: user.Username,
+	})
 	if err != nil {
 		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
 			Status:  http.StatusInternalServerError,
@@ -351,7 +355,10 @@ func (h *handler) handleUserOAuthCallback(w http.ResponseWriter, r *http.Request
 
 	h.logger.Debug("oauth user created", zap.Any("oauthUser", createOAuthUser))
 
-	accessToken, refreshToken, err := helper.GenerateAccessAndRefreshTokens(token.AccessToken)
+	accessToken, refreshToken, err := helper.GenerateAccessAndRefreshTokens(&types.User{
+		ID:    createOAuthUser.ID,
+		Email: createOAuthUser.Email,
+	})
 	if err != nil {
 		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
 			Status:  http.StatusInternalServerError,
@@ -381,5 +388,28 @@ func (h *handler) handleUserOAuthCallback(w http.ResponseWriter, r *http.Request
 			"accessToken":  accessToken,
 			"refreshToken": refreshToken,
 		},
+	})
+}
+
+func (h *handler) handleUserLogout(w http.ResponseWriter, r *http.Request) {
+	h.logger.Debug("handling user logout")
+
+	user := r.Context().Value(types.UserCtxKey).(*types.User)
+	h.logger.Debug("user", zap.Any("user", user))
+
+	err := h.store.UpdateUserRefreshToken(r.Context(), user.ID, "")
+	if err != nil {
+		h.logger.Error("failed to update user refresh token", zap.Error(err))
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to update user refresh token",
+		})
+	}
+
+	h.logger.Debug("user refresh token updated")
+
+	helper.WriteJSON(w, http.StatusOK, &types.Response{
+		Status:  http.StatusOK,
+		Message: "user logged out successfully",
 	})
 }

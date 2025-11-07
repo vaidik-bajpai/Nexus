@@ -3,11 +3,14 @@ package helper
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"io"
 	mathrand "math/rand"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/vaidik-bajpai/Nexus/backend/internal/types"
 )
 
 func CreateRandomToken() int {
@@ -15,14 +18,15 @@ func CreateRandomToken() int {
 	return r.Intn(1000000)
 }
 
-func GenerateAccessAndRefreshTokens(userID string) (string, string, error) {
+func GenerateAccessAndRefreshTokens(user *types.User) (string, string, error) {
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": userID,
-		"exp": time.Now().Add(15 * time.Minute),
+		"user": *user,
+		"exp":  time.Now().Add(15 * time.Minute).Unix(),
 	})
+
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": userID,
-		"exp": time.Now().Add(7 * 24 * time.Hour),
+		"user": *user,
+		"exp":  time.Now().Add(7 * 24 * time.Hour).Unix(),
 	})
 
 	accessTokenString, err := accessToken.SignedString([]byte(GetStrEnvOrPanic("ACCESS_TOKEN_SECRET")))
@@ -35,6 +39,39 @@ func GenerateAccessAndRefreshTokens(userID string) (string, string, error) {
 	}
 
 	return accessTokenString, refreshTokenString, nil
+}
+
+func VerifyAccessToken(tokenString string) (*types.User, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+		return []byte(GetStrEnvOrPanic("ACCESS_TOKEN_SECRET")), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		// Extract user from claims (it's stored as a map[string]interface{})
+		userMap, ok := claims["user"].(map[string]interface{})
+		if !ok {
+			return nil, errors.New("invalid token: user claim not found")
+		}
+
+		// Marshal the map to JSON
+		userJSON, err := json.Marshal(userMap)
+		if err != nil {
+			return nil, errors.New("invalid token: failed to marshal user")
+		}
+
+		// Unmarshal JSON back into User struct
+		var user types.User
+		if err := json.Unmarshal(userJSON, &user); err != nil {
+			return nil, errors.New("invalid token: failed to unmarshal user")
+		}
+
+		return &user, nil
+	}
+
+	return nil, errors.New("invalid token")
 }
 
 func GenerateOAuthState() (string, error) {

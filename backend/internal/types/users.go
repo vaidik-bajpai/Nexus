@@ -43,3 +43,7 @@ type GoogleOAuthUserInfo struct {
 	Picture       string `json:"picture"`
 	Locale        string `json:"locale"`
 }
+
+type UserContextKey string
+
+var UserCtxKey = UserContextKey("user")

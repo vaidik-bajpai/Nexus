@@ -9,6 +9,8 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+
+	m "github.com/vaidik-bajpai/Nexus/backend/internal/middleware"
 )
 
 type handler struct {
@@ -48,6 +50,7 @@ func (h *handler) SetupRoutes() *http.ServeMux {
 	mux.HandleFunc("POST /api/v1/users/login", h.handleUserLogin)
 	mux.HandleFunc("GET /api/v1/users/{provider}", h.handleUserOAuthFlow)
 	mux.HandleFunc("GET /api/v1/users/{provider}/callback", h.handleUserOAuthCallback)
+	mux.Handle("POST /api/v1/users/logout", m.VerifyAccessToken(http.HandlerFunc(h.handleUserLogout)))
 
 	return mux
 }
