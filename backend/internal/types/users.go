@@ -18,12 +18,13 @@ type LoginCredentialsUser struct {
 }
 
 type User struct {
-	ID        string    `json:"id"`
-	Username  string    `json:"username"`
-	Email     string    `json:"email"`
-	Password  string    `json:"-"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID            string    `json:"id"`
+	Username      string    `json:"username"`
+	Email         string    `json:"email"`
+	Password      string    `json:"-"`
+	RefereshToken string    `json:"refresh_token"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 }
 
 type CreateOAuthUser struct {
@@ -61,7 +62,10 @@ type TokenUser struct {
 	Token
 	User
 }
-
 type PasswordReset struct {
 	Password string `json:"password" validate:"required,min=8,max=72"`
+}
+
+type RefreshToken struct {
+	RefreshToken string `json:"refreshToken" validate:"required"`
 }

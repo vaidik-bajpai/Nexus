@@ -33,7 +33,7 @@ func (m *Middleware) VerifyAccessToken(next http.Handler) http.Handler {
 			return
 		}
 
-		user, err := helper.VerifyAccessToken(token)
+		user, err := helper.VerifyToken(token, helper.GetStrEnvOrPanic("ACCESS_TOKEN_SECRET"))
 		if err != nil {
 			log.Println("error verifying access token", err)
 			helper.WriteJSON(w, http.StatusUnauthorized, &types.Response{

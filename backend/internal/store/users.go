@@ -54,13 +54,19 @@ func (s *Store) GetUserByEmail(ctx context.Context, email string) (*types.User, 
 		username = ""
 	}
 
+	refreshToken, ok := user.RefreshToken()
+	if !ok {
+		refreshToken = ""
+	}
+
 	return &types.User{
-		ID:        user.ID,
-		Username:  username,
-		Email:     email,
-		Password:  password,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
+		ID:            user.ID,
+		Username:      username,
+		Email:         email,
+		Password:      password,
+		RefereshToken: refreshToken,
+		CreatedAt:     user.CreatedAt,
+		UpdatedAt:     user.UpdatedAt,
 	}, nil
 }
 

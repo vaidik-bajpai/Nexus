@@ -574,3 +574,71 @@ func (h *handler) handlePasswordReset(w http.ResponseWriter, r *http.Request) {
 		Message: "password reset successfully",
 	})
 }
+
+func (h *handler) handleRefreshToken(w http.ResponseWriter, r *http.Request) {
+	var refreshToken types.RefreshToken
+	if err := helper.ReadJSON(r, refreshToken); err != nil {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "invalid refresh token credentials",
+			Data:    nil,
+		})
+		return
+	}
+
+	if err := h.validator.Struct(refreshToken); err != nil {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "invalid refresh token credentials",
+			Data:    nil,
+		})
+		return
+	}
+
+	usr, err := helper.VerifyToken(refreshToken.RefreshToken, helper.GetStrEnvOrPanic("REFRESH_TOKEN_SECRET"))
+	if err != nil {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "invalid refresh token credentials",
+			Data:    nil,
+		})
+		return
+	}
+
+	dbUsr, err := h.store.GetUserByEmail(context.Background(), usr.Email)
+	if err != nil {
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "something went wrong with our server",
+			Data:    nil,
+		})
+		return
+	}
+
+	if dbUsr.RefereshToken != refreshToken.RefreshToken {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "invalid refresh token credentials",
+			Data:    nil,
+		})
+		return
+	}
+
+	accessToken, _, err := helper.GenerateAccessAndRefreshTokens(usr)
+	if err != nil {
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "could not issue new access token",
+			Data:    nil,
+		})
+		return
+	}
+
+	helper.WriteJSON(w, http.StatusOK, &types.Response{
+		Status:  http.StatusOK,
+		Message: "access token refresh successfully",
+		Data: map[string]any{
+			"access_token": accessToken,
+		},
+	})
+}

@@ -41,9 +41,9 @@ func GenerateAccessAndRefreshTokens(user *types.User) (string, string, error) {
 	return accessTokenString, refreshTokenString, nil
 }
 
-func VerifyAccessToken(tokenString string) (*types.User, error) {
+func VerifyToken(tokenString string, tokenSecret string) (*types.User, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
-		return []byte(GetStrEnvOrPanic("ACCESS_TOKEN_SECRET")), nil
+		return []byte(tokenSecret), nil
 	})
 	if err != nil {
 		return nil, err

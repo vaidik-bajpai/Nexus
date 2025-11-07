@@ -55,5 +55,7 @@ func (h *handler) SetupRoutes() *http.ServeMux {
 	mux.Handle("POST /api/v1/users/logout", h.middleware.VerifyAccessToken(http.HandlerFunc(h.handleUserLogout)))
 	mux.HandleFunc("POST /api/v1/users/reset-password", h.handlePasswordResetFlow)
 	mux.HandleFunc("POST /api/v1/users/password/reset", h.handlePasswordReset)
+	mux.HandleFunc("POST /api/v1/users/refresh-token", h.handleRefreshToken)
+
 	return mux
 }

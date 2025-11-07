@@ -66,7 +66,7 @@ Before features, let's define what we're working with:
 - [x] Credentials
 - [x] OAuth
 
-- [ ] Token refresh mechanism
+- [x] Token refresh mechanism
 - [x] Password reset flow (email-based)
 - [x] Logout (token invalidation)
 - [x] Middleware: Protect routes, verify tokens
