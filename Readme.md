@@ -79,7 +79,7 @@ Before features, let's define what we're working with:
 - [ ] Delete account
 
 ### **Workspace Management**
-- [ ] Create workspace
+- [x] Create workspace
 - [ ] Get workspace details
 - [ ] Update workspace
 - [ ] Delete workspace (owner only)

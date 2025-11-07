@@ -23,6 +23,7 @@ model User {
     
     token             Token[]
     accounts          Account[]
+    workspaces        Workspace[]
     
     @@index([email])
     @@map("users")
@@ -54,4 +55,16 @@ model Account {
     @@unique([provider, providerAccountId])
     @@index([userId])
     @@map("accounts")
+}
+
+model Workspace {
+    id String @id @default(uuid())
+    name String
+    description String
+    userId String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now())
+    user  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([name, userId])
 }
