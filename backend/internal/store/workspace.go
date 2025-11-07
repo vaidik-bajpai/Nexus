@@ -44,3 +44,21 @@ func (s *Store) ListWorkspaces(ctx context.Context, userID string) ([]*types.Wor
 
 	return workspacesList, nil
 }
+
+func (s *Store) GetWorkspace(ctx context.Context, id string) (*types.Workspace, error) {
+	workspace, err := s.db.Workspace.FindUnique(
+		db.Workspace.ID.Equals(id),
+	).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.Workspace{
+		ID:          workspace.ID,
+		UserID:      workspace.UserID,
+		Name:        workspace.Name,
+		Description: workspace.Description,
+		CreatedAt:   workspace.CreatedAt,
+		UpdatedAt:   workspace.UpdatedAt,
+	}, nil
+}

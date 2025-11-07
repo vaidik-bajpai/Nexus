@@ -75,3 +75,39 @@ func (h *handler) handleListWorkspaces(w http.ResponseWriter, r *http.Request) {
 		Data:    workspaces,
 	})
 }
+
+func (h *handler) handleGetWorkspace(w http.ResponseWriter, r *http.Request) {
+	h.logger.Debug("handling workspace get")
+
+	user := r.Context().Value(types.UserCtxKey).(*types.User)
+	h.logger.Debug("user", zap.Any("user", user))
+
+	id := r.PathValue("workspace_id")
+	if id == "" {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "workspace id is required",
+		})
+		return
+	}
+
+	h.logger.Debug("workspace id", zap.String("id", id))
+
+	workspace, err := h.store.GetWorkspace(r.Context(), id)
+	if err != nil {
+		h.logger.Error("failed to get workspace", zap.Error(err))
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to get workspace",
+		})
+		return
+	}
+
+	h.logger.Debug("workspace get successfully", zap.Any("workspace", workspace))
+
+	helper.WriteJSON(w, http.StatusOK, &types.Response{
+		Status:  http.StatusOK,
+		Message: "workspace get successfully",
+		Data:    workspace,
+	})
+}

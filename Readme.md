@@ -80,7 +80,7 @@ Before features, let's define what we're working with:
 
 ### **Workspace Management**
 - [x] Create workspace
-- [ ] Get workspace details
+- [x] Get workspace details
 - [ ] Update workspace
 - [ ] Delete workspace (owner only)
 **List user's workspaces**
