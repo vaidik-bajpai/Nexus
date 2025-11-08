@@ -24,6 +24,7 @@ model User {
     token             Token[]
     accounts          Account[]
     workspaces        Workspace[]
+    workspaceMember   WorkspaceMember[]
     
     @@index([email])
     @@map("users")
@@ -65,6 +66,26 @@ model Workspace {
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now())
     user  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+    workspaceMember   WorkspaceMember[]
+    
     @@unique([name, userId])
+}
+
+model WorkspaceMember {
+    id          String    @id @default(uuid())
+    workspaceId String
+    userId      String
+    role        String    // admin, manager, member
+    invitedAt   DateTime  @default(now())
+    joinedAt    DateTime?
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+
+    workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+    user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([workspaceId, userId])
+    @@index([workspaceId])
+    @@index([userId])
+    @@map("workspace_members")
 }

@@ -1,8 +1,7 @@
 package handler
 
 import (
-	"net/http"
-
+	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/vaidik-bajpai/Nexus/backend/internal/helper"
 	"github.com/vaidik-bajpai/Nexus/backend/internal/store"
@@ -45,21 +44,25 @@ func NewHandler(store *store.Store) *handler {
 	}
 }
 
-func (h *handler) SetupRoutes() *http.ServeMux {
-	mux := http.NewServeMux()
+func (h *handler) SetupRoutes() *chi.Mux {
+	r := chi.NewRouter()
 
-	mux.HandleFunc("POST /api/v1/users/register", h.handleUserRegistration)
-	mux.HandleFunc("POST /api/v1/users/login", h.handleUserLogin)
-	mux.HandleFunc("GET /api/v1/users/{provider}", h.handleUserOAuthFlow)
-	mux.HandleFunc("GET /api/v1/users/{provider}/callback", h.handleUserOAuthCallback)
-	mux.Handle("POST /api/v1/users/logout", h.middleware.VerifyAccessToken(http.HandlerFunc(h.handleUserLogout)))
-	mux.HandleFunc("POST /api/v1/users/reset-password", h.handlePasswordResetFlow)
-	mux.HandleFunc("POST /api/v1/users/password/reset", h.handlePasswordReset)
-	mux.HandleFunc("POST /api/v1/users/refresh-token", h.handleRefreshToken)
+	r.Route("/api/v1/users", func(r chi.Router) {
+		r.Post("/register", h.handleUserRegistration)
+		r.Post("/login", h.handleUserLogin)
+		r.Get("/{provider}", h.handleUserOAuthFlow)
+		r.Get("/{provider}/callback", h.handleUserOAuthCallback)
+		r.With(h.middleware.VerifyAccessToken).Post("/logout", h.handleUserLogout)
+		r.Post("/reset-password", h.handlePasswordResetFlow)
+		r.Post("/password/reset", h.handlePasswordReset)
+		r.Post("/refresh-token", h.handleRefreshToken)
+	})
 
-	mux.Handle("POST /api/v1/workspace/create", h.middleware.VerifyAccessToken(http.HandlerFunc(h.handleCreateWorkspace)))
-	mux.Handle("GET /api/v1/workspace/list", h.middleware.VerifyAccessToken(http.HandlerFunc(h.handleListWorkspaces)))
-	mux.Handle("GET /api/v1/workspace/{workspace_id}", h.middleware.VerifyAccessToken(http.HandlerFunc(h.handleGetWorkspace)))
+	r.Route("/api/v1/workspace", func(r chi.Router) {
+		r.With(h.middleware.VerifyAccessToken).Post("/create", h.handleCreateWorkspace)
+		r.With(h.middleware.VerifyAccessToken).Get("/list", h.handleListWorkspaces)
+		r.With(h.middleware.VerifyAccessToken).Get("/{workspace_id}", h.handleGetWorkspace)
+	})
 
-	return mux
+	return r
 }
