@@ -2,6 +2,12 @@ package types
 
 import "time"
 
+var WorkspaceRoles = map[string]int64{
+	"admin":   1,
+	"manager": 2,
+	"member":  3,
+}
+
 type CreateWorkspace struct {
 	UserID      string `json:"-"`
 	Name        string `json:"name" validate:"required,max=32"`
@@ -26,4 +32,9 @@ type WorkspaceMember struct {
 	Role        string    `json:"role"`
 	JoinedAt    time.Time `json:"joined_at"`
 	InvitedAt   time.Time `json:"invited_at"`
+}
+
+type InviteToWorkspace struct {
+	Email string `json:"email" validate:"required,email"`
+	Role  string `json:"role" validate:"required,oneof=admin manager member"`
 }

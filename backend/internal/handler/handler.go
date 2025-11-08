@@ -62,6 +62,11 @@ func (h *handler) SetupRoutes() *chi.Mux {
 		r.With(h.middleware.VerifyAccessToken).Post("/create", h.handleCreateWorkspace)
 		r.With(h.middleware.VerifyAccessToken).Get("/list", h.handleListWorkspaces)
 		r.With(h.middleware.VerifyAccessToken).Get("/{workspace_id}", h.handleGetWorkspace)
+		r.Route("/{workspace_id}", func(r chi.Router) {
+			r.Use(h.middleware.VerifyAccessToken)
+			r.Use(h.middleware.RequireManager())
+			r.Post("/project/create", h.handleCreateProject)
+		})
 	})
 
 	return r

@@ -25,6 +25,7 @@ model User {
     accounts          Account[]
     workspaces        Workspace[]
     workspaceMember   WorkspaceMember[]
+    createdProjects   Project[]
     
     @@index([email])
     @@map("users")
@@ -67,6 +68,7 @@ model Workspace {
     updatedAt DateTime @default(now())
     user  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
     workspaceMember   WorkspaceMember[]
+    projects           Project[]
     
     @@unique([name, userId])
 }
@@ -88,4 +90,24 @@ model WorkspaceMember {
     @@index([workspaceId])
     @@index([userId])
     @@map("workspace_members")
+}
+
+model Project {
+    id          String   @id @default(uuid())
+    workspaceId String
+    name        String   @db.VarChar(255)
+    description String?  @db.Text
+    status      String   @default("active") // active, archived, completed
+    color       String?  @db.VarChar(7) // hex color code
+    createdBy   String
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+    creator   User      @relation(fields: [createdBy], references: [id], onDelete: Restrict)
+
+    @@index([workspaceId])
+    @@index([createdBy])
+    @@index([status])
+    @@map("projects")
 }

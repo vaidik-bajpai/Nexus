@@ -88,7 +88,7 @@ Before features, let's define what we're working with:
 - [ ] paginated
 
 ### **Project Management**
-- [ ] Create project within workspace
+- [x] Create project within workspace
 - [ ] List projects in workspace
 - [ ] Get project details
 - [ ] Update project
