@@ -73,5 +73,13 @@ func (h *handler) SetupRoutes() *chi.Mux {
 		})
 	})
 
+	r.Route("/api/v1/tasks", func(r chi.Router) {
+		r.Use(h.middleware.VerifyAccessToken)
+		r.Route("/{project_id}", func(r chi.Router) {
+			r.Use(h.middleware.VerifyProjectAccess("manager"))
+			r.Post("/create", h.handleCreateTask)
+		})
+	})
+
 	return r
 }

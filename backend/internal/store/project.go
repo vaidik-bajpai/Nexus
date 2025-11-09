@@ -62,3 +62,34 @@ func (s *Store) ListProjects(ctx context.Context, workspaceID string) ([]*types.
 
 	return projectsList, nil
 }
+
+func (s *Store) GetProject(ctx context.Context, projectID string) (*types.Project, error) {
+	project, err := s.db.Project.FindUnique(
+		db.Project.ID.Equals(projectID),
+	).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	description, ok := project.Description()
+	if !ok {
+		description = ""
+	}
+
+	color, ok := project.Color()
+	if !ok {
+		color = ""
+	}
+
+	return &types.Project{
+		ID:          project.ID,
+		Name:        project.Name,
+		Description: description,
+		Status:      project.Status,
+		Color:       color,
+		CreatedAt:   project.CreatedAt,
+		UpdatedAt:   project.UpdatedAt,
+		CreatedBy:   project.CreatedBy,
+		WorkspaceID: project.WorkspaceID,
+	}, nil
+}

@@ -26,6 +26,8 @@ model User {
     workspaces        Workspace[]
     workspaceMember   WorkspaceMember[]
     createdProjects   Project[]
+    createdTasks      Task[]      @relation("TaskCreator")
+    assignedTasks     Task[]      @relation("TaskAssignee")
     
     @@index([email])
     @@map("users")
@@ -105,9 +107,52 @@ model Project {
 
     workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
     creator   User      @relation(fields: [createdBy], references: [id], onDelete: Restrict)
+    tasks     Task[]
 
     @@index([workspaceId])
     @@index([createdBy])
     @@index([status])
     @@map("projects")
+}
+
+model Task {
+    id          String    @id @default(uuid())
+    projectId   String
+    title       String    @db.VarChar(255)
+    description String?   @db.Text
+    status      String    @default("todo") // todo, in_progress, done, etc.
+    priority    String    @default("medium") // low, medium, high, urgent
+    dueDate     DateTime?
+    assignedTo  String?
+    createdBy   String
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+
+    project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    assignee   User?     @relation("TaskAssignee", fields: [assignedTo], references: [id], onDelete: SetNull)
+    creator    User      @relation("TaskCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+    dependencies TaskDependency[] @relation("TaskDependencies")
+    dependents   TaskDependency[] @relation("TaskDependents")
+
+    @@index([projectId])
+    @@index([assignedTo])
+    @@index([createdBy])
+    @@index([status])
+    @@index([priority])
+    @@index([dueDate])
+    @@map("tasks")
+}
+
+model TaskDependency {
+    id          String @id @default(uuid())
+    taskId      String
+    dependsOnId String
+
+    task      Task @relation("TaskDependencies", fields: [taskId], references: [id], onDelete: Cascade)
+    dependsOn Task @relation("TaskDependents", fields: [dependsOnId], references: [id], onDelete: Cascade)
+
+    @@unique([taskId, dependsOnId])
+    @@index([taskId])
+    @@index([dependsOnId])
+    @@map("task_dependencies")
 }
