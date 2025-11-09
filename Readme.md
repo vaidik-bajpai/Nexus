@@ -100,7 +100,7 @@ Before features, let's define what we're working with:
 
 ### **Task Management (CRUD)**
 - [x] Create task
-- [ ] Get task details
+- [x] Get task details
 - [x] List tasks (with filters: status, assignee, priority, project)
 - [ ] Update task (title, description, status, priority, due date)
 - [ ] Delete task

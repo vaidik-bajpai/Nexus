@@ -78,6 +78,7 @@ func (h *handler) SetupRoutes() *chi.Mux {
 		r.Route("/{project_id}", func(r chi.Router) {
 			r.With(h.middleware.VerifyProjectAccess("manager")).Post("/create", h.handleCreateTask)
 			r.With(h.middleware.VerifyProjectAccess("member")).Get("/list", h.handleListTasks)
+			r.With(h.middleware.VerifyProjectAccess("member")).Get("/get/{task_id}", h.handleGetTaskByID)
 		})
 	})
 

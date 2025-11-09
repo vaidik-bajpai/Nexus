@@ -102,3 +102,39 @@ func (s *Store) ListTasks(ctx context.Context, listTasks *types.ListTasks) ([]*t
 	}
 	return tasksList, nil
 }
+
+func (s *Store) GetTask(ctx context.Context, taskID string) (*types.Task, error) {
+	task, err := s.db.Task.FindUnique(
+		db.Task.ID.Equals(taskID),
+	).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	description, ok := task.Description()
+	if !ok {
+		description = ""
+	}
+
+	dueDate, ok := task.DueDate()
+	if !ok {
+		dueDate = time.Time{}
+	}
+
+	assignedTo, ok := task.AssignedTo()
+	if !ok {
+		assignedTo = ""
+	}
+
+	return &types.Task{
+		ID:          task.ID,
+		Title:       task.Title,
+		Description: description,
+		Status:      task.Status,
+		Priority:    task.Priority,
+		DueDate:     dueDate,
+		AssignedTo:  assignedTo,
+		CreatedBy:   task.CreatedBy,
+		CreatedAt:   task.CreatedAt,
+	}, nil
+}

@@ -126,3 +126,31 @@ func (h *handler) handleListTasks(w http.ResponseWriter, r *http.Request) {
 		Data:    tasks,
 	})
 }
+
+func (h *handler) handleGetTaskByID(w http.ResponseWriter, r *http.Request) {
+	h.logger.Debug("handling task get by id")
+
+	taskID := r.PathValue("task_id")
+	if taskID == "" {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "task id is required",
+		})
+		return
+	}
+
+	task, err := h.store.GetTask(r.Context(), taskID)
+	if err != nil {
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to get task",
+		})
+		return
+	}
+
+	helper.WriteJSON(w, http.StatusOK, &types.Response{
+		Status:  http.StatusOK,
+		Message: "task get by id successfully",
+		Data:    task,
+	})
+}
