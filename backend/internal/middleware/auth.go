@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"net/http"
 	"strings"
 
@@ -55,7 +54,6 @@ func (m *Middleware) VerifyAccessToken(next http.Handler) http.Handler {
 
 		log.Println("user", usr)
 
-		ctx := context.WithValue(r.Context(), types.UserCtxKey, usr)
-		next.ServeHTTP(w, r.WithContext(ctx))
+		next.ServeHTTP(w, helper.SetUserInRequestContext(r, usr))
 	})
 }

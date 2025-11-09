@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/vaidik-bajpai/Nexus/backend/internal/db/db"
@@ -46,4 +47,58 @@ func (s *Store) CreateTask(ctx context.Context, task *types.CreateTask) error {
 	}
 
 	return nil
+}
+
+func (s *Store) ListTasks(ctx context.Context, listTasks *types.ListTasks) ([]*types.Task, error) {
+	query := s.db.Task.FindMany(
+		db.Task.ProjectID.Equals(listTasks.ProjectID),
+	)
+
+	if listTasks.Filter == "created_at" {
+		query = query.OrderBy(db.Task.CreatedAt.Order(db.SortOrder(listTasks.Direction)))
+	}
+
+	if listTasks.Filter == "priority" {
+		query = query.OrderBy(db.Task.Priority.Order(db.SortOrder(listTasks.Direction)))
+	}
+
+	if listTasks.Filter == "due_date" {
+		query = query.OrderBy(db.Task.DueDate.Order(db.SortOrder(listTasks.Direction)))
+	}
+
+	tasks, err := query.Skip((listTasks.Page - 1) * listTasks.Limit).Take(listTasks.Limit).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var tasksList []*types.Task
+	for _, task := range tasks {
+		description, ok := task.Description()
+		if !ok {
+			description = ""
+		}
+
+		dueDate, ok := task.DueDate()
+		if !ok {
+			dueDate = time.Time{}
+		}
+
+		assignedTo, ok := task.AssignedTo()
+		if !ok {
+			assignedTo = ""
+		}
+
+		tasksList = append(tasksList, &types.Task{
+			ID:          task.ID,
+			Title:       task.Title,
+			Description: description,
+			Status:      task.Status,
+			Priority:    task.Priority,
+			DueDate:     dueDate,
+			AssignedTo:  assignedTo,
+			CreatedBy:   task.CreatedBy,
+			CreatedAt:   task.CreatedAt,
+		})
+	}
+	return tasksList, nil
 }

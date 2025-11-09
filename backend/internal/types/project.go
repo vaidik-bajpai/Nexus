@@ -22,3 +22,7 @@ type Project struct {
 	CreatedBy   string    `json:"created_by"`
 	WorkspaceID string    `json:"workspace_id"`
 }
+
+type ProjectContextKey string
+
+var ProjectCtxKey = ProjectContextKey("project")

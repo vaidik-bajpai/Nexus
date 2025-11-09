@@ -62,7 +62,7 @@ func (m *Middleware) VerifyProjectAccess(requiredRole string) func(http.Handler)
 					}
 					// Lower number = higher privilege (admin=1, manager=2, member=3)
 					if memberRoleLevel <= requiredRoleLevel {
-						next.ServeHTTP(w, r)
+						next.ServeHTTP(w, helper.SetProjectInRequestContext(r, project))
 						return
 					}
 				}
