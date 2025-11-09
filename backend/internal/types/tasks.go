@@ -33,3 +33,13 @@ type Task struct {
 	CreatedBy   string    `json:"created_by"`
 	CreatedAt   time.Time `json:"created_at"`
 }
+
+type UpdateTask struct {
+	ID          string     `json:"-" validate:"required,uuid"`
+	Title       *string    `json:"title" validate:"omitempty,max=255"`
+	Description *string    `json:"description" validate:"omitempty,max=1024"`
+	Status      *string    `json:"status" validate:"omitempty,oneof=todo in_progress in_review done"`
+	Priority    *string    `json:"priority" validate:"omitempty,oneof=low medium high urgent"`
+	DueDate     *time.Time `json:"due_date" validate:"omitempty"`
+	AssignedTo  *string    `json:"assigned_to" validate:"omitempty,uuid"`
+}

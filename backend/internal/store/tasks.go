@@ -138,3 +138,20 @@ func (s *Store) GetTask(ctx context.Context, taskID string) (*types.Task, error)
 		CreatedAt:   task.CreatedAt,
 	}, nil
 }
+
+func (s *Store) UpdateTask(ctx context.Context, task *types.UpdateTask) error {
+	_, err := s.db.Task.FindUnique(
+		db.Task.ID.Equals(task.ID),
+	).Update(
+		db.Task.Title.SetIfPresent(task.Title),
+		db.Task.Description.SetIfPresent(task.Description),
+		db.Task.Status.SetIfPresent(task.Status),
+		db.Task.Priority.SetIfPresent(task.Priority),
+		db.Task.DueDate.SetIfPresent(task.DueDate),
+		db.Task.AssignedTo.SetIfPresent(task.AssignedTo),
+	).Exec(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
+}

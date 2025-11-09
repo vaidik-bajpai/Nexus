@@ -154,3 +154,49 @@ func (h *handler) handleGetTaskByID(w http.ResponseWriter, r *http.Request) {
 		Data:    task,
 	})
 }
+
+func (h *handler) handleUpdateTask(w http.ResponseWriter, r *http.Request) {
+	h.logger.Debug("handling task update")
+
+	taskID := r.PathValue("task_id")
+	if taskID == "" {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "task id is required",
+		})
+		return
+	}
+
+	var task types.UpdateTask
+	if err := helper.ReadJSON(r, &task); err != nil {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "failed to read request body",
+		})
+		return
+	}
+
+	task.ID = taskID
+
+	if err := h.validator.Struct(task); err != nil {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "failed to validate request body",
+		})
+		return
+	}
+
+	if err := h.store.UpdateTask(r.Context(), &task); err != nil {
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to update task",
+		})
+		return
+	}
+
+	helper.WriteJSON(w, http.StatusOK, &types.Response{
+		Status:  http.StatusOK,
+		Message: "task updated successfully",
+		Data:    nil,
+	})
+}
