@@ -43,3 +43,7 @@ type UpdateTask struct {
 	DueDate     *time.Time `json:"due_date" validate:"omitempty"`
 	AssignedTo  *string    `json:"assigned_to" validate:"omitempty,uuid"`
 }
+
+type AssignTask struct {
+	AssignedTo string `json:"assigned_to" validate:"required,uuid"`
+}

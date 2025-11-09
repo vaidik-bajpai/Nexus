@@ -169,3 +169,15 @@ func (s *Store) DeleteTask(ctx context.Context, taskID string) error {
 	}
 	return nil
 }
+
+func (s *Store) AssignTask(ctx context.Context, taskID, assignedTo string) error {
+	_, err := s.db.Task.FindUnique(
+		db.Task.ID.Equals(taskID),
+	).Update(
+		db.Task.AssignedTo.Set(assignedTo),
+	).Exec(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
+}

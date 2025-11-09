@@ -104,7 +104,7 @@ Before features, let's define what we're working with:
 - [x] List tasks (with filters: status, assignee, priority, project)
 - [x] Update task (title, description, status, priority, due date)
 - [x] Delete task
-- [ ] Assign/reassign task to user
+- [x] Assign/reassign task to user
 - [ ] Add/remove tags
 
 ### **Basic API Features**

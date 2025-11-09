@@ -227,3 +227,47 @@ func (h *handler) handleDeleteTask(w http.ResponseWriter, r *http.Request) {
 		Data:    nil,
 	})
 }
+
+func (h *handler) handleAssignTask(w http.ResponseWriter, r *http.Request) {
+	h.logger.Debug("handling task assign reassign")
+
+	taskID := r.PathValue("task_id")
+	if taskID == "" {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "task id is required",
+		})
+		return
+	}
+
+	var assignTask types.AssignTask
+	if err := helper.ReadJSON(r, &assignTask); err != nil {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "failed to read request body",
+		})
+		return
+	}
+
+	if err := h.validator.Struct(assignTask); err != nil {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "failed to validate request body",
+		})
+		return
+	}
+
+	if err := h.store.AssignTask(r.Context(), taskID, assignTask.AssignedTo); err != nil {
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to assign task",
+		})
+		return
+	}
+
+	helper.WriteJSON(w, http.StatusOK, &types.Response{
+		Status:  http.StatusOK,
+		Message: "task assigned successfully",
+		Data:    nil,
+	})
+}
