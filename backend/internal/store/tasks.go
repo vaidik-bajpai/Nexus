@@ -52,6 +52,7 @@ func (s *Store) CreateTask(ctx context.Context, task *types.CreateTask) error {
 func (s *Store) ListTasks(ctx context.Context, listTasks *types.ListTasks) ([]*types.Task, error) {
 	query := s.db.Task.FindMany(
 		db.Task.ProjectID.Equals(listTasks.ProjectID),
+		db.Task.Deleted.Equals(false),
 	)
 
 	if listTasks.Filter == "created_at" {
@@ -104,8 +105,9 @@ func (s *Store) ListTasks(ctx context.Context, listTasks *types.ListTasks) ([]*t
 }
 
 func (s *Store) GetTask(ctx context.Context, taskID string) (*types.Task, error) {
-	task, err := s.db.Task.FindUnique(
+	task, err := s.db.Task.FindFirst(
 		db.Task.ID.Equals(taskID),
+		db.Task.Deleted.Equals(false),
 	).Exec(ctx)
 	if err != nil {
 		return nil, err
@@ -149,6 +151,18 @@ func (s *Store) UpdateTask(ctx context.Context, task *types.UpdateTask) error {
 		db.Task.Priority.SetIfPresent(task.Priority),
 		db.Task.DueDate.SetIfPresent(task.DueDate),
 		db.Task.AssignedTo.SetIfPresent(task.AssignedTo),
+	).Exec(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Store) DeleteTask(ctx context.Context, taskID string) error {
+	_, err := s.db.Task.FindUnique(
+		db.Task.ID.Equals(taskID),
+	).Update(
+		db.Task.Deleted.Set(true),
 	).Exec(ctx)
 	if err != nil {
 		return err

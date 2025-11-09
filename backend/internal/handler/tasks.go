@@ -200,3 +200,30 @@ func (h *handler) handleUpdateTask(w http.ResponseWriter, r *http.Request) {
 		Data:    nil,
 	})
 }
+
+func (h *handler) handleDeleteTask(w http.ResponseWriter, r *http.Request) {
+	h.logger.Debug("handling task delete")
+
+	taskID := r.PathValue("task_id")
+	if taskID == "" {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "task id is required",
+		})
+		return
+	}
+
+	if err := h.store.DeleteTask(r.Context(), taskID); err != nil {
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to delete task",
+		})
+		return
+	}
+
+	helper.WriteJSON(w, http.StatusOK, &types.Response{
+		Status:  http.StatusOK,
+		Message: "task deleted successfully",
+		Data:    nil,
+	})
+}
