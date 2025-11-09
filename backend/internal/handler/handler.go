@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-playground/validator/v10"
 	"github.com/vaidik-bajpai/Nexus/backend/internal/helper"
 	"github.com/vaidik-bajpai/Nexus/backend/internal/store"
@@ -47,6 +48,8 @@ func NewHandler(store *store.Store) *handler {
 func (h *handler) SetupRoutes() *chi.Mux {
 	r := chi.NewRouter()
 
+	r.Use(middleware.Logger)
+
 	r.Route("/api/v1/users", func(r chi.Router) {
 		r.Post("/register", h.handleUserRegistration)
 		r.Post("/login", h.handleUserLogin)
@@ -61,11 +64,12 @@ func (h *handler) SetupRoutes() *chi.Mux {
 	r.Route("/api/v1/workspace", func(r chi.Router) {
 		r.With(h.middleware.VerifyAccessToken).Post("/create", h.handleCreateWorkspace)
 		r.With(h.middleware.VerifyAccessToken).Get("/list", h.handleListWorkspaces)
-		r.With(h.middleware.VerifyAccessToken).Get("/{workspace_id}", h.handleGetWorkspace)
+
 		r.Route("/{workspace_id}", func(r chi.Router) {
 			r.Use(h.middleware.VerifyAccessToken)
-			r.Use(h.middleware.RequireManager())
-			r.Post("/project/create", h.handleCreateProject)
+			r.Get("/", h.handleGetWorkspace)
+			r.With(h.middleware.RequireMember()).Get("/project/list", h.handleListProjects)
+			r.With(h.middleware.RequireManager()).Post("/project/create", h.handleCreateProject)
 		})
 	})
 

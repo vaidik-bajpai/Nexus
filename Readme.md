@@ -89,7 +89,10 @@ Before features, let's define what we're working with:
 
 ### **Project Management**
 - [x] Create project within workspace
-- [ ] List projects in workspace
+**List projects in workspace**
+- [x] basic
+- [ ] paginated 
+
 - [ ] Get project details
 - [ ] Update project
 - [ ] Delete project

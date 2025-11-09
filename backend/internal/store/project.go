@@ -26,3 +26,39 @@ func (s *Store) CreateProject(ctx context.Context, project *types.CreateProject)
 
 	return nil
 }
+
+func (s *Store) ListProjects(ctx context.Context, workspaceID string) ([]*types.Project, error) {
+	projects, err := s.db.Project.FindMany(
+		db.Project.WorkspaceID.Equals(workspaceID),
+	).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var projectsList []*types.Project
+	for _, project := range projects {
+		color, ok := project.Color()
+		if !ok {
+			color = ""
+		}
+
+		description, ok := project.Description()
+		if !ok {
+			description = ""
+		}
+
+		projectsList = append(projectsList, &types.Project{
+			ID:          project.ID,
+			Name:        project.Name,
+			Description: description,
+			Status:      project.Status,
+			Color:       color,
+			CreatedAt:   project.CreatedAt,
+			UpdatedAt:   project.UpdatedAt,
+			CreatedBy:   project.CreatedBy,
+			WorkspaceID: project.WorkspaceID,
+		})
+	}
+
+	return projectsList, nil
+}

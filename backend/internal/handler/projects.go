@@ -58,3 +58,34 @@ func (h *handler) handleCreateProject(w http.ResponseWriter, r *http.Request) {
 		Data:    nil,
 	})
 }
+
+func (h *handler) handleListProjects(w http.ResponseWriter, r *http.Request) {
+	h.logger.Debug("handling project listing")
+
+	user := r.Context().Value(types.UserCtxKey).(*types.User)
+	h.logger.Debug("user", zap.Any("user", user))
+
+	workspaceID := r.PathValue("workspace_id")
+	if workspaceID == "" {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "workspace id is required",
+		})
+		return
+	}
+
+	projects, err := h.store.ListProjects(r.Context(), workspaceID)
+	if err != nil {
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to list projects",
+		})
+		return
+	}
+
+	helper.WriteJSON(w, http.StatusOK, &types.Response{
+		Status:  http.StatusOK,
+		Message: "projects listed successfully",
+		Data:    projects,
+	})
+}
