@@ -74,6 +74,16 @@ func (h *handler) handleListProjects(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var listProject types.ProjectList
+	if err := helper.ReadJSON(r, listProject); err != nil {
+		helper.WriteJSON(w, http.StatusBadRequest, &types.Response{
+			Status:  http.StatusBadRequest,
+			Message: "invalid request credentials",
+			Data:    nil,
+		})
+		return
+	}
+
 	projects, err := h.store.ListProjects(r.Context(), workspaceID)
 	if err != nil {
 		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{

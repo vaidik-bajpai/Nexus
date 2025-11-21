@@ -1,57 +1,137 @@
 # Nexus
 
-Nexus is a real time collaborative task management application.
+Nexus is a real-time collaborative task management application inspired by Trello.
 My goal with this project is to showcase my ability to build and work with things at scale.
-I have written a long and verbose feature list and my goal is to checkmark as many as I can. 
+I have written a comprehensive feature list based on Trello's functionality and my goal is to checkmark as many as I can.
 
 ***
 
-# **Nexus - Feature Specification**
+# **Nexus - Trello Feature Specification**
 
 ---
 
 ## **🎯 Core Entities & Data Models**
 
-Before features, let's define what we're working with:
-
 ### **1. User**
-- ID, email, password (hashed), name, avatar URL
-- Role: `admin`, `manager`, `member`
-- Status: `online`, `offline`, `away`
+- ID, email, password (hashed), name, username, avatar URL
+- Email verification status
+- OAuth account connections (Google, GitHub, etc.)
 - Created/updated timestamps
 
-### **2. Workspace/Team**
+### **2. Board**
 - ID, name, description, owner ID
-- Members (user IDs with roles)
+- Visibility: `private`, `team`, `public`
+- Background (color/image)
+- Members (user IDs with roles: `admin`, `normal`, `observer`)
 - Settings (permissions, notifications)
-
-### **3. Project**
-- ID, name, description, workspace ID
-- Color/icon for visual identification
-- Status: `active`, `archived`, `completed`
-- Created by, assigned members
-
-### **4. Task**
-- ID, title, description, project ID
-- Assigned to (user ID), created by (user ID)
-- Status: `todo`, `in_progress`, `in_review`, `done`
-- Priority: `low`, `medium`, `high`, `urgent`
-- Due date, tags/labels
-- Attachments (file URLs)
+- Archived status
 - Created/updated timestamps
 
-### **5. Comment**
-- ID, task ID, user ID, content
+### **3. List**
+- ID, name, board ID
+- Position (order within board)
+- Color (optional)
+- Collapsed status
+- Archived status
+- Created/updated timestamps
+
+### **4. Card**
+- ID, title, description, list ID
+- Position (order within list)
+- Due date and time
+- Start date (optional)
+- Cover image/color
+- Archived status
+- Completed status
+- Created/updated timestamps
+
+### **5. Card Member**
+- Card ID, User ID (many-to-many relationship)
+- Assigned date
+
+### **6. Label**
+- ID, name, color
+- Board ID (labels are board-specific)
+
+### **7. Card Label**
+- Card ID, Label ID (many-to-many relationship)
+
+### **8. Checklist**
+- ID, name, card ID
+- Position (order within card)
+- Created/updated timestamps
+
+### **9. Checklist Item**
+- ID, checklist ID, text
+- Completed status
+- Position (order within checklist)
+- Due date (optional)
+- Assigned to (user ID, optional)
+- Created/updated timestamps
+
+### **10. Attachment**
+- ID, card ID, file name, file URL/path
+- File type, file size
+- Uploaded by (user ID)
+- Created timestamp
+
+### **11. Comment**
+- ID, card ID, user ID, content
 - Mentions (@username)
+- Edited status and timestamp
+- Created/updated timestamps
+
+### **12. Activity/Event**
+- ID, type (card_created, card_moved, comment_added, etc.)
+- Board ID, card ID (optional), list ID (optional)
+- User ID (who performed the action)
+- Metadata (what changed, old/new values)
 - Timestamp
 
-### **6. Activity/Event**
-- ID, type (task_created, task_assigned, status_changed, etc.)
-- Related entity IDs (task, user, project)
-- Metadata (what changed)
-- Timestamp
+### **13. Board Member**
+- Board ID, User ID
+- Role: `admin`, `normal`, `observer`
+- Invited at, joined at timestamps
 
-***
+### **14. Card Vote**
+- Card ID, User ID (many-to-many relationship)
+- Voted at timestamp
+
+### **15. Sticker**
+- ID, card ID, name, image URL
+- Position (x, y coordinates on card)
+- Created timestamp
+
+### **16. Power-Up**
+- ID, name, description, enabled status
+- Board ID (power-ups are board-specific)
+
+### **17. Automation/Butler Rule**
+- ID, board ID, name
+- Trigger (event that starts the automation)
+- Action (what happens when triggered)
+- Enabled status
+- Created/updated timestamps
+
+### **18. Board Template**
+- ID, name, description
+- Template structure (JSON)
+- Created by (user ID)
+- Public/private status
+- Created timestamp
+
+### **19. View**
+- ID, board ID, type (`calendar`, `timeline`, `table`, `dashboard`, `map`)
+- Settings (JSON for view-specific configuration)
+- Created/updated timestamps
+
+### **20. Notification**
+- ID, user ID, type
+- Board ID, card ID (optional)
+- Read status
+- Created timestamp
+
+---
 
 ## **📋 Phase 1: Foundation (MVP)**
 *Goal: Basic CRUD + Authentication - Get it working*
@@ -70,52 +150,110 @@ Before features, let's define what we're working with:
 - [x] Password reset flow (email-based)
 - [x] Logout (token invalidation)
 - [x] Middleware: Protect routes, verify tokens
-- [ ] Role-based access control (RBAC)
+- [ ] Role-based access control (RBAC) for board members
 
 ### **User Management**
 - [ ] Get user profile
-- [ ] Update profile (name, avatar)
+- [ ] Update profile (name, username, avatar)
 - [ ] Change password
 - [ ] Delete account
+- [ ] User preferences (theme, notifications, language)
 
-### **Workspace Management**
-- [x] Create workspace
-- [x] Get workspace details
-- [ ] Update workspace
-- [ ] Delete workspace (owner only)
-**List user's workspaces**
-- [x] basic
-- [ ] paginated
+### **Board Management**
+- [ ] Create board
+- [ ] Get board details
+- [ ] Update board (name, description, background, visibility)
+- [ ] Delete board (owner only)
+- [ ] Archive/unarchive board
+- [ ] List user's boards (with filters: owned, member, archived)
+- [ ] Board visibility settings (private, team, public)
+- [ ] Board background customization (colors and images)
+- [ ] Copy/duplicate board
+- [ ] Create board from template
 
-### **Project Management**
-- [x] Create project within workspace
-**List projects in workspace**
-- [x] basic
-- [ ] paginated 
+### **List Management**
+- [ ] Create list within board
+- [ ] Get list details
+- [ ] Update list (name, position, color)
+- [ ] Delete list
+- [ ] Archive/unarchive list
+- [ ] Reorder lists (drag and drop position)
+- [ ] Collapse/expand list
+- [ ] List color customization
 
-- [ ] Get project details
-- [ ] Update project
-- [ ] Delete project
-- [ ] Archive/unarchive project
+### **Card Management (CRUD)**
+- [ ] Create card within list
+- [ ] Get card details (full card back view)
+- [ ] Update card (title, description, position)
+- [ ] Delete card
+- [ ] Archive/unarchive card
+- [ ] Move card between lists
+- [ ] Reorder cards within list (drag and drop)
+- [ ] Copy/duplicate card
+- [ ] Convert card to template
 
-### **Task Management (CRUD)**
-- [x] Create task
-- [x] Get task details
-- [x] List tasks (with filters: status, assignee, priority, project)
-- [x] Update task (title, description, status, priority, due date)
-- [x] Delete task
-- [x] Assign/reassign task to user
-- [ ] Add/remove tags
+### **Card Details**
+- [ ] Add/edit card description (rich text support)
+- [ ] Add/edit due date and time
+- [ ] Add start date
+- [ ] Mark due date as complete
+- [ ] Set card cover (color or image)
+- [ ] Remove card cover
+- [ ] Card aging (visual indication of old cards)
+
+### **Card Members**
+- [ ] Add member to card
+- [ ] Remove member from card
+- [ ] List card members
+- [ ] Multiple members per card support
+
+### **Labels**
+- [ ] Create label on board
+- [ ] Update label (name, color)
+- [ ] Delete label
+- [ ] Add label to card
+- [ ] Remove label from card
+- [ ] List all labels on board
+- [ ] List labels on specific card
+
+### **Checklists**
+- [ ] Create checklist on card
+- [ ] Update checklist name
+- [ ] Delete checklist
+- [ ] Reorder checklists on card
+- [ ] Add item to checklist
+- [ ] Update checklist item (text, due date, assignee)
+- [ ] Delete checklist item
+- [ ] Toggle checklist item completion
+- [ ] Reorder checklist items
+- [ ] Convert checklist items to cards
+
+### **Attachments**
+- [ ] Upload attachment to card (images, PDFs, docs, etc.)
+- [ ] Store files (local storage or S3/CloudFlare R2)
+- [ ] List attachments on card
+- [ ] Delete attachment
+- [ ] Download attachment
+- [ ] Preview attachments (images, PDFs)
+- [ ] Attachment size limits and validation
+
+### **Comments**
+- [ ] Add comment to card
+- [ ] Edit own comments
+- [ ] Delete own comments
+- [ ] List comments on card (with pagination)
+- [ ] Mention users in comments (@username)
+- [ ] Real-time comment updates
 
 ### **Basic API Features**
 - [ ] Pagination for list endpoints
-- [ ] Sorting (by created date, priority, due date)
-- [ ] Search tasks by title/description
+- [ ] Sorting (by position, created date, due date, name)
+- [ ] Search cards by title/description across boards
 - [ ] Error handling with proper HTTP status codes
 - [ ] Request validation middleware
 - [ ] Structured JSON responses
 
-***
+---
 
 ## **⚡ Phase 2: Real-Time Features**
 *Goal: Add WebSocket support for live updates*
@@ -123,82 +261,168 @@ Before features, let's define what we're working with:
 ### **WebSocket Server**
 - [ ] WebSocket connection handler
 - [ ] Authentication via JWT in WebSocket handshake
-- [ ] Connection management (store active connections)
+- [ ] Connection management (store active connections per board)
 - [ ] Heartbeat/ping-pong to detect disconnects
 - [ ] Graceful connection cleanup
 
 ### **Real-Time Events Broadcasting**
-- [ ] **Task Created** → Broadcast to project members
-- [ ] **Task Updated** → Broadcast to watchers/assignee
-- [ ] **Task Assigned** → Notify assignee instantly
-- [ ] **Status Changed** → Broadcast to project members
-- [ ] **Comment Added** → Notify task watchers
-- [ ] **User Online/Offline** → Broadcast presence to workspace
-- [ ] **User Viewing Task** → Show "👁️ Mike is viewing this"
+- [ ] **Card Created** → Broadcast to board members
+- [ ] **Card Updated** → Broadcast to board members
+- [ ] **Card Moved** → Broadcast to board members
+- [ ] **Card Archived** → Broadcast to board members
+- [ ] **List Created** → Broadcast to board members
+- [ ] **List Updated** → Broadcast to board members
+- [ ] **List Moved** → Broadcast to board members
+- [ ] **Comment Added** → Notify card watchers
+- [ ] **Member Added to Card** → Notify assignee
+- [ ] **Due Date Added/Changed** → Notify card members
+- [ ] **Label Added/Removed** → Broadcast to board members
+- [ ] **Checklist Item Completed** → Broadcast to board members
+- [ ] **User Online/Offline** → Broadcast presence to board
+- [ ] **User Viewing Card** → Show "👁️ User is viewing this card"
 
 ### **Presence System**
-- [ ] Track which users are online in workspace
-- [ ] Track which task a user is currently viewing
+- [ ] Track which users are online in board
+- [ ] Track which card a user is currently viewing
 - [ ] Broadcast presence changes (online/offline/viewing)
-- [ ] Show active users in workspace
+- [ ] Show active users in board
+- [ ] Show who's viewing each card
 
 ### **Notification System**
 - [ ] In-app notification center (unread count)
 - [ ] Mark notification as read
+- [ ] Mark all notifications as read
 - [ ] Clear all notifications
 - [ ] Notification types:
-  - Task assigned to you
+  - Card assigned to you
   - Mentioned in comment
-  - Task due date approaching
-  - Task status changed
-  - Comment reply
+  - Card due date approaching
+  - Card due date passed
+  - Comment added to your card
+  - Card moved to list you're watching
+  - Added to board
+  - Removed from board
 
-***
+---
 
 ## **🔥 Phase 3: Collaboration Features**
 *Goal: Make it truly collaborative*
 
-### **Comments & Mentions**
-- [ ] Add comment to task
-- [ ] Edit/delete own comments
-- [ ] Mention users with `@username`
-- [ ] Get comments for task (with pagination)
-- [ ] Real-time comment updates
+### **Board Members & Permissions**
+- [ ] Invite users to board (via email)
+- [ ] Accept/decline board invitations
+- [ ] Remove member from board
+- [ ] Change member role (admin, normal, observer)
+- [ ] List board members with online status
+- [ ] Board member permissions:
+  - Admin: Full control
+  - Normal: Can edit
+  - Observer: Read-only
 
-### **File Attachments**
-- [ ] Upload files to task (images, PDFs, docs)
-- [ ] Store files (local storage or S3/CloudFlare R2)
-- [ ] List attachments on task
-- [ ] Delete attachment
-- [ ] Download attachment
+### **Card Watching**
+- [ ] Watch card (get notifications for all updates)
+- [ ] Unwatch card
+- [ ] List cards user is watching
+- [ ] Auto-watch when assigned to card
 
-### **Task Dependencies**
-- [ ] Mark task as blocked by another task
-- [ ] Show dependency chain
-- [ ] Warn when trying to complete task with incomplete dependencies
+### **Card Voting**
+- [ ] Vote on card
+- [ ] Remove vote from card
+- [ ] List votes on card (who voted)
+- [ ] Vote count display
+
+### **Stickers**
+- [ ] Add sticker to card
+- [ ] Remove sticker from card
+- [ ] Move sticker on card (position)
+- [ ] List stickers on card
+- [ ] Sticker library/presets
 
 ### **Activity Feed**
-- [ ] Workspace activity feed (all recent actions)
-- [ ] Project activity feed
-- [ ] Task activity timeline (who did what, when)
+- [ ] Board activity feed (all recent actions)
+- [ ] Card activity timeline (who did what, when)
+- [ ] Filter activity by action type
+- [ ] Filter activity by user
 - [ ] Real-time activity updates
 
-### **Team Collaboration**
-- [ ] Invite users to workspace (via email)
-- [ ] Accept/decline workspace invitations
-- [ ] Manage team members (add/remove)
-- [ ] Assign roles to members
-- [ ] List workspace members with online status
+### **Board Templates**
+- [ ] Create board template
+- [ ] Use template to create board
+- [ ] List public templates
+- [ ] List user's templates
+- [ ] Share template
+- [ ] Delete template
 
-***
+---
 
 ## **🚀 Phase 4: Advanced Features**
 *Goal: Production-ready, enterprise-level functionality*
 
+### **Views**
+- [ ] **Calendar View**: View cards by due date
+- [ ] **Timeline View**: Gantt-style timeline of cards
+- [ ] **Table View**: Spreadsheet-like view of cards
+- [ ] **Dashboard View**: Analytics and metrics
+- [ ] **Map View**: Location-based cards (if location data added)
+- [ ] Switch between views
+- [ ] Save view preferences per board
+
+### **Search & Filters**
+- [ ] Full-text search across cards, comments, descriptions
+- [ ] Advanced filters:
+  - Filter by labels (multiple, AND/OR logic)
+  - Filter by members (multiple)
+  - Filter by due date (overdue, due today, due this week, custom range)
+  - Filter by completed status
+  - Filter by archived status
+  - Filter by board
+  - Filter by list
+- [ ] Save filter presets
+- [ ] Search suggestions/autocomplete
+- [ ] Search within specific board or all boards
+
+### **Automation (Butler Rules)**
+- [ ] Create automation rule
+- [ ] Edit automation rule
+- [ ] Delete automation rule
+- [ ] Enable/disable automation
+- [ ] Automation triggers:
+  - Card created
+  - Card moved to list
+  - Card due date approaching
+  - Card completed
+  - Checklist item completed
+  - Member added to card
+  - Comment added
+- [ ] Automation actions:
+  - Move card to list
+  - Add label to card
+  - Remove label from card
+  - Assign member to card
+  - Remove member from card
+  - Set due date
+  - Add checklist
+  - Archive card
+  - Create card
+- [ ] List automations on board
+
+### **Power-Ups (Integrations)**
+- [ ] Enable power-up on board
+- [ ] Disable power-up on board
+- [ ] List available power-ups
+- [ ] Power-up settings/config
+- [ ] Popular power-ups:
+  - Calendar integration
+  - Voting
+  - Custom fields
+  - Time tracking
+  - Reporting/analytics
+
 ### **Performance & Scalability**
 - [ ] **Redis Caching**:
-  - Cache frequently accessed data (user sessions, workspace details)
-  - Cache task lists (invalidate on update)
+  - Cache frequently accessed data (user sessions, board details)
+  - Cache card lists (invalidate on update)
+  - Cache board members
 - [ ] **Rate Limiting**:
   - Per-user rate limits (100 requests/min)
   - Per-IP rate limits for public endpoints
@@ -207,40 +431,35 @@ Before features, let's define what we're working with:
   - Indexes on frequently queried fields
   - Query optimization (use EXPLAIN ANALYZE)
   - Connection pooling
+  - Efficient position updates for drag-and-drop
 
 ### **Background Jobs**
-- [ ] Email notifications (task assigned, mentions)
-- [ ] Daily digest emails (tasks due today)
+- [ ] Email notifications (card assigned, mentions, due dates)
+- [ ] Daily digest emails (cards due today, overdue)
+- [ ] Weekly summary emails
 - [ ] Cleanup expired tokens
-- [ ] Archive old completed tasks
-- [ ] Generate weekly reports
+- [ ] Archive old completed cards (configurable)
+- [ ] Generate board reports
 
 ### **Analytics & Insights**
-- [ ] Task completion rate by user
-- [ ] Average task completion time
-- [ ] Overdue tasks report
+- [ ] Cards completed per board
+- [ ] Average time to complete card
+- [ ] Overdue cards report
 - [ ] User activity metrics
-- [ ] Project progress dashboard data
+- [ ] Board activity metrics
+- [ ] List performance (cards moved through)
+- [ ] Member contribution stats
 - [ ] Export analytics as CSV/JSON
 
-### **Advanced Task Features**
-- [ ] Recurring tasks (daily, weekly, monthly)
-- [ ] Task templates
-- [ ] Bulk operations (assign multiple, change status for multiple)
-- [ ] Custom fields per workspace
-- [ ] Task priority auto-adjustment based on due date
+### **Advanced Card Features**
+- [ ] Card templates
+- [ ] Bulk operations (move multiple cards, assign multiple, add labels)
+- [ ] Custom fields per board (text, number, date, dropdown, checkbox)
+- [ ] Card linking (link to another card)
+- [ ] Card merging
+- [ ] Card aging (visual fade for old cards)
 
-### **Search & Filters**
-- [ ] Full-text search across tasks, comments
-- [ ] Advanced filters:
-  - Multiple status selection
-  - Date range (created/due)
-  - Multiple assignees
-  - Tags (AND/OR logic)
-- [ ] Save filter presets
-- [ ] Search suggestions/autocomplete
-
-***
+---
 
 ## **🛡️ Phase 5: Security & DevOps**
 *Goal: Make it production-ready and secure*
@@ -252,7 +471,9 @@ Before features, let's define what we're working with:
 - [ ] **CSRF Protection**: For any state-changing operations
 - [ ] **Rate Limiting**: Prevent brute force/DoS
 - [ ] **Secure Headers**: CORS, CSP, HSTS
-- [ ] **Audit Logging**: Log sensitive actions (login, role changes)
+- [ ] **Audit Logging**: Log sensitive actions (login, role changes, board deletion)
+- [ ] **File Upload Security**: Validate file types, scan for malware
+- [ ] **Board Access Control**: Verify user has access to board before operations
 
 ### **Testing**
 - [ ] Unit tests for business logic (80%+ coverage)
@@ -260,6 +481,7 @@ Before features, let's define what we're working with:
 - [ ] WebSocket connection tests
 - [ ] Load testing (simulate 1000+ concurrent users)
 - [ ] Database migration tests
+- [ ] E2E tests for critical user flows
 
 ### **DevOps & Deployment**
 - [ ] **Docker**: Containerize the application
@@ -284,61 +506,65 @@ Before features, let's define what we're working with:
 - [ ] **Deployment Guide**: How to deploy to production
 - [ ] **Contribution Guide**: If open-sourcing
 
-***
+---
 
 ## **🎨 Phase 6: Polish & Extras (Optional)**
 *Goal: Stand out from other candidates*
 
 ### **Nice-to-Have Features**
 - [ ] **Dark Mode API Support**: Send theme preferences
-- [ ] **Task Time Tracking**: Start/stop timer on tasks
-- [ ] **Kanban Board API**: Return tasks grouped by status
-- [ ] **Calendar View Data**: Tasks grouped by due date
+- [ ] **Card Time Tracking**: Start/stop timer on cards
+- [ ] **Card Linking**: Link cards together
 - [ ] **Webhooks**: Trigger external services on events
 - [ ] **API Versioning**: `/api/v1/` for future-proofing
 - [ ] **GraphQL API**: Alternative to REST (bonus points)
 - [ ] **Mobile Push Notifications**: FCM/APNS integration
-- [ ] **Task Export**: Export project tasks as CSV/PDF
+- [ ] **Board Export**: Export board as CSV/PDF/JSON
 - [ ] **Slack Integration**: Post updates to Slack channels
+- [ ] **Email to Card**: Create card from email
+- [ ] **Card Location**: Add location/address to cards
+- [ ] **Card Aging**: Visual fade for cards not updated in X days
 
 ### **Developer Experience**
 - [ ] **Postman Collection**: Pre-configured API requests
 - [ ] **Sample Data Seeder**: Populate DB with test data
-- [ ] **CLI Tool**: Manage tasks from terminal
+- [ ] **CLI Tool**: Manage boards/cards from terminal
 - [ ] **SDK/Client Library**: Go client for the API
 
-***
+---
 
 ## **📊 Feature Priority Matrix**
 
 | **Must Have (Phase 1-2)** | **Should Have (Phase 3)** | **Nice to Have (Phase 4-6)** |
 |---------------------------|---------------------------|------------------------------|
 | Authentication | Comments & Mentions | Analytics Dashboard |
-| Task CRUD | File Attachments | Recurring Tasks |
+| Board/List/Card CRUD | File Attachments | Recurring Cards |
 | WebSocket Real-time | Activity Feed | GraphQL API |
-| Presence System | Team Management | Webhooks |
-| Basic Notifications | Task Dependencies | Time Tracking |
+| Presence System | Board Members | Webhooks |
+| Basic Notifications | Labels & Checklists | Time Tracking |
+| Drag & Drop (Position) | Card Voting | Power-Ups |
+| Card Details | Board Templates | Multiple Views |
 
-***
+---
 
 ## **🎯 Recommended Build Order**
 
 **Week 1-2:** Phase 1 (Foundation)  
 **Week 3:** Phase 2 (WebSocket + Real-time)  
 **Week 4:** Phase 3 (Collaboration)  
-**Week 5:** Phase 4 (Polish, Performance, Security)  
+**Week 5:** Phase 4 (Advanced Features, Performance)  
 **Week 6:** Phase 5 (Testing, DevOps, Documentation)  
 **Week 7+:** Phase 6 (Extras if time permits)
 
-***
+---
 
 ## **Next Steps**
 
-Now that we have the full feature spec:
+Now that we have the full Trello-inspired feature spec:
 
-1. **Would you like me to create a detailed project structure** (folder layout, package organization)?
-2. **Should I draft the database schema** with SQL migration files?
-3. **Want a Roadmap/Kanban board template** for tracking your own progress?
-4. **Need help with the tech stack decisions** (which framework, libraries to use)?
+1. **Database schema updated** to match Trello structure (Board -> List -> Card)
+2. **API endpoints** need to be designed for all features
+3. **WebSocket events** need to be defined for real-time updates
+4. **Frontend components** need to be built for drag-and-drop interface
 
 Let me know which part you want to dive into next! 🚀

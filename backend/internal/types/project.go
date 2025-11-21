@@ -26,3 +26,11 @@ type Project struct {
 type ProjectContextKey string
 
 var ProjectCtxKey = ProjectContextKey("project")
+
+type ProjectList struct {
+	SearchTerm string `json:"search_term" validate:"omitempty,max=255"`
+	Page       int    `json:"page" validate:"required,number,min=1,gte=1"`
+	PageSize   int    `json:"page_size" validate:"required,number,gt=0"`
+	Filter     int    `json:"filter" validate:"omitempty"`
+	Direction  int    `json:"direction" validate:"required,oneof=asc desc"`
+}
