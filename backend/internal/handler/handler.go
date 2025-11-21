@@ -61,29 +61,5 @@ func (h *handler) SetupRoutes() *chi.Mux {
 		r.Post("/refresh-token", h.handleRefreshToken)
 	})
 
-	r.Route("/api/v1/workspace", func(r chi.Router) {
-		r.With(h.middleware.VerifyAccessToken).Post("/create", h.handleCreateWorkspace)
-		r.With(h.middleware.VerifyAccessToken).Get("/list", h.handleListWorkspaces)
-
-		r.Route("/{workspace_id}", func(r chi.Router) {
-			r.Use(h.middleware.VerifyAccessToken)
-			r.Get("/", h.handleGetWorkspace)
-			r.With(h.middleware.RequireMember()).Get("/project/list", h.handleListProjects)
-			r.With(h.middleware.RequireManager()).Post("/project/create", h.handleCreateProject)
-		})
-	})
-
-	r.Route("/api/v1/tasks", func(r chi.Router) {
-		r.Use(h.middleware.VerifyAccessToken)
-		r.Route("/{project_id}", func(r chi.Router) {
-			r.With(h.middleware.VerifyProjectAccess("manager")).Post("/create", h.handleCreateTask)
-			r.With(h.middleware.VerifyProjectAccess("member")).Get("/list", h.handleListTasks)
-			r.With(h.middleware.VerifyProjectAccess("member")).Get("/get/{task_id}", h.handleGetTaskByID)
-			r.With(h.middleware.VerifyProjectAccess("member")).Put("/update/{task_id}", h.handleUpdateTask)
-			r.With(h.middleware.VerifyProjectAccess("manager")).Delete("/delete/{task_id}", h.handleDeleteTask)
-			r.With(h.middleware.VerifyProjectAccess("manager")).Post("/assign/{task_id}", h.handleAssignTask)
-		})
-	})
-
 	return r
 }

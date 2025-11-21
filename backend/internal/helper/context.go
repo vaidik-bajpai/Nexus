@@ -20,17 +20,3 @@ func GetUserFromRequestContext(r *http.Request) *types.User {
 
 	return user
 }
-
-func SetProjectInRequestContext(r *http.Request, project *types.Project) *http.Request {
-	ctx := context.WithValue(r.Context(), types.ProjectCtxKey, project)
-	return r.WithContext(ctx)
-}
-
-func GetProjectFromRequestContext(r *http.Request) *types.Project {
-	project, ok := r.Context().Value(types.ProjectCtxKey).(*types.Project)
-	if !ok || project == nil || project.ID == "" {
-		panic("project not found in context")
-	}
-
-	return project
-}

@@ -33,6 +33,7 @@ model User {
     attachments       Attachment[]
     notifications     Notification[]
     sentInvitations   BoardInvitation[] @relation("InvitedBy")
+    createdTemplates  BoardTemplate[]
     
     @@index([email])
     @@map("users")
@@ -86,7 +87,6 @@ model Board {
     automations   Automation[]
     views         View[]
     powerUps      PowerUp[]
-    templates     BoardTemplate[]
     invitations   BoardInvitation[]
     
     @@index([userId])
@@ -434,6 +434,8 @@ model BoardTemplate {
     public      Boolean  @default(false)
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
+
+    creator User @relation(fields: [createdBy], references: [id], onDelete: Restrict)
 
     @@index([public])
     @@index([createdBy])
