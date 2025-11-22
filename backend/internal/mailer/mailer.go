@@ -33,6 +33,20 @@ func init() {
 	}
 }
 
+// Mailer defines the interface for sending emails
+type Mailer interface {
+	SendEmailVerificationEmail(to []string, subject string, verificationURL string) error
+	SendPasswordResetEmail(to []string, subject string, passwordResetURL string) error
+}
+
+// SMTPMailer implements the Mailer interface using SMTP
+type SMTPMailer struct{}
+
+// NewSMTPMailer creates a new SMTP mailer instance
+func NewSMTPMailer() *SMTPMailer {
+	return &SMTPMailer{}
+}
+
 type EmailData struct {
 	VerificationURL string
 	Year            int
@@ -42,7 +56,8 @@ type PasswordResetData struct {
 	Year             int
 }
 
-func SendEmailVerificationEmail(to []string, subject string, verificationURL string) error {
+// SendEmailVerificationEmail sends an email verification email
+func (m *SMTPMailer) SendEmailVerificationEmail(to []string, subject string, verificationURL string) error {
 	data := EmailData{
 		VerificationURL: verificationURL,
 		Year:            time.Now().Year(),
@@ -82,7 +97,8 @@ func SendEmailVerificationEmail(to []string, subject string, verificationURL str
 	)
 }
 
-func SendPasswordResetEmail(to []string, subject string, passwordResetURL string) error {
+// SendPasswordResetEmail sends a password reset email
+func (m *SMTPMailer) SendPasswordResetEmail(to []string, subject string, passwordResetURL string) error {
 	data := PasswordResetData{
 		PasswordResetURL: passwordResetURL,
 		Year:             time.Now().Year(),
@@ -120,4 +136,18 @@ func SendPasswordResetEmail(to []string, subject string, passwordResetURL string
 		to,
 		[]byte(msg),
 	)
+}
+
+// SendEmailVerificationEmail is a convenience function that uses the default SMTP mailer
+// Deprecated: Use Mailer interface instead
+func SendEmailVerificationEmail(to []string, subject string, verificationURL string) error {
+	mailer := NewSMTPMailer()
+	return mailer.SendEmailVerificationEmail(to, subject, verificationURL)
+}
+
+// SendPasswordResetEmail is a convenience function that uses the default SMTP mailer
+// Deprecated: Use Mailer interface instead
+func SendPasswordResetEmail(to []string, subject string, passwordResetURL string) error {
+	mailer := NewSMTPMailer()
+	return mailer.SendPasswordResetEmail(to, subject, passwordResetURL)
 }

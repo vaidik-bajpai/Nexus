@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/vaidik-bajpai/Nexus/backend/internal/helper"
-	"github.com/vaidik-bajpai/Nexus/backend/internal/mailer"
 	"github.com/vaidik-bajpai/Nexus/backend/internal/types"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
@@ -65,6 +64,7 @@ func (h *handler) handleUserRegistration(w http.ResponseWriter, r *http.Request)
 	// create user
 	err = h.store.CreateCredentialsUser(r.Context(), &usr)
 	if err != nil {
+		h.logger.Error("error occured while creating the user", zap.Error(err))
 		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
 			Status:  http.StatusInternalServerError,
 			Message: "failed to create user",
@@ -73,7 +73,7 @@ func (h *handler) handleUserRegistration(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if err := mailer.SendEmailVerificationEmail(
+	if err := h.mailer.SendEmailVerificationEmail(
 		[]string{usr.Email},
 		"Email Verification",
 		fmt.Sprintf("http://localhost:3000/verify-email?token=%s", usr.Token),
@@ -475,7 +475,7 @@ func (h *handler) handlePasswordResetFlow(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := mailer.SendPasswordResetEmail(
+	if err := h.mailer.SendPasswordResetEmail(
 		[]string{passwordResetRequest.Email},
 		"Password Reset",
 		fmt.Sprintf("http://localhost:3000/reset-password?token=%s", token.Token),

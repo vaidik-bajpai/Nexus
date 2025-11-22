@@ -5,6 +5,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-playground/validator/v10"
 	"github.com/vaidik-bajpai/Nexus/backend/internal/helper"
+	"github.com/vaidik-bajpai/Nexus/backend/internal/mailer"
 	"github.com/vaidik-bajpai/Nexus/backend/internal/store"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
@@ -16,7 +17,8 @@ import (
 type handler struct {
 	logger     *zap.Logger
 	validator  *validator.Validate
-	store      *store.Store
+	store      store.Storer
+	mailer     mailer.Mailer
 	oauth2     map[string]*oauth2.Config
 	middleware *m.Middleware
 }
@@ -40,6 +42,7 @@ func NewHandler(store *store.Store) *handler {
 		logger:     l,
 		validator:  v,
 		store:      store,
+		mailer:     mailer.NewSMTPMailer(),
 		oauth2:     oauth2Configs,
 		middleware: m.NewMiddleware(store),
 	}

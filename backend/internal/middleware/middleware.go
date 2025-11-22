@@ -3,7 +3,7 @@ package middleware
 import "github.com/vaidik-bajpai/Nexus/backend/internal/store"
 
 type Middleware struct {
-	store *store.Store
+	store store.Storer
 }
 
 func NewMiddleware(store *store.Store) *Middleware {
