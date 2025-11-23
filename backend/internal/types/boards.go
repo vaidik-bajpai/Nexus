@@ -7,3 +7,8 @@ type CreateBoard struct {
 
 	OwnerID string `json:"-" validate:"-"`
 }
+
+type Board struct {
+	Name       string `json:"name"`
+	Background string `json:"background"`
+}

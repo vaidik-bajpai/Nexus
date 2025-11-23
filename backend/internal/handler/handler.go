@@ -70,6 +70,8 @@ func (h *handler) SetupRoutes() *chi.Mux {
 		r.Route("/boards", func(r chi.Router) {
 			r.Use(h.middleware.VerifyAccessToken)
 			r.Post("/create", h.handleCreateBoard)
+
+			r.With(h.middleware.Paginate).Get("/list", h.handleListBoards)
 		})
 	})
 

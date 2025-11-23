@@ -18,6 +18,7 @@ type Storer interface {
 	Close() error
 
 	CreateBoard(ctx context.Context, board *types.CreateBoard) error
+	ListBoards(ctx context.Context, ownerID string, paginate *types.Paginate) ([]*types.Board, error)
 }
 
 type Store struct {

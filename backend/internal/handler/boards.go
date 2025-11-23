@@ -29,3 +29,16 @@ func (h *handler) handleCreateBoard(w http.ResponseWriter, r *http.Request) {
 
 	helper.Created(h.logger, w, "board created successfully", nil)
 }
+
+func (h *handler) handleListBoards(w http.ResponseWriter, r *http.Request) {
+	user := helper.GetUserFromRequestContext(r)
+	paginate := helper.GetPaginateFromRequestContext(r)
+
+	boards, err := h.store.ListBoards(r.Context(), user.ID, paginate)
+	if err != nil {
+		helper.InternalServerError(h.logger, w, nil, err)
+		return
+	}
+
+	helper.OK(h.logger, w, "boards fetched successfully", map[string]any{"boards": boards})
+}

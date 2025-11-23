@@ -61,3 +61,8 @@ func (m *MockStore) CreateBoard(ctx context.Context, board *types.CreateBoard) e
 	args := m.Called(ctx, board)
 	return args.Error(0)
 }
+
+func (m *MockStore) ListBoards(ctx context.Context, ownerID string, paginate *types.Paginate) ([]*types.Board, error) {
+	args := m.Called(ctx, ownerID, paginate)
+	return nil, args.Error(0)
+}

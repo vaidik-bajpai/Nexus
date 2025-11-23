@@ -20,3 +20,17 @@ func GetUserFromRequestContext(r *http.Request) *types.User {
 
 	return user
 }
+
+func SetPaginateInRequestContext(r *http.Request, paginate *types.Paginate) *http.Request {
+	ctx := context.WithValue(r.Context(), types.PaginateCtxKey, paginate)
+	return r.WithContext(ctx)
+}
+
+func GetPaginateFromRequestContext(r *http.Request) *types.Paginate {
+	paginate, ok := r.Context().Value(types.PaginateCtxKey).(*types.Paginate)
+	if !ok || paginate == nil {
+		return types.DefaultPaginate()
+	}
+
+	return paginate
+}
