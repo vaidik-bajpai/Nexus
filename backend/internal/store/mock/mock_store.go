@@ -56,3 +56,8 @@ func (m *MockStore) Close() error {
 	args := m.Called()
 	return args.Error(0)
 }
+
+func (m *MockStore) CreateBoard(ctx context.Context, board *types.CreateBoard) error {
+	args := m.Called(ctx, board)
+	return args.Error(0)
+}

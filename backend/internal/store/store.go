@@ -16,6 +16,8 @@ type Storer interface {
 	GetUserByToken(ctx context.Context, token string) (*types.TokenUser, error)
 	UpdateUserPassword(ctx context.Context, userID string, password string) error
 	Close() error
+
+	CreateBoard(ctx context.Context, board *types.CreateBoard) error
 }
 
 type Store struct {

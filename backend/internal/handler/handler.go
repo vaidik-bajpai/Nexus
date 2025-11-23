@@ -26,6 +26,9 @@ type handler struct {
 func NewHandler(store *store.Store) *handler {
 	l, _ := zap.NewDevelopment()
 	v := validator.New()
+	if err := helper.RegisterCustomValidations(v); err != nil {
+		panic(err)
+	}
 
 	oauth2Configs := make(map[string]*oauth2.Config)
 	redirectURL := helper.GetStrEnvOrPanic("GOOGLE_REDIRECT_URL")
@@ -52,16 +55,22 @@ func (h *handler) SetupRoutes() *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
+	r.Route("/api/v1/", func(r chi.Router) {
+		r.Route("/users", func(r chi.Router) {
+			r.Post("/register", h.handleUserRegistration)
+			r.Post("/login", h.handleUserLogin)
+			r.Get("/{provider}", h.handleUserOAuthFlow)
+			r.Get("/{provider}/callback", h.handleUserOAuthCallback)
+			r.With(h.middleware.VerifyAccessToken).Post("/logout", h.handleUserLogout)
+			r.Post("/reset-password", h.handlePasswordResetFlow)
+			r.Post("/password/reset", h.handlePasswordReset)
+			r.Post("/refresh-token", h.handleRefreshToken)
+		})
 
-	r.Route("/api/v1/users", func(r chi.Router) {
-		r.Post("/register", h.handleUserRegistration)
-		r.Post("/login", h.handleUserLogin)
-		r.Get("/{provider}", h.handleUserOAuthFlow)
-		r.Get("/{provider}/callback", h.handleUserOAuthCallback)
-		r.With(h.middleware.VerifyAccessToken).Post("/logout", h.handleUserLogout)
-		r.Post("/reset-password", h.handlePasswordResetFlow)
-		r.Post("/password/reset", h.handlePasswordReset)
-		r.Post("/refresh-token", h.handleRefreshToken)
+		r.Route("/boards", func(r chi.Router) {
+			r.Use(h.middleware.VerifyAccessToken)
+			r.Post("/create", h.handleCreateBoard)
+		})
 	})
 
 	return r
