@@ -51,27 +51,32 @@ func (h *handler) handleInviteToBoard(w http.ResponseWriter, r *http.Request) {
 	board := helper.GetBoardFromRequestContext(r)
 	boardID := r.PathValue("boardID")
 
-	var payload *types.InviteToBoard
+	var payload *types.BoardInvitation
 	if err := helper.ReadJSON(r, &payload); err != nil {
 		helper.UnprocessableEntity(h.logger, w, "invalid request payload", nil)
 		return
 	}
 
 	payload.BoardID = boardID
+	payload.InvitedBy = user.ID
+	payload.Token = strconv.Itoa(helper.CreateRandomToken())
+	payload.ExpiredAt = time.Now().Add(2 * 24 * time.Hour)
 
 	if err := h.validator.Struct(payload); err != nil {
 		helper.BadRequest(h.logger, w, "validation on request payload", nil)
 		return
 	}
 
-	token := &types.Token{
-		UserID: user.ID,
-		Token:  strconv.Itoa(helper.CreateRandomToken()),
-		TTL:    time.Now().Add(2 * 24 * time.Hour),
-		Scope:  "invite_to_board",
+	if isMember, err := h.store.IsABoardMember(r.Context(), payload.Email, payload.BoardID); !isMember {
+		if err != nil {
+			helper.InternalServerError(h.logger, w, nil, err)
+			return
+		}
+		helper.Conflict(h.logger, w, "member with this email already exists", nil)
+		return
 	}
 
-	err := h.store.CreateToken(r.Context(), token)
+	err := h.store.CreateBoardInvitation(r.Context(), payload)
 	if err != nil {
 		helper.InternalServerError(h.logger, w, nil, err)
 		return
@@ -82,7 +87,7 @@ func (h *handler) handleInviteToBoard(w http.ResponseWriter, r *http.Request) {
 		"Invitation to join nexus",
 		user.Username,
 		board.Name,
-		fmt.Sprintf("http://localhost:3000/join?token=%s", token.Token),
+		fmt.Sprintf("http://localhost:3000/join?token=%s", payload.Token),
 	); err != nil {
 		helper.InternalServerError(h.logger, w, nil, err)
 		return

@@ -120,6 +120,7 @@ model BoardInvitation {
     email     String
     invitedBy String
     token     String   @unique
+    role      String   // member, observer
     status    String   @default("pending") // pending, accepted, declined
     expiresAt DateTime
     createdAt DateTime @default(now())

@@ -1,5 +1,7 @@
 package types
 
+import "time"
+
 type CreateBoard struct {
 	Name       string `json:"name" validate:"required,max=20"`
 	Background string `json:"background" validate:"required,color_or_url"`
@@ -13,10 +15,13 @@ type Board struct {
 	Background string `json:"background"`
 }
 
-type InviteToBoard struct {
-	BoardID string `json:"-" validate:"required,uuid"`
-	Email   string `json:"email" validate:"required,email"`
-	Role    string `json:"role" validate:"required,oneof=member observer"`
+type BoardInvitation struct {
+	BoardID   string    `json:"-" validate:"required,uuid"`
+	Email     string    `json:"email" validate:"required,email"`
+	InvitedBy string    `json:"-" validate:"required,uuid"`
+	Token     string    `json:"-" validate:"required"`
+	ExpiredAt time.Time `json:"-" validate:"required,gt"`
+	Role      string    `json:"role" validate:"required,oneof=observer member"`
 }
 
 type BoardContextKey string

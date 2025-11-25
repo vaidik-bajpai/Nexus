@@ -64,3 +64,33 @@ func (s *Store) ListBoards(ctx context.Context, ownerID string, paginate *types.
 
 	return listRes, nil
 }
+
+func (s *Store) CreateBoardInvitation(ctx context.Context, invitation *types.BoardInvitation) error {
+	_, err := s.db.BoardInvitation.CreateOne(
+		db.BoardInvitation.Email.Set(invitation.Email),
+		db.BoardInvitation.Token.Set(invitation.Token),
+		db.BoardInvitation.Role.Set(invitation.Role),
+		db.BoardInvitation.ExpiresAt.Set(invitation.ExpiredAt),
+		db.BoardInvitation.Board.Link(
+			db.Board.ID.Equals(invitation.BoardID),
+		),
+		db.BoardInvitation.InvitedByUser.Link(
+			db.User.Email.Equals(invitation.Email),
+		),
+	).Exec(ctx)
+	return err
+}
+
+func (s *Store) IsABoardMember(ctx context.Context, email, boardID string) (bool, error) {
+	members, err := s.db.BoardMember.FindMany(
+		db.BoardMember.BoardID.Equals(boardID),
+		db.BoardMember.User.Where(
+			db.User.Email.Equals(email),
+		),
+	).Exec(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	return len(members) == 0, nil
+}

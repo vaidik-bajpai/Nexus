@@ -20,6 +20,8 @@ type Storer interface {
 	CreateBoard(ctx context.Context, board *types.CreateBoard) error
 	ListBoards(ctx context.Context, ownerID string, paginate *types.Paginate) ([]*types.Board, error)
 	GetBoardMember(ctx context.Context, boardID, memberID string) (*types.BoardMember, error)
+	CreateBoardInvitation(ctx context.Context, invitation *types.BoardInvitation) error
+	IsABoardMember(ctx context.Context, email, boardID string) (bool, error)
 }
 
 type Store struct {

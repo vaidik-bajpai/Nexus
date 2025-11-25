@@ -71,3 +71,13 @@ func (m *MockStore) GetBoardMember(ctx context.Context, boardID, memberID string
 	args := m.Called(ctx, boardID, memberID)
 	return nil, args.Error(0)
 }
+
+func (m *MockStore) CreateBoardInvitation(ctx context.Context, invitation *types.BoardInvitation) error {
+	args := m.Called(ctx, invitation)
+	return args.Error(0)
+}
+
+func (m *MockStore) IsABoardMember(ctx context.Context, email, boardID string) (bool, error) {
+	args := m.Called(ctx, email, boardID)
+	return true, args.Error(0)
+}

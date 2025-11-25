@@ -73,3 +73,7 @@ func Created(logger *zap.Logger, w http.ResponseWriter, message string, data any
 func OK(logger *zap.Logger, w http.ResponseWriter, message string, data any) {
 	SendSuccessResponse(logger, w, http.StatusOK, message, data)
 }
+
+func Conflict(logger *zap.Logger, w http.ResponseWriter, message string, data any) {
+	SendErrorResponse(logger, w, http.StatusConflict, message, data, nil)
+}
