@@ -12,3 +12,13 @@ type Board struct {
 	Name       string `json:"name"`
 	Background string `json:"background"`
 }
+
+type InviteToBoard struct {
+	BoardID string `json:"-" validate:"required,uuid"`
+	Email   string `json:"email" validate:"required,email"`
+	Role    string `json:"role" validate:"required,oneof=member observer"`
+}
+
+type BoardContextKey string
+
+var BoardCtxKey = BoardContextKey("board")

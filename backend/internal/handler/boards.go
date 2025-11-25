@@ -1,7 +1,10 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/vaidik-bajpai/Nexus/backend/internal/helper"
 	"github.com/vaidik-bajpai/Nexus/backend/internal/types"
@@ -41,4 +44,49 @@ func (h *handler) handleListBoards(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helper.OK(h.logger, w, "boards fetched successfully", map[string]any{"boards": boards})
+}
+
+func (h *handler) handleInviteToBoard(w http.ResponseWriter, r *http.Request) {
+	user := helper.GetUserFromRequestContext(r)
+	board := helper.GetBoardFromRequestContext(r)
+	boardID := r.PathValue("boardID")
+
+	var payload *types.InviteToBoard
+	if err := helper.ReadJSON(r, &payload); err != nil {
+		helper.UnprocessableEntity(h.logger, w, "invalid request payload", nil)
+		return
+	}
+
+	payload.BoardID = boardID
+
+	if err := h.validator.Struct(payload); err != nil {
+		helper.BadRequest(h.logger, w, "validation on request payload", nil)
+		return
+	}
+
+	token := &types.Token{
+		UserID: user.ID,
+		Token:  strconv.Itoa(helper.CreateRandomToken()),
+		TTL:    time.Now().Add(2 * 24 * time.Hour),
+		Scope:  "invite_to_board",
+	}
+
+	err := h.store.CreateToken(r.Context(), token)
+	if err != nil {
+		helper.InternalServerError(h.logger, w, nil, err)
+		return
+	}
+
+	if err = h.mailer.SendBoardInvitationEmail(
+		[]string{payload.Email},
+		"Invitation to join nexus",
+		user.Username,
+		board.Name,
+		fmt.Sprintf("http://localhost:3000/join?token=%s", token.Token),
+	); err != nil {
+		helper.InternalServerError(h.logger, w, nil, err)
+		return
+	}
+
+	helper.OK(h.logger, w, "invitation email sent successfully", nil)
 }

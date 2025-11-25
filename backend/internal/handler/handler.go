@@ -47,7 +47,7 @@ func NewHandler(store *store.Store) *handler {
 		store:      store,
 		mailer:     mailer.NewSMTPMailer(),
 		oauth2:     oauth2Configs,
-		middleware: m.NewMiddleware(store),
+		middleware: m.NewMiddleware(store, l, v),
 	}
 }
 
@@ -72,6 +72,10 @@ func (h *handler) SetupRoutes() *chi.Mux {
 			r.Post("/create", h.handleCreateBoard)
 
 			r.With(h.middleware.Paginate).Get("/list", h.handleListBoards)
+
+			r.Route("/{boardID}", func(r chi.Router) {
+				r.With(h.middleware.IsAdmin).Post("/invite", h.handleInviteToBoard)
+			})
 		})
 	})
 

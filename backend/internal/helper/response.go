@@ -62,6 +62,10 @@ func InternalServerError(logger *zap.Logger, w http.ResponseWriter, data any, er
 	SendErrorResponse(logger, w, http.StatusInternalServerError, "something went wrong with our servers", data, err)
 }
 
+func Forbidden(logger *zap.Logger, w http.ResponseWriter, message string, data any) {
+	SendErrorResponse(logger, w, http.StatusInternalServerError, message, data, nil)
+}
+
 func Created(logger *zap.Logger, w http.ResponseWriter, message string, data any) {
 	SendSuccessResponse(logger, w, http.StatusCreated, message, data)
 }

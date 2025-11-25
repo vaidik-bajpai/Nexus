@@ -18,3 +18,7 @@ func (m *MockMailer) SendPasswordResetEmail(to []string, subject string, passwor
 	return args.Error(0)
 }
 
+func (m *MockMailer) SendBoardInvitationEmail(to []string, subject, inviterName, boardName, invitationURL string) error {
+	args := m.Called(to, subject, inviterName, boardName, invitationURL)
+	return args.Error(0)
+}

@@ -34,3 +34,17 @@ func GetPaginateFromRequestContext(r *http.Request) *types.Paginate {
 
 	return paginate
 }
+
+func SetBoardInRequestContext(r *http.Request, board *types.Board) *http.Request {
+	ctx := context.WithValue(r.Context(), types.BoardCtxKey, board)
+	return r.WithContext(ctx)
+}
+
+func GetBoardFromRequestContext(r *http.Request) *types.Board {
+	board, ok := r.Context().Value(types.BoardCtxKey).(*types.Board)
+	if !ok || board == nil {
+		panic("board not found in the context")
+	}
+
+	return board
+}

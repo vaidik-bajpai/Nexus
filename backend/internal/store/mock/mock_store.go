@@ -66,3 +66,8 @@ func (m *MockStore) ListBoards(ctx context.Context, ownerID string, paginate *ty
 	args := m.Called(ctx, ownerID, paginate)
 	return nil, args.Error(0)
 }
+
+func (m *MockStore) GetBoardMember(ctx context.Context, boardID, memberID string) (*types.BoardMember, error) {
+	args := m.Called(ctx, boardID, memberID)
+	return nil, args.Error(0)
+}

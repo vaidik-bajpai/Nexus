@@ -19,6 +19,7 @@ type Storer interface {
 
 	CreateBoard(ctx context.Context, board *types.CreateBoard) error
 	ListBoards(ctx context.Context, ownerID string, paginate *types.Paginate) ([]*types.Board, error)
+	GetBoardMember(ctx context.Context, boardID, memberID string) (*types.BoardMember, error)
 }
 
 type Store struct {
