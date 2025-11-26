@@ -94,3 +94,34 @@ func (s *Store) IsABoardMember(ctx context.Context, email, boardID string) (bool
 
 	return len(members) == 0, nil
 }
+
+func (s *Store) AcceptBoardInvitation(ctx context.Context, token, userID, role string) error {
+	// First, retrieve the invitation to get the associated board ID
+	invitation, err := s.db.BoardInvitation.FindUnique(
+		db.BoardInvitation.Token.Equals(token),
+	).Exec(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Update the invitation status to "accepted"
+	boardTxn := s.db.BoardInvitation.FindUnique(
+		db.BoardInvitation.Token.Equals(token),
+	).Update(
+		db.BoardInvitation.Status.Set("accepted"),
+	).Tx()
+
+	// Create a board member linking to the correct board ID from the invitation
+	memberTxn := s.db.BoardMember.CreateOne(
+		db.BoardMember.Board.Link(
+			db.Board.ID.Equals(invitation.BoardID),
+		),
+		db.BoardMember.User.Link(
+			db.User.ID.Equals(userID),
+		),
+		db.BoardMember.Role.Set(role),
+	).Tx()
+
+	// Execute both transactions atomically
+	return s.db.Prisma.Transaction(boardTxn, memberTxn).Exec(ctx)
+}

@@ -81,3 +81,16 @@ func (m *MockStore) IsABoardMember(ctx context.Context, email, boardID string) (
 	args := m.Called(ctx, email, boardID)
 	return true, args.Error(0)
 }
+
+func (m *MockStore) AcceptBoardInvitation(ctx context.Context, token, userID, role string) error {
+	args := m.Called(ctx, token, userID, role)
+	return args.Error(0)
+}
+
+func (m *MockStore) GetBoardInvitationByToken(ctx context.Context, token string) (*types.BoardInvitation, error) {
+	args := m.Called(ctx, token)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*types.BoardInvitation), args.Error(1)
+}

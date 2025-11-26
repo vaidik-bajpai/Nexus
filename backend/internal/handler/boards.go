@@ -95,3 +95,35 @@ func (h *handler) handleInviteToBoard(w http.ResponseWriter, r *http.Request) {
 
 	helper.OK(h.logger, w, "invitation email sent successfully", nil)
 }
+
+func (h *handler) handleAcceptInviteToBoard(w http.ResponseWriter, r *http.Request) {
+	user := helper.GetUserFromRequestContext(r)
+	token := r.URL.Query().Get("token")
+	if token == "" {
+		helper.BadRequest(h.logger, w, "invalid request token", nil)
+		return
+	}
+
+	invitation, err := h.store.GetBoardInvitationByToken(r.Context(), token)
+	if err != nil {
+		helper.InternalServerError(h.logger, w, nil, err)
+		return
+	}
+
+	if invitation.ExpiredAt.Before(time.Now()) {
+		helper.BadRequest(h.logger, w, "invitation expired", nil)
+		return
+	}
+
+	if invitation.Email != user.Email {
+		helper.BadRequest(h.logger, w, "invalid request", nil)
+		return
+	}
+
+	if err := h.store.AcceptBoardInvitation(r.Context(), invitation.Token, user.ID, invitation.Role); err != nil {
+		helper.InternalServerError(h.logger, w, nil, err)
+		return
+	}
+
+	helper.OK(h.logger, w, "invitation accepted successfully", nil)
+}

@@ -160,7 +160,7 @@ I have written a comprehensive feature list based on Trello's functionality and 
 - [ ] User preferences (theme, notifications, language)
 
 ### **Board Management**
-- [ ] Create board
+- [x] Create board
 - [ ] Get board details
 - [ ] Update board (name, description, background, visibility)
 - [ ] Delete board (owner only)
@@ -309,8 +309,8 @@ I have written a comprehensive feature list based on Trello's functionality and 
 *Goal: Make it truly collaborative*
 
 ### **Board Members & Permissions**
-- [ ] Invite users to board (via email)
-- [ ] Accept/decline board invitations
+- [x] Invite users to board (via email)
+- [x] Accept/decline board invitations
 - [ ] Remove member from board
 - [ ] Change member role (admin, normal, observer)
 - [ ] List board members with online status

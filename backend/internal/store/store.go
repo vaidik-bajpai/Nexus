@@ -22,6 +22,8 @@ type Storer interface {
 	GetBoardMember(ctx context.Context, boardID, memberID string) (*types.BoardMember, error)
 	CreateBoardInvitation(ctx context.Context, invitation *types.BoardInvitation) error
 	IsABoardMember(ctx context.Context, email, boardID string) (bool, error)
+	AcceptBoardInvitation(ctx context.Context, token, userID, role string) error
+	GetBoardInvitationByToken(ctx context.Context, token string) (*types.BoardInvitation, error)
 }
 
 type Store struct {

@@ -75,6 +75,7 @@ func (h *handler) SetupRoutes() *chi.Mux {
 
 			r.Route("/{boardID}", func(r chi.Router) {
 				r.With(h.middleware.IsAdmin).Post("/invite", h.handleInviteToBoard)
+				r.Post("/accept-invite", h.handleAcceptInviteToBoard)
 			})
 		})
 	})
