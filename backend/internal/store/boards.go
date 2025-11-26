@@ -138,3 +138,10 @@ func (s *Store) UpdateBoard(ctx context.Context, board *types.UpdateBoard) error
 	).Exec(ctx)
 	return err
 }
+
+func (s *Store) DeleteBoard(ctx context.Context, boardID string) error {
+	_, err := s.db.Board.FindUnique(
+		db.Board.ID.Equals(boardID),
+	).Delete().Exec(ctx)
+	return err
+}

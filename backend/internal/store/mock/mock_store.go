@@ -99,3 +99,8 @@ func (m *MockStore) UpdateBoard(ctx context.Context, board *types.UpdateBoard) e
 	args := m.Called(ctx, board)
 	return args.Error(0)
 }
+
+func (m *MockStore) DeleteBoard(ctx context.Context, boardID string) error {
+	args := m.Called(ctx, boardID)
+	return args.Error(0)
+}

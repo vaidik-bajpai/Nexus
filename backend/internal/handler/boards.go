@@ -150,3 +150,13 @@ func (h *handler) handleUpdateBoard(w http.ResponseWriter, r *http.Request) {
 
 	helper.OK(h.logger, w, "board updated successfully", nil)
 }
+
+func (h *handler) handleDeleteBoard(w http.ResponseWriter, r *http.Request) {
+	boardID := r.PathValue("boardID")
+	if err := h.store.DeleteBoard(r.Context(), boardID); err != nil {
+		helper.InternalServerError(h.logger, w, nil, err)
+		return
+	}
+
+	helper.OK(h.logger, w, "board deleted successfully", nil)
+}

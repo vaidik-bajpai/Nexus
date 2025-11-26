@@ -163,7 +163,7 @@ I have written a comprehensive feature list based on Trello's functionality and 
 - [x] Create board
 - [ ] Get board details
 - [x] Update board (name, description, background, visibility)
-- [ ] Delete board (owner only)
+- [x] Delete board (owner only)
 - [x] Archive/unarchive board
 - [x] List user's boards (with filters: owned, member, archived)
 - [x] Board visibility settings (private, team, public)
