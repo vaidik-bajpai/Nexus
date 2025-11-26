@@ -28,6 +28,7 @@ type Storer interface {
 	DeleteBoard(ctx context.Context, boardID string) error
 
 	CreateList(ctx context.Context, list *types.CreateList) error
+	UpdateList(ctx context.Context, payload *types.UpdateLists) error
 }
 
 type Store struct {

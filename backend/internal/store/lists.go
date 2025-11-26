@@ -18,3 +18,16 @@ func (s *Store) CreateList(ctx context.Context, list *types.CreateList) error {
 	).Exec(ctx)
 	return err
 }
+
+func (s *Store) UpdateList(ctx context.Context, list *types.UpdateLists) error {
+	_, err := s.db.List.FindUnique(
+		db.List.ID.Equals(list.ListID),
+	).Update(
+		db.List.Name.SetIfPresent(list.Name),
+		db.List.Position.SetIfPresent(list.Position),
+		db.List.Color.SetIfPresent(list.Color),
+		db.List.Archived.SetIfPresent(list.Archived),
+		db.List.Collapsed.SetIfPresent(list.Collapsed),
+	).Exec(ctx)
+	return err
+}

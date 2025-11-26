@@ -109,3 +109,8 @@ func (m *MockStore) CreateList(ctx context.Context, list *types.CreateList) erro
 	args := m.Called(ctx, list)
 	return args.Error(0)
 }
+
+func (m *MockStore) UpdateList(ctx context.Context, list *types.UpdateLists) error {
+	args := m.Called(ctx, list)
+	return args.Error(0)
+}

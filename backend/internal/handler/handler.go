@@ -82,6 +82,9 @@ func (h *handler) SetupRoutes() *chi.Mux {
 				r.Route("/lists", func(r chi.Router) {
 					r.Use(h.middleware.IsMember)
 					r.Post("/create", h.handleCreateList)
+					r.Route("/{listID}", func(r chi.Router) {
+						r.Put("/update", h.handleUpdateList)
+					})
 				})
 			})
 		})

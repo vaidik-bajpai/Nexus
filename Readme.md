@@ -174,11 +174,11 @@ I have written a comprehensive feature list based on Trello's functionality and 
 ### **List Management**
 - [x] Create list within board
 - [ ] Get list details
-- [ ] Update list (name, position, color)
+- [x] Update list (name, position, color)
 - [ ] Delete list
-- [ ] Archive/unarchive list
+- [x] Archive/unarchive list
 - [ ] Reorder lists (drag and drop position)
-- [ ] Collapse/expand list
+- [x] Collapse/expand list
 - [ ] List color customization
 
 ### **Card Management (CRUD)**
