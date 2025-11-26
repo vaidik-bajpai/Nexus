@@ -94,3 +94,8 @@ func (m *MockStore) GetBoardInvitationByToken(ctx context.Context, token string)
 	}
 	return args.Get(0).(*types.BoardInvitation), args.Error(1)
 }
+
+func (m *MockStore) UpdateBoard(ctx context.Context, board *types.UpdateBoard) error {
+	args := m.Called(ctx, board)
+	return args.Error(0)
+}

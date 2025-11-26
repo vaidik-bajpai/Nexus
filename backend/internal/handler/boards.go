@@ -127,3 +127,26 @@ func (h *handler) handleAcceptInviteToBoard(w http.ResponseWriter, r *http.Reque
 
 	helper.OK(h.logger, w, "invitation accepted successfully", nil)
 }
+
+func (h *handler) handleUpdateBoard(w http.ResponseWriter, r *http.Request) {
+	boardID := r.PathValue("boardID")
+	var payload *types.UpdateBoard
+	if err := helper.ReadJSON(r, &payload); err != nil {
+		helper.UnprocessableEntity(h.logger, w, "invalid request payload", nil)
+		return
+	}
+
+	if err := h.validator.Struct(payload); err != nil {
+		helper.BadRequest(h.logger, w, "validation on request payload", nil)
+		return
+	}
+
+	payload.BoardID = boardID
+
+	if err := h.store.UpdateBoard(r.Context(), payload); err != nil {
+		helper.InternalServerError(h.logger, w, nil, err)
+		return
+	}
+
+	helper.OK(h.logger, w, "board updated successfully", nil)
+}

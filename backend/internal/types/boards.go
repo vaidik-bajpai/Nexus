@@ -24,6 +24,15 @@ type BoardInvitation struct {
 	Role      string    `json:"role" validate:"required,oneof=observer member"`
 }
 
+type UpdateBoard struct {
+	BoardID     string `json:"-"`
+	Name        string `json:"name" validate:"omitempty,max=20"`
+	Description string `json:"description" validate:"omitempty,max=1000"`
+	Visibility  string `json:"visibility" validate:"omitempty,oneof=private team public"`
+	Background  string `json:"background" validate:"omitempty,color_or_url"`
+	Archived    bool   `json:"archived" validate:"omitempty"`
+}
+
 type BoardContextKey string
 
 var BoardCtxKey = BoardContextKey("board")

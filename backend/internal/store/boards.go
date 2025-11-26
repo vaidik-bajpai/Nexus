@@ -125,3 +125,16 @@ func (s *Store) AcceptBoardInvitation(ctx context.Context, token, userID, role s
 	// Execute both transactions atomically
 	return s.db.Prisma.Transaction(boardTxn, memberTxn).Exec(ctx)
 }
+
+func (s *Store) UpdateBoard(ctx context.Context, board *types.UpdateBoard) error {
+	_, err := s.db.Board.FindUnique(
+		db.Board.ID.Equals(board.BoardID),
+	).Update(
+		db.Board.Name.SetIfPresent(&board.Name),
+		db.Board.Description.SetIfPresent(&board.Description),
+		db.Board.Visibility.SetIfPresent(&board.Visibility),
+		db.Board.Background.SetIfPresent(&board.Background),
+		db.Board.Archived.SetIfPresent(&board.Archived),
+	).Exec(ctx)
+	return err
+}

@@ -162,11 +162,11 @@ I have written a comprehensive feature list based on Trello's functionality and 
 ### **Board Management**
 - [x] Create board
 - [ ] Get board details
-- [ ] Update board (name, description, background, visibility)
+- [x] Update board (name, description, background, visibility)
 - [ ] Delete board (owner only)
-- [ ] Archive/unarchive board
-- [ ] List user's boards (with filters: owned, member, archived)
-- [ ] Board visibility settings (private, team, public)
+- [x] Archive/unarchive board
+- [x] List user's boards (with filters: owned, member, archived)
+- [x] Board visibility settings (private, team, public)
 - [ ] Board background customization (colors and images)
 - [ ] Copy/duplicate board
 - [ ] Create board from template
