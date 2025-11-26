@@ -52,3 +52,18 @@ func (h *handler) handleUpdateList(w http.ResponseWriter, r *http.Request) {
 
 	helper.Created(h.logger, w, "list updated successfully", nil)
 }
+
+func (h *handler) handleDeleteList(w http.ResponseWriter, r *http.Request) {
+	listID := r.PathValue("listID")
+	if err := h.validator.Var(listID, "required,uuid"); err != nil {
+		helper.BadRequest(h.logger, w, "failed validation on the request payload", nil)
+		return
+	}
+
+	if err := h.store.DeleteList(r.Context(), listID); err != nil {
+		helper.InternalServerError(h.logger, w, nil, err)
+		return
+	}
+
+	helper.Created(h.logger, w, "list deleted successfully", nil)
+}

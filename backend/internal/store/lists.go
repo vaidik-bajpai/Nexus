@@ -31,3 +31,10 @@ func (s *Store) UpdateList(ctx context.Context, list *types.UpdateLists) error {
 	).Exec(ctx)
 	return err
 }
+
+func (s *Store) DeleteList(ctx context.Context, listID string) error {
+	_, err := s.db.List.FindUnique(
+		db.List.ID.Equals(listID),
+	).Delete().Exec(ctx)
+	return err
+}

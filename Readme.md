@@ -175,7 +175,7 @@ I have written a comprehensive feature list based on Trello's functionality and 
 - [x] Create list within board
 - [ ] Get list details
 - [x] Update list (name, position, color)
-- [ ] Delete list
+- [x] Delete list
 - [x] Archive/unarchive list
 - [ ] Reorder lists (drag and drop position)
 - [x] Collapse/expand list
