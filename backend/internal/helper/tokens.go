@@ -21,7 +21,7 @@ func CreateRandomToken() int {
 func GenerateAccessAndRefreshTokens(user *types.User) (string, string, error) {
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user": *user,
-		"exp":  time.Now().Add(15 * time.Minute).Unix(),
+		"exp":  time.Now().Add(24 * time.Hour).Unix(),
 	})
 
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{

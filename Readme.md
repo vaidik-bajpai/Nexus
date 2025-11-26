@@ -172,7 +172,7 @@ I have written a comprehensive feature list based on Trello's functionality and 
 - [ ] Create board from template
 
 ### **List Management**
-- [ ] Create list within board
+- [x] Create list within board
 - [ ] Get list details
 - [ ] Update list (name, position, color)
 - [ ] Delete list

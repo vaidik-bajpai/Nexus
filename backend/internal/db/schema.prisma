@@ -139,7 +139,7 @@ model List {
     id        String   @id @default(uuid())
     boardId   String
     name      String
-    position  Float    @default(0) // For drag-and-drop ordering
+    position  Int    @default(0) // For drag-and-drop ordering
     color     String?  @db.VarChar(7) // Hex color code
     collapsed Boolean  @default(false)
     archived  Boolean  @default(false)

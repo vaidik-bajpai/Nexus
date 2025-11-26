@@ -26,6 +26,8 @@ type Storer interface {
 	GetBoardInvitationByToken(ctx context.Context, token string) (*types.BoardInvitation, error)
 	UpdateBoard(ctx context.Context, board *types.UpdateBoard) error
 	DeleteBoard(ctx context.Context, boardID string) error
+
+	CreateList(ctx context.Context, list *types.CreateList) error
 }
 
 type Store struct {
