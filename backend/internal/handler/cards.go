@@ -56,3 +56,14 @@ func (h *handler) handleUpdateCard(w http.ResponseWriter, r *http.Request) {
 
 	helper.Created(h.logger, w, "card updated successfully", nil)
 }
+
+func (h *handler) handleGetCardDetail(w http.ResponseWriter, r *http.Request) {
+	cardID := r.PathValue("cardID")
+	card, err := h.store.GetCardDetail(r.Context(), cardID)
+	if err != nil {
+		helper.InternalServerError(h.logger, w, nil, err)
+		return
+	}
+
+	helper.OK(h.logger, w, "card details fetched successfully", card)
+}

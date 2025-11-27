@@ -33,6 +33,7 @@ type Storer interface {
 
 	CreateCard(ctx context.Context, card *types.CreateCard) error
 	UpdateCard(ctx context.Context, cardID string, card *types.UpdateCard) error
+	GetCardDetail(ctx context.Context, cardID string) (*types.Card, error)
 }
 
 type Store struct {

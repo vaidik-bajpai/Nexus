@@ -183,10 +183,10 @@ I have written a comprehensive feature list based on Trello's functionality and 
 
 ### **Card Management (CRUD)**
 - [x] Create card within list
-- [ ] Get card details (full card back view)
+- [x] Get card details (full card back view)
 - [x] Update card (title, description, position)
 - [ ] Delete card
-- [ ] Archive/unarchive card
+- [x] Archive/unarchive card
 - [ ] Move card between lists
 - [ ] Reorder cards within list (drag and drop)
 - [ ] Copy/duplicate card

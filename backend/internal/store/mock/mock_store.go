@@ -129,3 +129,11 @@ func (m *MockStore) UpdateCard(ctx context.Context, cardID string, card *types.U
 	args := m.Called(ctx, cardID, card)
 	return args.Error(0)
 }
+
+func (m *MockStore) GetCardDetail(ctx context.Context, cardID string) (*types.Card, error) {
+	args := m.Called(ctx, cardID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*types.Card), args.Error(1)
+}
