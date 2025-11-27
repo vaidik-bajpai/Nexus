@@ -185,7 +185,7 @@ I have written a comprehensive feature list based on Trello's functionality and 
 - [x] Create card within list
 - [x] Get card details (full card back view)
 - [x] Update card (title, description, position)
-- [ ] Delete card
+- [x] Delete card
 - [x] Archive/unarchive card
 - [ ] Move card between lists
 - [ ] Reorder cards within list (drag and drop)

@@ -137,3 +137,8 @@ func (m *MockStore) GetCardDetail(ctx context.Context, cardID string) (*types.Ca
 	}
 	return args.Get(0).(*types.Card), args.Error(1)
 }
+
+func (m *MockStore) DeleteCard(ctx context.Context, cardID string) error {
+	args := m.Called(ctx, cardID)
+	return args.Error(0)
+}

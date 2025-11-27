@@ -117,3 +117,10 @@ func (s *Store) GetCardDetail(ctx context.Context, cardID string) (*types.Card, 
 	res.Checklist = checklist
 	return &res, nil
 }
+
+func (s *Store) DeleteCard(ctx context.Context, cardID string) error {
+	_, err := s.db.Card.FindUnique(
+		db.Card.ID.Equals(cardID),
+	).Delete().Exec(ctx)
+	return err
+}

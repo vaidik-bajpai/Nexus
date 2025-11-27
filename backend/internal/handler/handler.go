@@ -91,6 +91,7 @@ func (h *handler) SetupRoutes() *chi.Mux {
 							r.Route("/{cardID}", func(r chi.Router) {
 								r.Put("/update", h.handleUpdateCard)
 								r.Get("/detail", h.handleGetCardDetail)
+								r.Delete("/delete", h.handleDeleteCard)
 							})
 						})
 					})

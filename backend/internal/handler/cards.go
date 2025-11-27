@@ -67,3 +67,13 @@ func (h *handler) handleGetCardDetail(w http.ResponseWriter, r *http.Request) {
 
 	helper.OK(h.logger, w, "card details fetched successfully", card)
 }
+
+func (h *handler) handleDeleteCard(w http.ResponseWriter, r *http.Request) {
+	cardID := r.PathValue("cardID")
+	if err := h.store.DeleteCard(r.Context(), cardID); err != nil {
+		helper.InternalServerError(h.logger, w, nil, err)
+		return
+	}
+
+	helper.Created(h.logger, w, "card deleted successfully", nil)
+}
