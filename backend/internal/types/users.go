@@ -17,6 +17,14 @@ type LoginCredentialsUser struct {
 	Password string `json:"password" validate:"required,min=8,max=72"`
 }
 
+type LoginResponse struct {
+	ID           string `json:"id"`
+	Username     string `json:"username"`
+	Email        string `json:"email"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
 type User struct {
 	ID            string    `json:"id"`
 	Username      string    `json:"username"`

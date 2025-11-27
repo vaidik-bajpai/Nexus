@@ -11,6 +11,8 @@ import * as userService from "../lib/services/user";
 import FormCard from "./FormCard";
 import FormField from "./FormField";
 import { AxiosError } from "axios";
+import { toaster } from "@/components/ui/toaster";
+import { useRouter } from "next/navigation";
 
 const schema = z.object({
     username: z.string().min(3, { message: "Username must be at least 3 characters" }),
@@ -29,14 +31,33 @@ export default function SignupForm() {
         resolver: zodResolver(schema),
     });
 
+    const router = useRouter();
     const onSubmit = async (data: FormValues) => {
-        try {
-            const response = await userService.register(data);
-            console.log(response);
-        } catch (err) {
-            if (err instanceof AxiosError) {
+        const promise = userService.register(data);
 
-            }
+        toaster.promise(promise, {
+            loading: {
+                title: "Creating account...",
+                description: "Please wait while we set up your account",
+            },
+            success: {
+                title: "Account created!",
+                description: "We've sent you a verification email.",
+            },
+            error: (err) => ({
+                title: "Registration failed",
+                description: err instanceof AxiosError
+                    ? err.response?.data?.message || "Something went wrong"
+                    : "An unexpected error occurred",
+            }),
+        });
+
+        try {
+            const response = await promise;
+            console.log("Registration response:", response);
+            router.push("/login");
+        } catch (error) {
+            console.log("Registration error:", error);
         }
     };
 

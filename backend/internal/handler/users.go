@@ -178,9 +178,14 @@ func (h *handler) handleUserLogin(w http.ResponseWriter, r *http.Request) {
 	helper.WriteJSON(w, http.StatusOK, &types.Response{
 		Status:  http.StatusOK,
 		Message: "user logged in successfully",
-		Data: map[string]string{
-			"accessToken":  accessToken,
-			"refreshToken": refreshToken,
+		Data: map[string]any{
+			"user": &types.LoginResponse{
+				ID:           user.ID,
+				Username:     user.Username,
+				Email:        user.Email,
+				AccessToken:  accessToken,
+				RefreshToken: refreshToken,
+			},
 		},
 	})
 }

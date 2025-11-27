@@ -9,9 +9,14 @@ import Link from "next/link";
 
 import FormCard from "./FormCard";
 import FormField from "./FormField";
+import { useRouter } from "next/navigation";
+import * as userService from "../lib/services/user";
+import { toaster } from "@/components/ui/toaster";
+import { AxiosError } from "axios";
+import { useUserStore } from "@/lib/store/auth";
 
 const schema = z.object({
-    email: z.string().email({ message: "Invalid email address" }),
+    email: z.email({ message: "Invalid email address" }),
     password: z.string().min(6, { message: "Password must be at least 6 characters" }),
 });
 
@@ -26,10 +31,38 @@ export default function SigninForm() {
         resolver: zodResolver(schema),
     });
 
+    const router = useRouter();
+    const userStore = useUserStore();
+
     const onSubmit = async (data: FormValues) => {
-        // TODO: replace with real auth call
-        console.log("Submitted:", data);
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
+        const promise = userService.login(data);
+
+        toaster.promise(promise, {
+            loading: {
+                title: "Logging in...",
+                description: "Please wait while we log you in",
+            },
+            success: {
+                title: "Logged in!",
+                description: "You have been logged in successfully.",
+            },
+            error: (err) => ({
+                title: "Login failed",
+                description: err instanceof AxiosError
+                    ? err.response?.data?.message || "Something went wrong"
+                    : "An unexpected error occurred",
+            }),
+        });
+
+        try {
+            const response = await promise;
+            console.log("Login response:", response);
+            userStore.setUser(response.data.user);
+            router.push("/");
+        } catch (error) {
+            userStore.clearUser();
+            console.log("Login error:", error);
+        }
     };
 
     return (
