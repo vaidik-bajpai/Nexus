@@ -124,3 +124,8 @@ func (m *MockStore) CreateCard(ctx context.Context, card *types.CreateCard) erro
 	args := m.Called(ctx, card)
 	return args.Error(0)
 }
+
+func (m *MockStore) UpdateCard(ctx context.Context, cardID string, card *types.UpdateCard) error {
+	args := m.Called(ctx, cardID, card)
+	return args.Error(0)
+}

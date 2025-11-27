@@ -33,3 +33,26 @@ func (h *handler) handleCreateCard(w http.ResponseWriter, r *http.Request) {
 
 	helper.Created(h.logger, w, "card created successfully", nil)
 }
+
+func (h *handler) handleUpdateCard(w http.ResponseWriter, r *http.Request) {
+	cardID := r.PathValue("cardID")
+	var payload types.UpdateCard
+	if err := helper.ReadJSON(r, &payload); err != nil {
+		helper.BadRequest(h.logger, w, "failed to read the request payload", err)
+		return
+	}
+
+	payload.CardID = cardID
+
+	if err := h.validator.Struct(payload); err != nil {
+		helper.BadRequest(h.logger, w, "failed validation on the request payload", err)
+		return
+	}
+
+	if err := h.store.UpdateCard(r.Context(), cardID, &payload); err != nil {
+		helper.InternalServerError(h.logger, w, nil, err)
+		return
+	}
+
+	helper.Created(h.logger, w, "card updated successfully", nil)
+}
