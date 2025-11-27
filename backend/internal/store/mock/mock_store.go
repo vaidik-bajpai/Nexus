@@ -119,3 +119,8 @@ func (m *MockStore) DeleteList(ctx context.Context, listID string) error {
 	args := m.Called(ctx, listID)
 	return args.Error(0)
 }
+
+func (m *MockStore) CreateCard(ctx context.Context, card *types.CreateCard) error {
+	args := m.Called(ctx, card)
+	return args.Error(0)
+}

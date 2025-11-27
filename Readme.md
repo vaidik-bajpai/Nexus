@@ -182,7 +182,7 @@ I have written a comprehensive feature list based on Trello's functionality and 
 - [ ] List color customization
 
 ### **Card Management (CRUD)**
-- [ ] Create card within list
+- [x] Create card within list
 - [ ] Get card details (full card back view)
 - [ ] Update card (title, description, position)
 - [ ] Delete card

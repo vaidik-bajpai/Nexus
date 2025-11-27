@@ -85,6 +85,10 @@ func (h *handler) SetupRoutes() *chi.Mux {
 					r.Route("/{listID}", func(r chi.Router) {
 						r.Put("/update", h.handleUpdateList)
 						r.Delete("/delete", h.handleDeleteList)
+
+						r.Route("/cards", func(r chi.Router) {
+							r.Post("/create", h.handleCreateCard)
+						})
 					})
 				})
 			})

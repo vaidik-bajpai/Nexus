@@ -30,6 +30,8 @@ type Storer interface {
 	CreateList(ctx context.Context, list *types.CreateList) error
 	UpdateList(ctx context.Context, payload *types.UpdateLists) error
 	DeleteList(ctx context.Context, listID string) error
+
+	CreateCard(ctx context.Context, card *types.CreateCard) error
 }
 
 type Store struct {
