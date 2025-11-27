@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/go-playground/validator/v10"
 	"github.com/vaidik-bajpai/Nexus/backend/internal/helper"
 	"github.com/vaidik-bajpai/Nexus/backend/internal/mailer"
@@ -54,7 +55,17 @@ func NewHandler(store *store.Store) *handler {
 func (h *handler) SetupRoutes() *chi.Mux {
 	r := chi.NewRouter()
 
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
+
 	r.Use(middleware.Logger)
+
 	r.Route("/api/v1/", func(r chi.Router) {
 		r.Route("/users", func(r chi.Router) {
 			r.Post("/register", h.handleUserRegistration)

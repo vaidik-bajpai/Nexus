@@ -1,0 +1,9 @@
+import SigninForm from "../../components/SigninForm";
+
+export default function Login() {
+    return (
+        <div className="min-h-screen flex items-center justify-center">
+            <SigninForm />
+        </div>
+    )
+}
