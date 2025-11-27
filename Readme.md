@@ -195,10 +195,10 @@ I have written a comprehensive feature list based on Trello's functionality and 
 ### **Card Details**
 - [ ] Add/edit card description (rich text support)
 - [ ] Add/edit due date and time
-- [ ] Add start date
+- [x] Add start date
 - [ ] Mark due date as complete
-- [ ] Set card cover (color or image)
-- [ ] Remove card cover
+- [x] Set card cover (color or image)
+- [x] Remove card cover
 - [ ] Card aging (visual indication of old cards)
 
 ### **Card Members**

@@ -33,6 +33,8 @@ func (s *Store) UpdateCard(ctx context.Context, cardID string, card *types.Updat
 		db.Card.Cover.SetIfPresent(card.Cover),
 		db.Card.Archived.SetIfPresent(card.Archived),
 		db.Card.Completed.SetIfPresent(card.Completed),
+		db.Card.StartDate.SetIfPresent(card.StartDate),
+		db.Card.DueDate.SetIfPresent(card.DueDate),
 	).Exec(ctx)
 	return err
 }

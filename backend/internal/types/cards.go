@@ -1,5 +1,7 @@
 package types
 
+import "time"
+
 type CreateCard struct {
 	ListID  string `json:"-" validate:"required,uuid"`
 	UserID  string `json:"-" validate:"required,uuid"`
@@ -8,13 +10,15 @@ type CreateCard struct {
 }
 
 type UpdateCard struct {
-	CardID      string   `json:"-" validate:"required,uuid"`
-	Title       *string  `json:"title" validate:"omitempty"`
-	Description *string  `json:"description" validate:"omitempty"`
-	Position    *float64 `json:"position" validate:"omitempty"`
-	Cover       *string  `json:"cover" validate:"omitempty"`
-	Archived    *bool    `json:"archived" validate:"omitempty"`
-	Completed   *bool    `json:"completed" validate:"omitempty"`
+	CardID      string     `json:"-" validate:"required,uuid"`
+	Title       *string    `json:"title" validate:"omitempty"`
+	Description *string    `json:"description" validate:"omitempty"`
+	Position    *float64   `json:"position" validate:"omitempty"`
+	Cover       *string    `json:"cover" validate:"omitempty"`
+	Archived    *bool      `json:"archived" validate:"omitempty"`
+	Completed   *bool      `json:"completed" validate:"omitempty"`
+	StartDate   *time.Time `json:"startDate" validate:"omitempty"`
+	DueDate     *time.Time `json:"dueDate" validate:"omitempty"`
 }
 
 type Card struct {
