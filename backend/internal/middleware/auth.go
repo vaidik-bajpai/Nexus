@@ -8,6 +8,7 @@ import (
 
 	"github.com/vaidik-bajpai/Nexus/backend/internal/helper"
 	"github.com/vaidik-bajpai/Nexus/backend/internal/types"
+	"go.uber.org/zap"
 )
 
 func (m *Middleware) VerifyAccessToken(next http.Handler) http.Handler {
@@ -22,6 +23,8 @@ func (m *Middleware) VerifyAccessToken(next http.Handler) http.Handler {
 			})
 			return
 		}
+
+		m.logger.Info("token", zap.String("token", token))
 
 		token = strings.TrimPrefix(token, "Bearer ")
 		if token == "" {

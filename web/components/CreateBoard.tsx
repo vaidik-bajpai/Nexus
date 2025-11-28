@@ -3,6 +3,17 @@
 import { Box, Button, Flex, Grid, Heading, Input, Popover, Text, VStack, Icon, Image, Center } from "@chakra-ui/react";
 import { useState } from "react";
 import { FiX, FiCheck, FiMoreHorizontal } from "react-icons/fi";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toaster } from "@/components/ui/toaster";
+import { createBoard } from "@/lib/services/board";
+
+const schema = z.object({
+    title: z.string().min(1, "Board title is required"),
+});
+
+type FormValues = z.infer<typeof schema>;
 
 const BACKGROUNDS = [
     { type: "image", value: "https://images.unsplash.com/photo-1707343843437-caacff5cfa74?q=80&w=100&auto=format&fit=crop", id: "bg1" },
@@ -17,15 +28,57 @@ const BACKGROUNDS = [
 ];
 
 export default function CreateBoard({ onClose }: { onClose: () => void }) {
-    const [title, setTitle] = useState("");
     const [selectedBg, setSelectedBg] = useState(BACKGROUNDS[0].id);
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting, isValid },
+        watch
+    } = useForm<FormValues>({
+        resolver: zodResolver(schema),
+        mode: "onChange" // Validate on change to enable/disable button
+    });
+
+    const titleValue = watch("title"); // Watch title for UI feedback if needed, or just rely on isValid
+
+    const onSubmit = async (data: FormValues) => {
+        const selectedBackground = BACKGROUNDS.find(bg => bg.id === selectedBg);
+        const promise = createBoard({
+            name: data.title,
+            background: selectedBackground?.value || "",
+            visibility: "private"
+        });
+
+        toaster.promise(promise, {
+            loading: {
+                title: "Creating board...",
+                description: "Please wait while we create your board",
+            },
+            success: {
+                title: "Board created!",
+                description: "Your new board is ready.",
+            },
+            error: (err) => ({
+                title: "Failed to create board",
+                description: "Something went wrong. Please try again.",
+            }),
+        });
+
+        try {
+            await promise;
+            onClose();
+        } catch (error) {
+            console.error("Error creating board:", error);
+        }
+    };
 
     const selectedBackground = BACKGROUNDS.find(bg => bg.id === selectedBg);
 
     return (
         <Box w={"1xs"} color="gray.700">
             {/* Header */}
-            <Flex align="center" justify="space-between" mb={4} px={1}>
+            <Flex align="center" justify="space-between" mb={4} px={2} mt={2}>
                 <Box w={8} /> {/* Spacer for centering */}
                 <Heading size="sm" fontWeight="semibold" flex={1} textAlign="center">Create board</Heading>
                 <Button
@@ -111,47 +164,50 @@ export default function CreateBoard({ onClose }: { onClose: () => void }) {
             </Box>
 
             {/* Form */}
-            <VStack align="stretch" gap={4} mx={3} mb={3}>
-                <Box>
-                    <Text fontSize="xs" fontWeight="bold" mb={1} color="gray.600">Board title <Text as="span" color="red.500">*</Text></Text>
-                    <Input
-                        size="sm"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        borderColor={!title ? "red.300" : "gray.300"}
-                        _focus={{ borderColor: "blue.500", boxShadow: "0 0 0 1px var(--chakra-colors-blue-500)" }}
-                    />
-                    {!title && (
-                        <Text fontSize="xs" color="gray.600" mt={1}>👋 Board title is required</Text>
-                    )}
-                </Box>
+            <form onSubmit={handleSubmit(onSubmit)} style={{ width: "100%" }}>
+                <VStack align="stretch" gap={4} mx={3} mb={3}>
+                    <Box>
+                        <Text fontSize="xs" fontWeight="bold" mb={1} color="gray.600">Board title <Text as="span" color="red.500">*</Text></Text>
+                        <Input
+                            size="sm"
+                            {...register("title")}
+                            borderColor={errors.title ? "red.300" : "gray.300"}
+                            _focus={{ borderColor: "blue.500", boxShadow: "0 0 0 1px var(--chakra-colors-blue-500)" }}
+                        />
+                        {errors.title && (
+                            <Text fontSize="xs" color="red.500" mt={1}>{errors.title.message}</Text>
+                        )}
+                        {!errors.title && !titleValue && (
+                            <Text fontSize="xs" color="gray.600" mt={1}>👋 Board title is required</Text>
+                        )}
+                    </Box>
 
-                <Box>
-                    <Text fontSize="xs" fontWeight="bold" mb={1} color="gray.600">Visibility</Text>
+                    <Box>
+                        <Text fontSize="xs" fontWeight="bold" mb={1} color="gray.600">Visibility</Text>
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            w="full"
+                            justifyContent="space-between"
+                            fontWeight="normal"
+                            color="gray.700"
+                            type="button" // Prevent form submission
+                        >
+                            Private
+                        </Button>
+                    </Box>
+
                     <Button
-                        size="sm"
-                        variant="outline"
-                        w="full"
-                        justifyContent="space-between"
-                        fontWeight="normal"
-                        color="gray.700"
+                        colorPalette="blue"
+                        width="full"
+                        disabled={!isValid || isSubmitting}
+                        loading={isSubmitting}
+                        type="submit"
                     >
-                        Workspace
+                        Create
                     </Button>
-                </Box>
-
-                <Button
-                    colorPalette="blue"
-                    width="full"
-                    disabled={!title}
-                >
-                    Create
-                </Button>
-
-                {/* <Button variant="ghost" size="sm" color="gray.600">
-                    Start with a template
-                </Button> */}
-            </VStack>
+                </VStack>
+            </form>
         </Box>
     );
 }

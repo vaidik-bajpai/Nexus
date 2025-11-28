@@ -57,6 +57,8 @@ export default function SigninForm() {
         try {
             const response = await promise;
             console.log("Login response:", response);
+            localStorage.setItem("accessToken", response.data.user.access_token);
+            localStorage.setItem("refreshToken", response.data.user.refresh_token);
             userStore.setUser(response.data.user);
             router.push("/");
         } catch (error) {

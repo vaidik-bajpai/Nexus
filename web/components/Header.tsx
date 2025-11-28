@@ -2,9 +2,11 @@ import { Flex, Text, Button, Input, HStack, Icon, Box, Avatar, Portal, Popover }
 import { FiGrid, FiBell, FiHelpCircle } from "react-icons/fi";
 import { useUserStore } from "@/lib/store/auth";
 import CreateBoard from "./CreateBoard";
+import { useState } from "react";
 
 export default function Header() {
     const user = useUserStore((state) => state.user);
+    const [createBoardMenu, setCreateBoardMenu] = useState(false);
 
     return (
         <Flex
@@ -15,7 +17,8 @@ export default function Header() {
             px={2}
             py={4}
             color="white"
-            position="fixed"
+            bg={"blackAlpha.200"}
+            position={"sticky"}
             top={0}
             zIndex={1000}
         >
@@ -31,8 +34,8 @@ export default function Header() {
                 <Input
                     className="w-64"
                     placeholder="Search"
-                    size="sm"
-                    pl={8}
+                    size="xs"
+                    w={"2xl"}
                     bg="gray.800"
                     border="1px solid"
                     borderColor="whiteAlpha.300"
@@ -40,14 +43,13 @@ export default function Header() {
                     _focus={{ bg: "white", color: "black", borderColor: "blue.500" }}
                     color="white"
                 />
-                <Popover.Root>
+                <Popover.Root open={createBoardMenu} onOpenChange={(e) => setCreateBoardMenu(e.open)}>
                     <Popover.Trigger asChild>
                         <Button
-                            size="sm"
+                            size="xs"
                             colorPalette="blue"
                             variant="solid"
                             px={4}
-                            ml={2}
                         >
                             Create
                         </Button>
@@ -56,7 +58,7 @@ export default function Header() {
                         <Popover.Positioner>
                             <Popover.Content width="auto" p={0} borderRadius="md" boxShadow="lg">
                                 <Popover.Body p={0}>
-                                    <CreateBoard onClose={() => { }} />
+                                    <CreateBoard onClose={() => { setCreateBoardMenu(false) }} />
                                 </Popover.Body>
                             </Popover.Content>
                         </Popover.Positioner>

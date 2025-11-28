@@ -1,9 +1,11 @@
 "use client"
 
-import { Box, Heading, SimpleGrid, Text, Stack, Icon } from "@chakra-ui/react";
+import { Box, Heading, SimpleGrid, Text, Stack, Icon, Popover, Button, Portal } from "@chakra-ui/react";
 import BoardsLayout from "@/components/BoardsLayout";
 import BoardCard from "@/components/BoardCard";
 import { FiClock, FiUsers } from "react-icons/fi";
+import CreateBoard from "@/components/CreateBoard";
+import { useState } from "react";
 
 // Dummy Data
 const RECENT_BOARDS = [
@@ -23,11 +25,12 @@ const WORKSPACE_BOARDS = [
 ];
 
 export default function BoardsPage() {
+    const [createBoardMenu, setCreateBoardMenu] = useState(false);
     return (
         <BoardsLayout>
             <Stack gap={8}>
                 {/* Recently Viewed Section */}
-                <Box>
+                {/*<Box>
                     <Stack direction="row" align="center" mb={4} gap={2}>
                         <Icon as={FiClock} color="fg.muted" />
                         <Heading size="md" fontWeight="bold" color="fg.muted">Recently viewed</Heading>
@@ -37,7 +40,7 @@ export default function BoardsPage() {
                             <BoardCard key={board.id} title={board.title} bgGradient={board.bgGradient} isStarred={board.isStarred} />
                         ))}
                     </SimpleGrid>
-                </Box>
+                </Box>*/}
 
                 {/* Workspace Boards Section */}
                 <Box>
@@ -50,23 +53,37 @@ export default function BoardsPage() {
                             <BoardCard key={board.id} title={board.title} bgGradient={board.bgGradient} isStarred={board.isStarred} />
                         ))}
                         {/* Create New Board Card Placeholder */}
-                        <Box
-                            h="100px"
-                            bg="gray.100"
-                            _dark={{ bg: "gray.700" }}
-                            borderRadius="md"
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="center"
-                            cursor="pointer"
-                            _hover={{ bg: "gray.200", _dark: { bg: "gray.600" } }}
-                            transition="background 0.2s"
-                        >
-                            <Text fontSize="sm" color="fg.muted">Create new board</Text>
-                        </Box>
+                        <Popover.Root open={createBoardMenu} onOpenChange={(e) => setCreateBoardMenu(e.open)} positioning={{ placement: "right-start", offset: { mainAxis: 10, crossAxis: 0 } }}>
+                            <Popover.Trigger asChild>
+                                <Box
+                                    h="100px"
+                                    bg="gray.100"
+                                    _dark={{ bg: "gray.700" }}
+                                    borderRadius="md"
+                                    display="flex"
+                                    alignItems="center"
+                                    justifyContent="center"
+                                    cursor="pointer"
+                                    _hover={{ bg: "gray.200", _dark: { bg: "gray.600" } }}
+                                    transition="background 0.2s"
+                                >
+                                    <Text fontSize="sm" color="fg.muted">Create new board</Text>
+                                </Box>
+                            </Popover.Trigger>
+                            <Portal>
+                                <Popover.Positioner>
+                                    <Popover.Content width="auto" p={0} borderRadius="md" boxShadow="lg">
+                                        <Popover.Body p={0}>
+                                            <CreateBoard onClose={() => { setCreateBoardMenu(false) }} />
+                                        </Popover.Body>
+                                    </Popover.Content>
+                                </Popover.Positioner>
+                            </Portal>
+                        </Popover.Root>
+
                     </SimpleGrid>
                 </Box>
             </Stack>
-        </BoardsLayout>
+        </BoardsLayout >
     );
 }
