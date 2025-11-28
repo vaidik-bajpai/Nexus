@@ -5,27 +5,34 @@ import BoardsLayout from "@/components/BoardsLayout";
 import BoardCard from "@/components/BoardCard";
 import { FiClock, FiUsers } from "react-icons/fi";
 import CreateBoard from "@/components/CreateBoard";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import * as boardService from "@/lib/services/board"
+import { Board } from "@/lib/types/board.types";
 
-// Dummy Data
-const RECENT_BOARDS = [
-    { id: 1, title: "Nexus", bgGradient: "linear(to-r, blue.400, purple.500)", isStarred: true },
-    { id: 2, title: "CentrAlign AI", bgGradient: "linear(to-r, orange.400, red.500)", isStarred: false },
-    { id: 3, title: "AICN", bgGradient: "linear(to-r, green.400, teal.500)", isStarred: false },
-    { id: 4, title: "Learning", bgGradient: "linear(to-r, gray.600, gray.800)", isStarred: false },
-];
-
-const WORKSPACE_BOARDS = [
-    { id: 1, title: "Nexus", bgGradient: "linear(to-r, blue.400, purple.500)", isStarred: true },
-    { id: 2, title: "CentrAlign AI", bgGradient: "linear(to-r, orange.400, red.500)", isStarred: false },
-    { id: 3, title: "AICN", bgGradient: "linear(to-r, green.400, teal.500)", isStarred: false },
-    { id: 4, title: "Learning", bgGradient: "linear(to-r, gray.600, gray.800)", isStarred: false },
-    { id: 5, title: "Project Alpha", bgGradient: "linear(to-r, pink.400, red.400)", isStarred: false },
-    { id: 6, title: "Marketing Q4", bgGradient: "linear(to-r, yellow.400, orange.400)", isStarred: false },
-];
 
 export default function BoardsPage() {
     const [createBoardMenu, setCreateBoardMenu] = useState(false);
+    const [boards, setBoards] = useState<Board[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchBoards = async () => {
+        try {
+            setIsLoading(true);
+            const response = await boardService.listBoard({ page: 1, size: 10 });
+            console.log(response);
+            setBoards(response.data.boards || []);
+        } catch (err) {
+            console.error("Failed to fetch boards:", err);
+            setError("Failed to load boards");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchBoards();
+    }, []);
     return (
         <BoardsLayout>
             <Stack gap={8}>
@@ -49,9 +56,20 @@ export default function BoardsPage() {
                         <Heading size="md" fontWeight="bold" color="fg.muted">Your workspaces</Heading>
                     </Stack>
                     <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} gap={4}>
-                        {WORKSPACE_BOARDS.map((board) => (
-                            <BoardCard key={board.id} title={board.title} bgGradient={board.bgGradient} isStarred={board.isStarred} />
-                        ))}
+                        {isLoading ? (
+                            <Text>Loading boards...</Text>
+                        ) : error ? (
+                            <Text color="red.500">{error}</Text>
+                        ) : (
+                            boards.map((board) => (
+                                <BoardCard
+                                    key={board.id}
+                                    title={board.name}
+                                    bgGradient={board.background.startsWith('#') ? undefined : `url(${board.background})`}
+                                    bgColor={board.background.startsWith('#') ? board.background : undefined}
+                                />
+                            ))
+                        )}
                         {/* Create New Board Card Placeholder */}
                         <Popover.Root open={createBoardMenu} onOpenChange={(e) => setCreateBoardMenu(e.open)} positioning={{ placement: "right-start", offset: { mainAxis: 10, crossAxis: 0 } }}>
                             <Popover.Trigger asChild>
@@ -74,7 +92,10 @@ export default function BoardsPage() {
                                 <Popover.Positioner>
                                     <Popover.Content width="auto" p={0} borderRadius="md" boxShadow="lg">
                                         <Popover.Body p={0}>
-                                            <CreateBoard onClose={() => { setCreateBoardMenu(false) }} />
+                                            <CreateBoard onClose={() => {
+                                                setCreateBoardMenu(false);
+                                                fetchBoards(); // Refresh list after creation
+                                            }} />
                                         </Popover.Body>
                                     </Popover.Content>
                                 </Popover.Positioner>

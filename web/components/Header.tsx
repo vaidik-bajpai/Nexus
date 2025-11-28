@@ -35,7 +35,7 @@ export default function Header() {
                     className="w-64"
                     placeholder="Search"
                     size="xs"
-                    w={"2xl"}
+                    w={"3xl"}
                     bg="gray.800"
                     border="1px solid"
                     borderColor="whiteAlpha.300"

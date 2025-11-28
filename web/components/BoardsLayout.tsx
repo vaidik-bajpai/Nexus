@@ -9,7 +9,7 @@ export default function BoardsLayout({ children }: { children: React.ReactNode }
             <Flex className="w-full">
                 <Sidebar />
                 <div className="w-full flex justify-center overflow-hidden">
-                    <Box className="max-w-7xl" w="full" flex="1" overflowY="auto" p={8}>
+                    <Box className="max-w-5xl" w="full" flex="1" overflowY="auto" p={8}>
                         {children}
                     </Box>
                 </div>

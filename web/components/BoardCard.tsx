@@ -5,30 +5,33 @@ import { FiStar } from "react-icons/fi";
 
 interface BoardCardProps {
     title: string;
-    bgGradient: string;
-    isStarred?: boolean;
+    bgGradient?: string;
+    bgColor?: string;
 }
 
-export default function BoardCard({ title, bgGradient, isStarred }: BoardCardProps) {
+export default function BoardCard({ title, bgGradient, bgColor }: BoardCardProps) {
     return (
-        <Box
+        <Flex
+            direction="column"
             h="100px"
-            bgGradient={bgGradient}
             borderRadius="md"
-            p={3}
-            position="relative"
+            overflow="hidden"
             cursor="pointer"
-            _hover={{ filter: "brightness(0.9)" }}
-            transition="filter 0.2s"
-            border="1px solid rgba(255, 255, 255, 0.1)"
+            _hover={{ opacity: 0.9 }}
+            transition="opacity 0.2s"
         >
-            <Text fontWeight="bold" color="white" fontSize="md" textShadow="0 1px 2px rgba(0,0,0,0.2)">
-                {title}
-            </Text>
-
-            <Box position="absolute" bottom={2} right={2}>
-                <FiStar color={isStarred ? "#FFC107" : "transparent"} stroke={isStarred ? "#FFC107" : "white"} fill={isStarred ? "#FFC107" : "none"} />
+            <Box
+                flex="1"
+                bgGradient={bgGradient}
+                bg={bgColor}
+                bgSize="cover"
+                backgroundPosition="center"
+            />
+            <Box bg="gray.900" py={2} px={3}>
+                <Text fontWeight="semibold" color="white" fontSize="sm" truncate>
+                    {title}
+                </Text>
             </Box>
-        </Box>
+        </Flex>
     );
 }

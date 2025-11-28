@@ -57,6 +57,7 @@ func (s *Store) ListBoards(ctx context.Context, ownerID string, paginate *types.
 		}
 
 		listRes = append(listRes, &types.Board{
+			ID:         board.ID,
 			Name:       board.Name,
 			Background: background,
 		})

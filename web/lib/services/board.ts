@@ -9,3 +9,13 @@ export const createBoard = async (board: { name: string, background: string, vis
         throw error;
     }
 }
+
+export const listBoard = async (paginate: { page: number, size: number }) => {
+    try {
+        const response = await apiClient.get(`/boards/list?page=${paginate.page}&size=${paginate.size}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error listing boards:", error);
+        throw error;
+    }
+}
