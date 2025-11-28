@@ -7,31 +7,33 @@ interface BoardCardProps {
     title: string;
     bgGradient?: string;
     bgColor?: string;
+    onClick: () => void;
 }
 
-export default function BoardCard({ title, bgGradient, bgColor }: BoardCardProps) {
+export default function BoardCard({ title, bgGradient, bgColor, onClick }: BoardCardProps) {
     return (
-        <Flex
-            direction="column"
+        <Box
             h="100px"
+            bgGradient={bgGradient}
+            bg={bgColor}
+            bgSize="cover"
+            backgroundPosition="center"
             borderRadius="md"
-            overflow="hidden"
+            p={3}
+            position="relative"
             cursor="pointer"
-            _hover={{ opacity: 0.9 }}
-            transition="opacity 0.2s"
+            _hover={{ filter: "brightness(0.9)" }}
+            transition="filter 0.2s"
+            border="1px solid rgba(255, 255, 255, 0.1)"
+            onClick={onClick}
         >
-            <Box
-                flex="1"
-                bgGradient={bgGradient}
-                bg={bgColor}
-                bgSize="cover"
-                backgroundPosition="center"
-            />
-            <Box bg="gray.900" py={2} px={3}>
-                <Text fontWeight="semibold" color="white" fontSize="sm" truncate>
-                    {title}
-                </Text>
+            <Text fontWeight="bold" color="white" fontSize="md" textShadow="0 1px 2px rgba(0,0,0,0.2)">
+                {title}
+            </Text>
+
+            <Box position="absolute" bottom={2} right={2}>
+                <FiStar color="transparent" stroke="white" />
             </Box>
-        </Flex>
+        </Box>
     );
 }

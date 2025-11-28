@@ -19,3 +19,13 @@ export const listBoard = async (paginate: { page: number, size: number }) => {
         throw error;
     }
 }
+
+export const getBoard = async (id: string) => {
+    try {
+        const response = await apiClient.get(`/boards/${id}/detail`);
+        return response.data;
+    } catch (error) {
+        console.error("Error getting board:", error);
+        throw error;
+    }
+}

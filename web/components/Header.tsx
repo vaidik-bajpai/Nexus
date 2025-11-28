@@ -17,7 +17,7 @@ export default function Header() {
             px={2}
             py={4}
             color="white"
-            bg={"blackAlpha.200"}
+            bg={"black"}
             position={"sticky"}
             top={0}
             zIndex={1000}

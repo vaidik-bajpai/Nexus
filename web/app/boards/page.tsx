@@ -8,6 +8,7 @@ import CreateBoard from "@/components/CreateBoard";
 import { useState, useEffect } from "react";
 import * as boardService from "@/lib/services/board"
 import { Board } from "@/lib/types/board.types";
+import { useRouter } from "next/navigation";
 
 
 export default function BoardsPage() {
@@ -15,6 +16,7 @@ export default function BoardsPage() {
     const [boards, setBoards] = useState<Board[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const router = useRouter();
 
     const fetchBoards = async () => {
         try {
@@ -67,6 +69,7 @@ export default function BoardsPage() {
                                     title={board.name}
                                     bgGradient={board.background.startsWith('#') ? undefined : `url(${board.background})`}
                                     bgColor={board.background.startsWith('#') ? board.background : undefined}
+                                    onClick={() => router.push(`/boards/${board.id}`)}
                                 />
                             ))
                         )}
@@ -94,7 +97,7 @@ export default function BoardsPage() {
                                         <Popover.Body p={0}>
                                             <CreateBoard onClose={() => {
                                                 setCreateBoardMenu(false);
-                                                fetchBoards(); // Refresh list after creation
+                                                fetchBoards();
                                             }} />
                                         </Popover.Body>
                                     </Popover.Content>
