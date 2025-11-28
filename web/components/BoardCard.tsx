@@ -20,6 +20,7 @@ export default function BoardCard({ title, bgGradient, isStarred }: BoardCardPro
             cursor="pointer"
             _hover={{ filter: "brightness(0.9)" }}
             transition="filter 0.2s"
+            border="1px solid rgba(255, 255, 255, 0.1)"
         >
             <Text fontWeight="bold" color="white" fontSize="md" textShadow="0 1px 2px rgba(0,0,0,0.2)">
                 {title}

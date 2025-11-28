@@ -1,17 +1,19 @@
-"use client"
-
 import { Flex, Box } from "@chakra-ui/react";
 import Sidebar from "./Sidebar";
+import Header from "./Header";
 
 export default function BoardsLayout({ children }: { children: React.ReactNode }) {
     return (
-        <Flex className="min-h-screen w-full"> {/* Adjust mt based on your Navbar height */}
-            <Sidebar />
-            <div className="w-full flex justify-center">
-                <Box className="max-w-4xl" flex="1" overflowY="auto">
-                    {children}
-                </Box>
-            </div>
-        </Flex>
+        <Box minH="100vh" w="full">
+            <Header />
+            <Flex className="w-full" mt="48px" h="calc(100vh - 48px)">
+                <Sidebar />
+                <div className="w-full flex justify-center overflow-hidden">
+                    <Box className="max-w-7xl" w="full" flex="1" overflowY="auto" p={8}>
+                        {children}
+                    </Box>
+                </div>
+            </Flex>
+        </Box>
     );
 }
