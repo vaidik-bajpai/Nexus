@@ -10,9 +10,12 @@ export const createCard = async (card: { title: string, listID: string, boardID:
     }
 }
 
-export const updateCard = async (card: { cardID: string, listID: string, boardID: string, completed?: boolean }) => {
+export const updateCard = async (card: { cardID: string, listID: string, boardID: string, completed?: boolean, title?: string }) => {
     try {
-        const response = await apiClient.put(`/boards/${card.boardID}/lists/${card.listID}/cards/${card.cardID}/update`, { completed: card.completed });
+        const response = await apiClient.put(`/boards/${card.boardID}/lists/${card.listID}/cards/${card.cardID}/update`, {
+            completed: card.completed,
+            title: card.title
+        });
         return response.data;
     } catch (error) {
         console.error("Error updating card:", error);
