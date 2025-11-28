@@ -146,3 +146,53 @@ func (s *Store) DeleteBoard(ctx context.Context, boardID string) error {
 	).Delete().Exec(ctx)
 	return err
 }
+
+func (s *Store) GetBoards(ctx context.Context, boardID string) (*types.BoardDetail, error) {
+	board, err := s.db.Board.FindUnique(
+		db.Board.ID.Equals(boardID),
+	).With(
+		db.Board.Lists.Fetch().Select(
+			db.List.ID.Field(),
+			db.List.Name.Field(),
+		).With(
+			db.List.Cards.Fetch().Select(
+				db.Card.ID.Field(),
+				db.Card.Title.Field(),
+				db.Card.Description.Field(),
+				db.Card.Completed.Field(),
+			),
+		),
+	).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	boardRes := &types.BoardDetail{}
+	boardRes.ID = board.ID
+	boardRes.Name = board.Name
+	if background, ok := board.Background(); ok {
+		boardRes.Background = background
+	}
+
+	for ind, list := range board.Lists() {
+		boardRes.Lists = append(boardRes.Lists, types.List{
+			ID:   list.ID,
+			Name: list.Name,
+		})
+
+		for _, card := range list.Cards() {
+			cover, ok := card.Cover()
+			if !ok {
+				cover = ""
+			}
+			boardRes.Lists[ind].Cards = append(boardRes.Lists[ind].Cards, types.ListCard{
+				ID:        card.ID,
+				Title:     card.Title,
+				Cover:     cover,
+				Completed: card.Completed,
+			})
+		}
+	}
+
+	return boardRes, nil
+}

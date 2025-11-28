@@ -142,3 +142,11 @@ func (m *MockStore) DeleteCard(ctx context.Context, cardID string) error {
 	args := m.Called(ctx, cardID)
 	return args.Error(0)
 }
+
+func (m *MockStore) GetBoards(ctx context.Context, boardID string) (*types.BoardDetail, error) {
+	args := m.Called(ctx, boardID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*types.BoardDetail), args.Error(1)
+}

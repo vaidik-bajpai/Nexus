@@ -16,6 +16,26 @@ type Board struct {
 	Background string `json:"background"`
 }
 
+type BoardDetail struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Background string `json:"background"`
+	Lists      []List `json:"lists"`
+}
+
+type List struct {
+	ID    string     `json:"id"`
+	Name  string     `json:"name"`
+	Cards []ListCard `json:"cards"`
+}
+
+type ListCard struct {
+	ID        string `json:"id"`
+	Title     string `json:"title"`
+	Cover     string `json:"cover"`
+	Completed bool   `json:"completed"`
+}
+
 type BoardInvitation struct {
 	BoardID   string    `json:"-" validate:"required,uuid"`
 	Email     string    `json:"email" validate:"required,email"`
@@ -32,6 +52,10 @@ type UpdateBoard struct {
 	Visibility  *string `json:"visibility" validate:"omitempty,oneof=private team public"`
 	Background  *string `json:"background" validate:"omitempty,color_or_url"`
 	Archived    *bool   `json:"archived" validate:"omitempty"`
+}
+
+type GetBoardDetail struct {
+	BoardID string `json:"boardID" validate:"required,uuid"`
 }
 
 type BoardContextKey string

@@ -89,6 +89,7 @@ func (h *handler) SetupRoutes() *chi.Mux {
 				r.Post("/accept-invite", h.handleAcceptInviteToBoard)
 				r.With(h.middleware.IsAdmin).Put("/update", h.handleUpdateBoard)
 				r.With(h.middleware.IsAdmin).Delete("/delete", h.handleDeleteBoard)
+				r.With(h.middleware.IsMember).Get("/detail", h.handleGetBoardDetail)
 
 				r.Route("/lists", func(r chi.Router) {
 					r.Use(h.middleware.IsMember)
