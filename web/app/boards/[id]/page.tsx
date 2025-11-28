@@ -57,7 +57,7 @@ export default function BoardPage({ params }: PageProps) {
         <BoardLayout background={board.background} title={board.name}>
             <Flex h="full" align="flex-start">
                 {board.lists && board.lists.map((list) => (
-                    <BoardList key={list.id} list={list} />
+                    <BoardList key={list.id} list={list} boardId={board.id} onCardCreated={fetchBoard} />
                 ))}
                 <CreateList boardId={board.id} onListCreated={fetchBoard} />
             </Flex>

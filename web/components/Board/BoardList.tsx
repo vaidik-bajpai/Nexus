@@ -1,13 +1,16 @@
-import { Box, Flex, Text, IconButton, HStack, Icon } from "@chakra-ui/react";
+import { Box, Flex, Text, IconButton, Icon } from "@chakra-ui/react";
 import { List } from "@/lib/types/list.types";
 import BoardCard from "./BoardCard";
-import { FiMoreHorizontal, FiPlus } from "react-icons/fi";
+import CreateCard from "./CreateCard";
+import { FiMoreHorizontal } from "react-icons/fi";
 
 interface BoardListProps {
     list: List;
+    boardId: string;
+    onCardCreated: () => void;
 }
 
-export default function BoardList({ list }: BoardListProps) {
+export default function BoardList({ list, boardId, onCardCreated }: BoardListProps) {
     return (
         <Box
             w="272px"
@@ -41,23 +44,11 @@ export default function BoardList({ list }: BoardListProps) {
 
             <Box flex={1} overflowY="auto" px={1} className="custom-scrollbar">
                 {list.cards?.map((card) => (
-                    <BoardCard key={card.id} card={card} />
+                    <BoardCard key={card.id} card={card} listId={list.id} boardId={boardId} onUpdate={onCardCreated} />
                 ))}
             </Box>
 
-            <HStack
-                mt={2}
-                px={2}
-                py={1.5}
-                cursor="pointer"
-                borderRadius="md"
-                _hover={{ bg: "gray.700" }}
-                color="gray.400"
-                transition="background 0.2s"
-            >
-                <Icon as={FiPlus} />
-                <Text fontSize="sm">Add a card</Text>
-            </HStack>
+            <CreateCard listId={list.id} boardId={boardId} onCardCreated={onCardCreated} />
         </Box>
     );
 }
