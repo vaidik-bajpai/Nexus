@@ -40,7 +40,7 @@ export default function BoardList({ list }: BoardListProps) {
             </Flex>
 
             <Box flex={1} overflowY="auto" px={1} className="custom-scrollbar">
-                {list.cards.map((card) => (
+                {list.cards?.map((card) => (
                     <BoardCard key={card.id} card={card} />
                 ))}
             </Box>

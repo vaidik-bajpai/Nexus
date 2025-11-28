@@ -5,7 +5,9 @@ import { getBoard } from "@/lib/services/board";
 import { BoardDetail } from "@/lib/types/board.types";
 import BoardLayout from "@/components/Board/BoardLayout";
 import BoardList from "@/components/Board/BoardList";
-import { Flex, Spinner, Center, Text } from "@chakra-ui/react";
+import CreateList from "@/components/Board/CreateList";
+import { Flex, Spinner, Center, Text, Box, Icon } from "@chakra-ui/react";
+import { FiPlus } from "react-icons/fi";
 
 interface PageProps {
     params: Promise<{ id: string }>;
@@ -16,22 +18,20 @@ export default function BoardPage({ params }: PageProps) {
     const [board, setBoard] = useState<BoardDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
+    const fetchBoard = async () => {
+        try {
+            setLoading(true);
+            const response = await getBoard(id);
+            console.log(response)
+            setBoard(response.data.board);
+        } catch (err) {
+            console.error("Failed to fetch board:", err);
+            setError("Failed to load board details.");
+        } finally {
+            setLoading(false);
+        }
+    };
     useEffect(() => {
-        const fetchBoard = async () => {
-            try {
-                setLoading(true);
-                const response = await getBoard(id);
-                console.log(response)
-                setBoard(response.data.board);
-            } catch (err) {
-                console.error("Failed to fetch board:", err);
-                setError("Failed to load board details.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
         if (id) {
             fetchBoard();
         }
@@ -59,6 +59,7 @@ export default function BoardPage({ params }: PageProps) {
                 {board.lists && board.lists.map((list) => (
                     <BoardList key={list.id} list={list} />
                 ))}
+                <CreateList boardId={board.id} onListCreated={fetchBoard} />
             </Flex>
         </BoardLayout>
     );
