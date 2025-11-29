@@ -163,6 +163,7 @@ model Card {
     dueDate     DateTime?
     startDate   DateTime?
     cover       String?   // Color or image URL
+    coverSize   String?   @default("normal") // normal, full
     archived    Boolean   @default(false)
     completed   Boolean   @default(false)
     createdBy   String

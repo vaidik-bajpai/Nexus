@@ -5,6 +5,7 @@ import (
 
 	"github.com/vaidik-bajpai/Nexus/backend/internal/helper"
 	"github.com/vaidik-bajpai/Nexus/backend/internal/types"
+	"go.uber.org/zap"
 )
 
 func (h *handler) handleCreateCard(w http.ResponseWriter, r *http.Request) {
@@ -48,6 +49,8 @@ func (h *handler) handleUpdateCard(w http.ResponseWriter, r *http.Request) {
 		helper.BadRequest(h.logger, w, "failed validation on the request payload", err)
 		return
 	}
+
+	h.logger.Info("payload", zap.Any("payload", payload))
 
 	if err := h.store.UpdateCard(r.Context(), cardID, &payload); err != nil {
 		helper.InternalServerError(h.logger, w, nil, err)

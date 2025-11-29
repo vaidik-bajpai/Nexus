@@ -160,6 +160,7 @@ func (s *Store) GetBoards(ctx context.Context, boardID string) (*types.BoardDeta
 				db.Card.Title.Field(),
 				db.Card.Description.Field(),
 				db.Card.Completed.Field(),
+				db.Card.Cover.Field(),
 			),
 		),
 	).Exec(ctx)

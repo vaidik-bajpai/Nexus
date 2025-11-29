@@ -88,7 +88,6 @@ export default function BoardCard({ card, listId, boardId, onUpdate }: BoardCard
             <Box
                 ref={cardRef}
                 bg="gray.700"
-                p={2}
                 borderRadius="md"
                 boxShadow="sm"
                 mb={2}
@@ -103,17 +102,18 @@ export default function BoardCard({ card, listId, boardId, onUpdate }: BoardCard
                 opacity={isEditing ? 0 : 1} // Hide original card when editing
             >
                 {card.cover && (
-                    <Image
-                        src={card.cover}
-                        alt={card.title}
-                        borderRadius="sm"
-                        mb={2}
-                        objectFit="cover"
+                    <Box
+                        h={card.coverSize === "full" ? "200px" : "120px"}
                         w="full"
-                        h="120px"
+                        bg={card.cover.startsWith("#") ? card.cover : undefined}
+                        bgImage={!card.cover.startsWith("#") ? `url(${card.cover})` : undefined}
+                        bgSize="cover"
+                        backgroundPosition="center"
+                        borderTopRadius="md"
+                        mb={2}
                     />
                 )}
-                <Flex align="start" gap={2}>
+                <Flex align="start" gap={2} p={2}>
                     {isHovered && !card.completed && (
                         <Icon
                             as={FiCircle}
@@ -185,6 +185,9 @@ export default function BoardCard({ card, listId, boardId, onUpdate }: BoardCard
                 card={card}
                 position={editPos}
                 onSave={handleSaveTitle}
+                onUpdate={onUpdate}
+                listId={listId}
+                boardId={boardId}
             />
         </>
     );

@@ -15,6 +15,7 @@ type UpdateCard struct {
 	Description *string    `json:"description" validate:"omitempty"`
 	Position    *float64   `json:"position" validate:"omitempty"`
 	Cover       *string    `json:"cover" validate:"omitempty"`
+	CoverSize   *string    `json:"coverSize" validate:"omitempty"`
 	Archived    *bool      `json:"archived" validate:"omitempty"`
 	Completed   *bool      `json:"completed" validate:"omitempty"`
 	StartDate   *time.Time `json:"startDate" validate:"omitempty"`

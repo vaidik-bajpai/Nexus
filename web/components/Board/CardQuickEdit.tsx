@@ -1,10 +1,14 @@
-import { Box, Button, Textarea, VStack, HStack, Text, Icon, Portal, Flex } from "@chakra-ui/react";
+import { Box, Button, Textarea, VStack, HStack, Text, Icon, Portal, Flex, Popover } from "@chakra-ui/react";
 import { Card } from "@/lib/types/cards.types";
 import {
     FiLayout, FiTag, FiUser, FiImage, FiClock,
     FiArrowRight, FiCopy, FiLink, FiArchive, FiMonitor
 } from "react-icons/fi";
 import { useEffect, useRef, useState } from "react";
+import ChangeMembers from "./ChangeMembers";
+import ChangeCover from "./ChangeCover";
+import { updateCard } from "@/lib/services/cards";
+import { toaster } from "@/components/ui/toaster";
 
 interface CardQuickEditProps {
     isOpen: boolean;
@@ -12,9 +16,12 @@ interface CardQuickEditProps {
     card: Card;
     position: { top: number; left: number; width: number } | null;
     onSave: (newTitle: string) => void;
+    onUpdate: () => void;
+    listId: string;
+    boardId: string;
 }
 
-export default function CardQuickEdit({ isOpen, onClose, card, position, onSave }: CardQuickEditProps) {
+export default function CardQuickEdit({ isOpen, onClose, card, position, onSave, onUpdate, listId, boardId }: CardQuickEditProps) {
     const [title, setTitle] = useState(card.title);
     const contentRef = useRef<HTMLDivElement>(null);
 
@@ -26,7 +33,32 @@ export default function CardQuickEdit({ isOpen, onClose, card, position, onSave 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (contentRef.current && !contentRef.current.contains(event.target as Node)) {
-                onClose();
+                // Check if the click is inside a portal (like ChangeCover)
+                // This is a bit tricky since portals are outside the DOM hierarchy of contentRef
+                // But Chakra's Popover usually handles outside clicks.
+                // However, our custom overlay might interfere.
+                // For now, let's rely on the fact that if we click on the overlay (which is covered by contentRef's parent Box?), we close.
+                // Wait, the overlay is the parent Box. contentRef is the Flex container.
+                // If we click on the overlay (Box), we should close.
+                // But the event listener is on document.
+
+                // Let's just check if the target is within the contentRef or any portal.
+                // A simple way is to check if the target is inside the Chakra Portal container.
+                // But we don't have easy access to that.
+
+                // For now, let's keep the existing logic but be careful.
+                // If the user clicks on the ChangeCover popover, it shouldn't close the QuickEdit.
+                // The ChangeCover popover is in a Portal, so it's outside contentRef.
+                // We need to detect if the click is in a chakra-popover-content.
+
+                const target = event.target as HTMLElement;
+                if (target.closest(".chakra-popover__content")) {
+                    return;
+                }
+
+                if (contentRef.current && !contentRef.current.contains(event.target as Node)) {
+                    onClose();
+                }
             }
         };
 
@@ -44,11 +76,42 @@ export default function CardQuickEdit({ isOpen, onClose, card, position, onSave 
 
     if (!isOpen || !position) return null;
 
+    const handleCoverUpdate = async (cover: string, coverSize: string) => {
+        try {
+            await updateCard({
+                cardID: card.id,
+                listID: listId,
+                boardID: boardId,
+                cover,
+                coverSize
+            });
+            onUpdate();
+        } catch (error) {
+            toaster.create({
+                title: "Failed to update cover",
+                type: "error",
+            });
+        }
+    };
+
     const menuItems = [
         { icon: FiLayout, label: "Open card" },
         { icon: FiTag, label: "Edit labels" },
-        { icon: FiUser, label: "Change members" },
-        { icon: FiImage, label: "Change cover" },
+        { icon: FiUser, label: "Change members", portal: <ChangeMembers /> },
+        {
+            icon: FiImage,
+            label: "Change cover",
+            portal: <ChangeCover
+                onClose={() => { }} // Popover handles closing
+                onUpdate={(cover, coverSize) => {
+                    // We need to propagate this up
+                    // For now, let's assume we receive a prop or context
+                    // See comment above about handleCoverUpdate
+                }}
+                currentCover={card.cover}
+                currentSize={card.coverSize}
+            />
+        },
         { icon: FiClock, label: "Edit dates" },
         { icon: FiArrowRight, label: "Move" },
         { icon: FiCopy, label: "Copy card" },
@@ -85,12 +148,15 @@ export default function CardQuickEdit({ isOpen, onClose, card, position, onSave 
                         >
                             {card.cover && (
                                 <Box
-                                    h="120px"
+                                    h={card.coverSize === "full" ? "200px" : "120px"} // Adjust height based on size? Or just style.
                                     w="full"
-                                    bgImage={`url(${card.cover})`}
+                                    bg={card.cover.startsWith("#") ? card.cover : undefined}
+                                    bgImage={!card.cover.startsWith("#") ? `url(${card.cover})` : undefined}
                                     bgSize="cover"
                                     backgroundPosition="center"
                                     borderTopRadius="md"
+                                // If full size, maybe we want text over it? 
+                                // For quick edit, let's keep it simple for now.
                                 />
                             )}
                             <Textarea
@@ -117,22 +183,33 @@ export default function CardQuickEdit({ isOpen, onClose, card, position, onSave 
                     {/* Sidebar Menu */}
                     <VStack align="stretch" gap={1}>
                         {menuItems.map((item, index) => (
-                            <Button
-                                key={index}
-                                variant="subtle"
-                                justifyContent="flex-start"
-                                size="xs"
-                                bg="blackAlpha.600"
-                                color="white"
-                                w={"fit-content"}
-                                _hover={{ bg: "blackAlpha.800", transform: "translateX(4px)" }}
-                                transition="all 0.2s"
-                                px={3}
-                                py={2}
-                            >
-                                <Icon as={item.icon} size={"xs"} />
-                                <Text fontSize={"xs"}>{item.label}</Text>
-                            </Button>
+                            <Popover.Root key={index} positioning={{ placement: "bottom-start" }}>
+                                <Popover.Trigger asChild>
+                                    <Button
+                                        variant="subtle"
+                                        justifyContent="flex-start"
+                                        size="xs"
+                                        bg="blackAlpha.600"
+                                        color="white"
+                                        w={"fit-content"}
+                                        _hover={{ bg: "blackAlpha.800", transform: "translateX(4px)" }}
+                                        transition="all 0.2s"
+                                        px={3}
+                                        py={2}
+                                    >
+                                        <Icon as={item.icon} size={"xs"} />
+                                        <Text fontSize={"xs"}>{item.label}</Text>
+                                    </Button>
+                                </Popover.Trigger>
+                                {item.label === "Change cover" ? (
+                                    <ChangeCover
+                                        onClose={() => { }}
+                                        onUpdate={handleCoverUpdate}
+                                        currentCover={card.cover}
+                                        currentSize={card.coverSize}
+                                    />
+                                ) : item.portal}
+                            </Popover.Root>
                         ))}
                     </VStack>
                 </Flex>
