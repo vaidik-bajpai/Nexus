@@ -13,12 +13,15 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+import { List } from "@/lib/types/list.types";
+
 interface CreateListProps {
     boardId: string;
     onListCreated: () => void;
+    lists: List[];
 }
 
-export default function CreateList({ boardId, onListCreated }: CreateListProps) {
+export default function CreateList({ boardId, onListCreated, lists }: CreateListProps) {
     const [isEditing, setIsEditing] = useState(false);
     const formRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -57,7 +60,9 @@ export default function CreateList({ boardId, onListCreated }: CreateListProps) 
 
     const onSubmit = async (data: FormValues) => {
         try {
-            await createList({ name: data.name, boardID: boardId });
+            const lastList = lists[lists.length - 1];
+            const newPosition = lastList ? lastList.position + 65536 : 65536;
+            await createList({ name: data.name, boardID: boardId, position: newPosition });
             toaster.create({
                 title: "List created",
                 type: "success",

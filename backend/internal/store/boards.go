@@ -155,6 +155,8 @@ func (s *Store) GetBoards(ctx context.Context, boardID string) (*types.BoardDeta
 			db.List.ID.Field(),
 			db.List.Name.Field(),
 			db.List.Position.Field(),
+		).OrderBy(
+			db.List.Position.Order(db.SortOrder("asc")),
 		).With(
 			db.List.Cards.Fetch().Select(
 				db.Card.ID.Field(),
@@ -181,8 +183,9 @@ func (s *Store) GetBoards(ctx context.Context, boardID string) (*types.BoardDeta
 
 	for ind, list := range board.Lists() {
 		boardRes.Lists = append(boardRes.Lists, types.List{
-			ID:   list.ID,
-			Name: list.Name,
+			ID:       list.ID,
+			Name:     list.Name,
+			Position: list.Position,
 		})
 
 		for _, card := range list.Cards() {

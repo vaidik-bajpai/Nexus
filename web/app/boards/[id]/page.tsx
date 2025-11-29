@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, use } from "react";
-import { getBoard } from "@/lib/services/board";
+import { getBoard, updateList } from "@/lib/services/board";
 import { BoardDetail } from "@/lib/types/board.types";
 import BoardLayout from "@/components/Board/BoardLayout";
 import BoardList from "@/components/Board/BoardList";
@@ -140,15 +140,41 @@ export default function BoardPage({ params }: PageProps) {
 
         if (active.data.current?.type === "Column") {
             if (active.id !== over.id) {
-                setBoard((prev) => {
-                    if (!prev) return prev;
-                    const activeIndex = prev.lists.findIndex(l => l.id === active.id);
-                    const overIndex = prev.lists.findIndex(l => l.id === over.id);
-                    return {
-                        ...prev,
-                        lists: arrayMove(prev.lists, activeIndex, overIndex)
-                    };
-                });
+                const oldIndex = board?.lists.findIndex(l => l.id === active.id);
+                const newIndex = board?.lists.findIndex(l => l.id === over.id);
+
+                if (oldIndex !== undefined && newIndex !== undefined && oldIndex !== -1 && newIndex !== -1) {
+                    const newLists = arrayMove(board!.lists, oldIndex, newIndex);
+                    setBoard((prev) => {
+                        if (!prev) return prev;
+                        return {
+                            ...prev,
+                            lists: newLists
+                        };
+                    });
+
+                    // Calculate new position
+                    let newPos = 65536.0;
+                    if (newLists.length > 1) {
+                        if (newIndex === 0) {
+                            newPos = newLists[1].position / 2;
+                        } else if (newIndex === newLists.length - 1) {
+                            newPos = newLists[newIndex - 1].position + 65536.0;
+                        } else {
+                            newPos = (newLists[newIndex - 1].position + newLists[newIndex + 1].position) / 2;
+                        }
+                    }
+
+                    try {
+                        await updateList({
+                            listID: active.id as string,
+                            boardID: board!.id,
+                            position: newPos
+                        });
+                    } catch (error) {
+                        console.error("Failed to update list position", error);
+                    }
+                }
             }
             setIsActiveList(null);
             return;
@@ -178,22 +204,22 @@ export default function BoardPage({ params }: PageProps) {
 
             if (!activeList || !overList) return;
 
-            const activeIndex = activeList.cards.findIndex(c => c.id === activeId);
-            const overIndex = overList.cards.findIndex(c => c.id === overId);
+            const activeIndex = activeList?.cards?.findIndex(c => c.id === activeId) ?? -1;
+            const overIndex = overList?.cards?.findIndex(c => c.id === overId) ?? -1;
 
             let newIndex;
             if (activeContainer === overContainer) {
                 // Same container reordering (or after dragOver moved it)
                 newIndex = overIndex;
                 if (overId === activeContainer) {
-                    newIndex = activeList.cards.length - 1;
+                    newIndex = (activeList?.cards?.length || 0) + 1;
                 }
 
                 // Check if position changed OR list changed
                 // If activeContainer (current) != originalContainer, then list changed!
                 const listChanged = originalContainer && activeContainer !== originalContainer;
 
-                if (activeIndex !== newIndex || listChanged) {
+                if ((activeIndex !== newIndex || listChanged) && activeList?.cards) {
                     const newCards = arrayMove(activeList.cards, activeIndex, newIndex);
 
                     // Optimistic update
@@ -238,34 +264,37 @@ export default function BoardPage({ params }: PageProps) {
                 // Cross-container moving
                 // The UI is already handled by handleDragOver, we just need to persist the change
                 // We need to find the card in the NEW list (overList) because handleDragOver moved it there in state
-                const cardInNewList = overList.cards.find(c => c.id === activeId);
-                if (!cardInNewList) return; // Should be there due to handleDragOver
 
-                const newIndexInDest = overList.cards.findIndex(c => c.id === activeId);
+                // If overList is undefined or has no cards, we can't really do much here
+                if (!overList || !overList.cards) return;
 
-                // Calculate new position in destination list
-                let newPos = 65536.0;
-                if (overList.cards.length > 1) {
-                    if (newIndexInDest === 0) {
-                        newPos = overList.cards[1].position / 2;
-                    } else if (newIndexInDest === overList.cards.length - 1) {
-                        newPos = overList.cards[newIndexInDest - 1].position + 65536.0;
-                    } else {
-                        newPos = (overList.cards[newIndexInDest - 1].position + overList.cards[newIndexInDest + 1].position) / 2;
+                const newCardIndex = overList.cards.findIndex(c => c.id === activeId);
+
+                if (newCardIndex !== -1) {
+                    // Calculate new position in the new list
+                    let newPos = 65536.0;
+                    const newCards = overList.cards;
+
+                    if (newCards.length > 1) {
+                        if (newCardIndex === 0) {
+                            newPos = newCards[1].position / 2;
+                        } else if (newCardIndex === newCards.length - 1) {
+                            newPos = newCards[newCardIndex - 1].position + 65536.0;
+                        } else {
+                            newPos = (newCards[newCardIndex - 1].position + newCards[newCardIndex + 1].position) / 2;
+                        }
                     }
-                }
 
-                try {
-                    await updateCard({
-                        cardID: activeId as string,
-                        listID: overContainer, // New List ID
-                        boardID: board!.id,
-                        position: newPos
-                    });
-                    alert("Card updated successfully");
-                } catch (error) {
-                    alert("Failed to update card list/position");
-                    console.error("Failed to update card list/position", error);
+                    try {
+                        await updateCard({
+                            cardID: activeId as string,
+                            listID: overContainer as string,
+                            boardID: board!.id,
+                            position: newPos
+                        });
+                    } catch (error) {
+                        console.error("Failed to update card list/position", error);
+                    }
                 }
             }
         }
@@ -327,7 +356,7 @@ export default function BoardPage({ params }: PageProps) {
                 onDragEnd={handleDragEnd}
             >
                 <Flex h="full" align="flex-start">
-                    <SortableContext items={board.lists.map(l => l.id)} strategy={horizontalListSortingStrategy}>
+                    <SortableContext items={board.lists?.map(l => l.id) || []} strategy={horizontalListSortingStrategy}>
                         {board.lists && board.lists.map((list) => (
                             <BoardList key={list.id} list={list} boardId={board.id} onCardCreated={fetchBoard} />
                         ))}
@@ -336,7 +365,7 @@ export default function BoardPage({ params }: PageProps) {
                         {activeCard && <BoardCardOverlay card={activeCard} listId={board.lists?.find((list) => list.cards?.includes(activeCard))?.id || ""} boardId={board.id} onUpdate={fetchBoard} />}
                         {activeList && <BoardListOverlay list={activeList} />}
                     </DragOverlay>
-                    <CreateList boardId={board.id} onListCreated={fetchBoard} />
+                    <CreateList boardId={board.id} onListCreated={fetchBoard} lists={board.lists || []} />
                 </Flex>
             </DndContext>
         </BoardLayout>

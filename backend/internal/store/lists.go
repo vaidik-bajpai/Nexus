@@ -19,7 +19,7 @@ func (s *Store) CreateList(ctx context.Context, list *types.CreateList) error {
 	return err
 }
 
-func (s *Store) UpdateList(ctx context.Context, list *types.UpdateLists) error {
+func (s *Store) UpdateList(ctx context.Context, list *types.UpdateList) error {
 	_, err := s.db.List.FindUnique(
 		db.List.ID.Equals(list.ListID),
 	).Update(

@@ -5,7 +5,6 @@ import CreateCard from "./CreateCard";
 import { FiMoreHorizontal } from "react-icons/fi";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useDroppable } from "@dnd-kit/core";
 
 interface BoardListProps {
     list: List;

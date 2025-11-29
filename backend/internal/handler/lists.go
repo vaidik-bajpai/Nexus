@@ -31,7 +31,7 @@ func (h *handler) handleCreateList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) handleUpdateList(w http.ResponseWriter, r *http.Request) {
-	var payload *types.UpdateLists
+	var payload *types.UpdateList
 	if err := helper.ReadJSON(r, &payload); err != nil {
 		helper.UnprocessableEntity(h.logger, w, "invalid request payload", nil)
 		return

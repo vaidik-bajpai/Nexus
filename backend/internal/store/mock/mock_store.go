@@ -110,7 +110,7 @@ func (m *MockStore) CreateList(ctx context.Context, list *types.CreateList) erro
 	return args.Error(0)
 }
 
-func (m *MockStore) UpdateList(ctx context.Context, list *types.UpdateLists) error {
+func (m *MockStore) UpdateList(ctx context.Context, list *types.UpdateList) error {
 	args := m.Called(ctx, list)
 	return args.Error(0)
 }

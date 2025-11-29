@@ -24,9 +24,10 @@ type BoardDetail struct {
 }
 
 type List struct {
-	ID    string     `json:"id"`
-	Name  string     `json:"name"`
-	Cards []ListCard `json:"cards"`
+	ID       string     `json:"id"`
+	Name     string     `json:"name"`
+	Cards    []ListCard `json:"cards"`
+	Position float64    `json:"position"`
 }
 
 type ListCard struct {

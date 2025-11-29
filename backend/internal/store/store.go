@@ -29,7 +29,7 @@ type Storer interface {
 	GetBoards(ctx context.Context, boardID string) (*types.BoardDetail, error)
 
 	CreateList(ctx context.Context, list *types.CreateList) error
-	UpdateList(ctx context.Context, payload *types.UpdateLists) error
+	UpdateList(ctx context.Context, payload *types.UpdateList) error
 	DeleteList(ctx context.Context, listID string) error
 
 	CreateCard(ctx context.Context, card *types.CreateCard) error
