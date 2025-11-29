@@ -3,23 +3,25 @@ package types
 import "time"
 
 type CreateCard struct {
-	ListID  string `json:"-" validate:"required,uuid"`
-	UserID  string `json:"-" validate:"required,uuid"`
-	BoardID string `json:"-" validate:"required,uuid"`
-	Title   string `json:"title" validate:"required"`
+	ListID   string  `json:"-" validate:"required,uuid"`
+	UserID   string  `json:"-" validate:"required,uuid"`
+	BoardID  string  `json:"-" validate:"required,uuid"`
+	Title    string  `json:"title" validate:"required"`
+	Position float64 `json:"position" validate:"required,min=1"`
 }
 
 type UpdateCard struct {
 	CardID      string     `json:"-" validate:"required,uuid"`
+	ListID      string     `json:"-" validate:"required,uuid"`
 	Title       *string    `json:"title" validate:"omitempty"`
 	Description *string    `json:"description" validate:"omitempty"`
-	Position    *float64   `json:"position" validate:"omitempty"`
 	Cover       *string    `json:"cover" validate:"omitempty"`
 	CoverSize   *string    `json:"coverSize" validate:"omitempty"`
 	Archived    *bool      `json:"archived" validate:"omitempty"`
 	Completed   *bool      `json:"completed" validate:"omitempty"`
 	StartDate   *time.Time `json:"startDate" validate:"omitempty"`
 	DueDate     *time.Time `json:"dueDate" validate:"omitempty"`
+	Position    *float64   `json:"position" validate:"omitempty"`
 }
 
 type Card struct {

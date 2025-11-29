@@ -24,16 +24,18 @@ type BoardDetail struct {
 }
 
 type List struct {
-	ID    string     `json:"id"`
-	Name  string     `json:"name"`
-	Cards []ListCard `json:"cards"`
+	ID       string     `json:"id"`
+	Name     string     `json:"name"`
+	Cards    []ListCard `json:"cards"`
+	Position float64    `json:"position"`
 }
 
 type ListCard struct {
-	ID        string `json:"id"`
-	Title     string `json:"title"`
-	Cover     string `json:"cover"`
-	Completed bool   `json:"completed"`
+	ID        string  `json:"id"`
+	Title     string  `json:"title"`
+	Cover     string  `json:"cover"`
+	Completed bool    `json:"completed"`
+	Position  float64 `json:"position"`
 }
 
 type BoardInvitation struct {

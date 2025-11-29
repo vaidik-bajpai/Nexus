@@ -1,8 +1,8 @@
 import apiClient from "../apiClient";
 
-export const createCard = async (card: { title: string, listID: string, boardID: string }) => {
+export const createCard = async (card: { title: string, listID: string, boardID: string, position: number }) => {
     try {
-        const response = await apiClient.post(`/boards/${card.boardID}/lists/${card.listID}/cards/create`, { title: card.title });
+        const response = await apiClient.post(`/boards/${card.boardID}/lists/${card.listID}/cards/create`, { title: card.title, position: card.position });
         return response.data;
     } catch (error) {
         console.error("Error creating card:", error);
@@ -10,13 +10,14 @@ export const createCard = async (card: { title: string, listID: string, boardID:
     }
 }
 
-export const updateCard = async (card: { cardID: string, listID: string, boardID: string, completed?: boolean, title?: string, cover?: string, coverSize?: string }) => {
+export const updateCard = async (card: { cardID: string, listID: string, boardID: string, completed?: boolean, title?: string, cover?: string, coverSize?: string, position?: number }) => {
     try {
         const response = await apiClient.put(`/boards/${card.boardID}/lists/${card.listID}/cards/${card.cardID}/update`, {
             completed: card.completed,
             title: card.title,
             cover: card.cover,
-            coverSize: card.coverSize
+            coverSize: card.coverSize,
+            position: card.position
         });
         return response.data;
     } catch (error) {

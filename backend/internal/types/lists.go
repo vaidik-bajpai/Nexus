@@ -7,7 +7,7 @@ type CreateList struct {
 	Color    string  `json:"color" validate:"omitempty"`
 }
 
-type UpdateLists struct {
+type UpdateList struct {
 	ListID    string   `json:"-" validate:"required,uuid"`
 	Name      *string  `json:"name" validate:"omitempty"`
 	Position  *float64 `json:"position" validate:"omitempty"`

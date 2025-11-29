@@ -29,3 +29,13 @@ export const getBoard = async (id: string) => {
         throw error;
     }
 }
+
+export const updateList = async (list: { listID: string, boardID: string, name?: string, position?: number }) => {
+    try {
+        const response = await apiClient.put(`/boards/${list.boardID}/lists/${list.listID}/update`, { name: list.name, position: list.position });
+        return response.data;
+    } catch (error) {
+        console.error("Error updating list:", error);
+        throw error;
+    }
+}

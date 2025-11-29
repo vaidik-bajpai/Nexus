@@ -13,13 +13,16 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+import { Card } from "@/lib/types/cards.types";
+
 interface CreateCardProps {
     listId: string;
     boardId: string;
     onCardCreated: () => void;
+    cards: Card[];
 }
 
-export default function CreateCard({ listId, boardId, onCardCreated }: CreateCardProps) {
+export default function CreateCard({ listId, boardId, onCardCreated, cards }: CreateCardProps) {
     const [isEditing, setIsEditing] = useState(false);
     const formRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -58,7 +61,10 @@ export default function CreateCard({ listId, boardId, onCardCreated }: CreateCar
 
     const onSubmit = async (data: FormValues) => {
         try {
-            await createCard({ title: data.title, listID: listId, boardID: boardId });
+            const lastCard = cards[cards.length - 1];
+            const newPosition = lastCard ? lastCard.position + 65536 : 65536;
+            alert(`position ${newPosition}, lastCard ${lastCard?.title} lastCard position ${lastCard?.position}`)
+            await createCard({ title: data.title, listID: listId, boardID: boardId, position: newPosition });
             toaster.create({
                 title: "Card created",
                 type: "success",

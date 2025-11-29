@@ -5,6 +5,8 @@ import { useState, useRef } from "react";
 import { updateCard } from "@/lib/services/cards";
 import { toaster } from "@/components/ui/toaster";
 import CardQuickEdit from "./CardQuickEdit";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface BoardCardProps {
     card: Card;
@@ -14,6 +16,20 @@ interface BoardCardProps {
 }
 
 export default function BoardCard({ card, listId, boardId, onUpdate }: BoardCardProps) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id: card.id });
+    const style = {
+        transition,
+        transform: CSS.Translate.toString(transform),
+        opacity: isDragging ? 0.5 : 1,
+    };
+
     const [isHovered, setIsHovered] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const cardRef = useRef<HTMLDivElement>(null);
@@ -84,7 +100,7 @@ export default function BoardCard({ card, listId, boardId, onUpdate }: BoardCard
     };
 
     return (
-        <>
+        <div ref={setNodeRef} {...attributes} style={style} {...listeners}>
             <Box
                 ref={cardRef}
                 bg="gray.700"
@@ -189,6 +205,6 @@ export default function BoardCard({ card, listId, boardId, onUpdate }: BoardCard
                 listId={listId}
                 boardId={boardId}
             />
-        </>
+        </div>
     );
 }

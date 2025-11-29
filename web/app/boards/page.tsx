@@ -3,7 +3,7 @@
 import { Box, Heading, SimpleGrid, Text, Stack, Icon, Popover, Button, Portal } from "@chakra-ui/react";
 import BoardsLayout from "@/components/BoardsLayout";
 import BoardCard from "@/components/BoardCard";
-import { FiClock, FiUsers } from "react-icons/fi";
+import { FiUsers } from "react-icons/fi";
 import CreateBoard from "@/components/CreateBoard";
 import { useState, useEffect } from "react";
 import * as boardService from "@/lib/services/board"

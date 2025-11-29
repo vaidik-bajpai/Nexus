@@ -3,6 +3,8 @@ import { List } from "@/lib/types/list.types";
 import BoardCard from "./BoardCard";
 import CreateCard from "./CreateCard";
 import { FiMoreHorizontal } from "react-icons/fi";
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface BoardListProps {
     list: List;
@@ -11,11 +13,35 @@ interface BoardListProps {
 }
 
 export default function BoardList({ list, boardId, onCardCreated }: BoardListProps) {
+    const {
+        setNodeRef,
+        attributes,
+        listeners,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({
+        id: list.id,
+        data: {
+            type: "Column",
+            list,
+        },
+    });
+
+    const style = {
+        transition,
+        transform: CSS.Translate.toString(transform),
+        opacity: isDragging ? 0.5 : 1,
+    };
+
     return (
         <Box
+            ref={setNodeRef}
+            style={style}
+            {...attributes}
+            {...listeners}
             w="272px"
             minW="272px"
-            bg="blackAlpha.800"
             backdropFilter="blur(4px)"
             borderRadius="xl"
             border="1px solid"
@@ -24,10 +50,12 @@ export default function BoardList({ list, boardId, onCardCreated }: BoardListPro
             mr={3}
             h="fit-content"
             maxH="full"
+            minH="100px"
             display="flex"
             flexDirection="column"
+            bg={"blackAlpha.800"}
         >
-            <Flex align="center" justify="space-between" mb={2} px={2}>
+            <Flex align="center" justify="space-between" mb={2} px={2} cursor="grab">
                 <Text fontWeight="bold" fontSize="sm" color="white">
                     {list.name}
                 </Text>
@@ -42,13 +70,15 @@ export default function BoardList({ list, boardId, onCardCreated }: BoardListPro
                 </IconButton>
             </Flex>
 
-            <Box flex={1} overflowY="auto" px={1} className="custom-scrollbar">
-                {list.cards?.map((card) => (
-                    <BoardCard key={card.id} card={card} listId={list.id} boardId={boardId} onUpdate={onCardCreated} />
-                ))}
-            </Box>
+            <SortableContext items={(list.cards || []).map((card) => card.id)} strategy={verticalListSortingStrategy}>
+                <Box flex={1} overflowY="auto" px={1} className="custom-scrollbar">
+                    {list.cards?.map((card) => (
+                        <BoardCard key={card.id} card={card} listId={list.id} boardId={boardId} onUpdate={onCardCreated} />
+                    ))}
+                </Box>
+            </SortableContext>
 
-            <CreateCard listId={list.id} boardId={boardId} onCardCreated={onCardCreated} />
+            <CreateCard listId={list.id} boardId={boardId} onCardCreated={onCardCreated} cards={list.cards || []} />
         </Box>
     );
 }

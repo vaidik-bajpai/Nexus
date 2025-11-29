@@ -154,6 +154,9 @@ func (s *Store) GetBoards(ctx context.Context, boardID string) (*types.BoardDeta
 		db.Board.Lists.Fetch().Select(
 			db.List.ID.Field(),
 			db.List.Name.Field(),
+			db.List.Position.Field(),
+		).OrderBy(
+			db.List.Position.Order(db.SortOrder("asc")),
 		).With(
 			db.List.Cards.Fetch().Select(
 				db.Card.ID.Field(),
@@ -161,6 +164,9 @@ func (s *Store) GetBoards(ctx context.Context, boardID string) (*types.BoardDeta
 				db.Card.Description.Field(),
 				db.Card.Completed.Field(),
 				db.Card.Cover.Field(),
+				db.Card.Position.Field(),
+			).OrderBy(
+				db.Card.Position.Order(db.SortOrder("asc")),
 			),
 		),
 	).Exec(ctx)
@@ -177,8 +183,9 @@ func (s *Store) GetBoards(ctx context.Context, boardID string) (*types.BoardDeta
 
 	for ind, list := range board.Lists() {
 		boardRes.Lists = append(boardRes.Lists, types.List{
-			ID:   list.ID,
-			Name: list.Name,
+			ID:       list.ID,
+			Name:     list.Name,
+			Position: list.Position,
 		})
 
 		for _, card := range list.Cards() {
@@ -191,6 +198,7 @@ func (s *Store) GetBoards(ctx context.Context, boardID string) (*types.BoardDeta
 				Title:     card.Title,
 				Cover:     cover,
 				Completed: card.Completed,
+				Position:  card.Position,
 			})
 		}
 	}
