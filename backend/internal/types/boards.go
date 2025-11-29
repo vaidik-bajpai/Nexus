@@ -30,10 +30,11 @@ type List struct {
 }
 
 type ListCard struct {
-	ID        string `json:"id"`
-	Title     string `json:"title"`
-	Cover     string `json:"cover"`
-	Completed bool   `json:"completed"`
+	ID        string  `json:"id"`
+	Title     string  `json:"title"`
+	Cover     string  `json:"cover"`
+	Completed bool    `json:"completed"`
+	Position  float64 `json:"position"`
 }
 
 type BoardInvitation struct {

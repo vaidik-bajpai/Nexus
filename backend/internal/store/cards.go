@@ -19,6 +19,7 @@ func (s *Store) CreateCard(ctx context.Context, card *types.CreateCard) error {
 		db.Card.Board.Link(
 			db.Board.ID.Equals(card.BoardID),
 		),
+		db.Card.Position.Set(card.Position),
 	).Exec(ctx)
 	return err
 }

@@ -154,6 +154,7 @@ func (s *Store) GetBoards(ctx context.Context, boardID string) (*types.BoardDeta
 		db.Board.Lists.Fetch().Select(
 			db.List.ID.Field(),
 			db.List.Name.Field(),
+			db.List.Position.Field(),
 		).With(
 			db.List.Cards.Fetch().Select(
 				db.Card.ID.Field(),
@@ -161,6 +162,9 @@ func (s *Store) GetBoards(ctx context.Context, boardID string) (*types.BoardDeta
 				db.Card.Description.Field(),
 				db.Card.Completed.Field(),
 				db.Card.Cover.Field(),
+				db.Card.Position.Field(),
+			).OrderBy(
+				db.Card.Position.Order(db.SortOrder("asc")),
 			),
 		),
 	).Exec(ctx)
@@ -191,6 +195,7 @@ func (s *Store) GetBoards(ctx context.Context, boardID string) (*types.BoardDeta
 				Title:     card.Title,
 				Cover:     cover,
 				Completed: card.Completed,
+				Position:  card.Position,
 			})
 		}
 	}

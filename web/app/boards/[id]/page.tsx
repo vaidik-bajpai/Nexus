@@ -287,6 +287,17 @@ export default function BoardPage({ params }: PageProps) {
         }),
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates,
+            keyboardCodes: {
+                start: ["Space", "Enter"],
+                cancel: ["Escape"],
+                end: ["Space", "Enter"],
+            },
+            onActivation: (event) => {
+                // Prevent activation if focused on an input or textarea
+                if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") {
+                    return;
+                }
+            }
         })
     );
 

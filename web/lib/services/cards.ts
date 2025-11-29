@@ -1,8 +1,8 @@
 import apiClient from "../apiClient";
 
-export const createCard = async (card: { title: string, listID: string, boardID: string }) => {
+export const createCard = async (card: { title: string, listID: string, boardID: string, position: number }) => {
     try {
-        const response = await apiClient.post(`/boards/${card.boardID}/lists/${card.listID}/cards/create`, { title: card.title });
+        const response = await apiClient.post(`/boards/${card.boardID}/lists/${card.listID}/cards/create`, { title: card.title, position: card.position });
         return response.data;
     } catch (error) {
         console.error("Error creating card:", error);

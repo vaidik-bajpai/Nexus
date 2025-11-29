@@ -79,7 +79,7 @@ export default function BoardList({ list, boardId, onCardCreated }: BoardListPro
                 </Box>
             </SortableContext>
 
-            <CreateCard listId={list.id} boardId={boardId} onCardCreated={onCardCreated} />
+            <CreateCard listId={list.id} boardId={boardId} onCardCreated={onCardCreated} cards={list.cards || []} />
         </Box>
     );
 }
