@@ -48,7 +48,7 @@ export default function BoardList({ list, boardId, onCardCreated }: BoardListPro
                 </IconButton>
             </Flex>
 
-            <SortableContext items={list.cards.map((card) => card.id)} strategy={verticalListSortingStrategy}>
+            <SortableContext items={(list.cards || []).map((card) => card.id)} strategy={verticalListSortingStrategy}>
                 <Box flex={1} overflowY="auto" px={1} className="custom-scrollbar">
                     {list.cards?.map((card) => (
                         <BoardCard key={card.id} card={card} listId={list.id} boardId={boardId} onUpdate={onCardCreated} />

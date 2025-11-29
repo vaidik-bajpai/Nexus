@@ -158,10 +158,15 @@ export default function BoardPage({ params }: PageProps) {
                 if (overId !== targetColumn.id) {
                     const overCardIndex = targetList.cards.findIndex((card) => card.id === overId);
                     if (overCardIndex !== -1) {
-                        insertIndex = overCardIndex;
-                        // Adjust index based on direction? For simple swap, just inserting at overIndex is usually fine for Sortable.
-                        // But we need to be careful not to flicker.
-                        // Let's just insert at the overIndex.
+                        // Calculate if we are below the over item
+                        const isBelowOverItem =
+                            over &&
+                            active.rect.current.translated &&
+                            active.rect.current.translated.top >
+                            over.rect.top + over.rect.height;
+
+                        const modifier = isBelowOverItem ? 1 : 0;
+                        insertIndex = overCardIndex >= 0 ? overCardIndex + modifier : targetList.cards.length + 1;
                     }
                 }
 
@@ -176,8 +181,17 @@ export default function BoardPage({ params }: PageProps) {
     }
 
     const sensors = useSensors(
-        useSensor(PointerSensor),
-        useSensor(TouchSensor),
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 5,
+            },
+        }),
+        useSensor(TouchSensor, {
+            activationConstraint: {
+                delay: 250,
+                tolerance: 5,
+            },
+        }),
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates,
         })
@@ -213,7 +227,7 @@ export default function BoardPage({ params }: PageProps) {
                     {board.lists && board.lists.map((list) => (
                         <BoardList key={list.id} list={list} boardId={board.id} onCardCreated={fetchBoard} />
                     ))}
-                    <DragOverlay>{activeCard && <BoardCardOverlay card={activeCard} listId={board.lists?.find((list) => list.cards.includes(activeCard))?.id || ""} boardId={board.id} onUpdate={fetchBoard} />}</DragOverlay>
+                    <DragOverlay>{activeCard && <BoardCardOverlay card={activeCard} listId={board.lists?.find((list) => list.cards?.includes(activeCard))?.id || ""} boardId={board.id} onUpdate={fetchBoard} />}</DragOverlay>
                     <CreateList boardId={board.id} onListCreated={fetchBoard} />
                 </Flex>
             </DndContext>

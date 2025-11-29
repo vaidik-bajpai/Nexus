@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"log"
 
 	"github.com/vaidik-bajpai/Nexus/backend/internal/db/db"
 	"github.com/vaidik-bajpai/Nexus/backend/internal/types"
@@ -25,7 +24,6 @@ func (s *Store) CreateCard(ctx context.Context, card *types.CreateCard) error {
 }
 
 func (s *Store) UpdateCard(ctx context.Context, cardID string, card *types.UpdateCard) error {
-	log.Println(*card.Cover)
 	_, err := s.db.Card.FindUnique(
 		db.Card.ID.Equals(cardID),
 	).Update(

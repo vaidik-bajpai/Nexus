@@ -26,7 +26,7 @@ export default function BoardCard({ card, listId, boardId, onUpdate }: BoardCard
     } = useSortable({ id: card.id });
     const style = {
         transition,
-        transform: CSS.Transform.toString(transform),
+        transform: CSS.Translate.toString(transform),
         opacity: isDragging ? 0.5 : 1,
     };
 
