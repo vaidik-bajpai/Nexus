@@ -101,6 +101,7 @@ export default function BoardCardOverlay({ card, listId, boardId, onUpdate }: Bo
             onMouseLeave={() => setIsHovered(false)}
             role="group"
             opacity={isEditing ? 0 : 1} // Hide original card when editing
+            transform="rotate(4deg)"
         >
             {card.cover && (
                 <Box

@@ -28,6 +28,7 @@ export default function BoardList({ list, boardId, onCardCreated }: BoardListPro
             mr={3}
             h="fit-content"
             maxH="full"
+            minH="100px"
             display="flex"
             flexDirection="column"
             bg={"blackAlpha.800"}

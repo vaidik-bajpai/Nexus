@@ -7,7 +7,7 @@ import BoardLayout from "@/components/Board/BoardLayout";
 import BoardList from "@/components/Board/BoardList";
 import CreateList from "@/components/Board/CreateList";
 import { Flex, Spinner, Center, Text, Box, Icon } from "@chakra-ui/react";
-import { closestCenter, DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, KeyboardSensor, PointerSensor, rectIntersection, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { closestCenter, closestCorners, DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, KeyboardSensor, PointerSensor, pointerWithin, rectIntersection, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { Card } from "@/lib/types/cards.types";
 import BoardCardOverlay from "@/components/Board/BoardCardOverlay";
@@ -53,10 +53,17 @@ export default function BoardPage({ params }: PageProps) {
     function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event;
         const activeCardId = active.id;
-        const overCardId = over?.id;
+        const overId = over?.id;
 
-        const sourceColumn = board?.lists.find((list) => list.cards.some((card) => card.id === activeCardId));
-        const destinationColumn = board?.lists.find((list) => list.cards.some((card) => card.id === overCardId));
+        if (!overId) return;
+
+        const findColumn = (id: string | number) => {
+            return board?.lists.find((list) => list.id === id) ||
+                board?.lists.find((list) => list.cards.some((card) => card.id === id));
+        };
+
+        const sourceColumn = findColumn(activeCardId);
+        const destinationColumn = findColumn(overId);
 
         if (!sourceColumn || !destinationColumn) {
             return;
@@ -64,8 +71,21 @@ export default function BoardPage({ params }: PageProps) {
 
         if (sourceColumn.id === destinationColumn.id) {
             const activeIndex = sourceColumn.cards.findIndex((card) => card.id === activeCardId);
-            const overIndex = destinationColumn.cards.findIndex((card) => card.id === overCardId);
-            if (activeIndex !== overIndex) {
+            let overIndex = destinationColumn.cards.findIndex((card) => card.id === overId);
+
+            // If dropping on the list container itself, usually means append to end or it's empty
+            if (overId === destinationColumn.id) {
+                overIndex = destinationColumn.cards.length - 1;
+                // If list is empty, overIndex is -1, which is fine, we just want to ensure it's in the list.
+                // But arrayMove needs valid indices.
+                // If we are just reordering in same list, and we dropped on the list container...
+                // It's ambiguous where to put it. But usually Sortable handles this via closestCorners.
+                // If we are here, it means we are in the same list.
+                // If overId is the list ID, it might be because we dragged to an empty space in the list.
+                // Let's assume we don't need to do anything if indices are same.
+            }
+
+            if (activeIndex !== overIndex && overIndex !== -1) {
                 setBoard((prevBoard) => {
                     if (!prevBoard?.lists) {
                         return prevBoard;
@@ -74,9 +94,8 @@ export default function BoardPage({ params }: PageProps) {
                     const list = newLists.find((list) => list.id === sourceColumn.id);
                     if (list) {
                         const cards = [...list.cards];
-                        const [removed] = cards.splice(activeIndex, 1);
-                        cards.splice(overIndex, 0, removed);
-                        list.cards = cards;
+                        // Use arrayMove for reordering
+                        list.cards = arrayMove(cards, activeIndex, overIndex);
                         return {
                             ...prevBoard,
                             lists: newLists
@@ -93,37 +112,66 @@ export default function BoardPage({ params }: PageProps) {
         if (!over) return;
 
         const activeCardId = active.id;
-        const overCardId = over.id;
+        const overId = over.id;
 
-        const targetColumn = board?.lists.find((list) => list.cards.some((card) => card.id === overCardId));
-        if (targetColumn) {
-            const sourceColumn = board?.lists.find((list) => list.cards.some((card) => card.id === activeCardId));
-            if (sourceColumn && sourceColumn.id !== targetColumn.id) {
-                console.log(`swap columns ${sourceColumn.name} and ${targetColumn.name}`)
-                setBoard((prevBoard) => {
-                    if (!prevBoard?.lists) {
-                        return prevBoard;
-                    }
-                    const newList = [...prevBoard.lists];
-                    let cardToMove: Card | null = null;
-                    for (const list of newList) {
-                        const cardIndex = list.cards.findIndex((card) => card.id === activeCardId);
-                        if (cardIndex !== -1) {
-                            cardToMove = list.cards[cardIndex];
-                            list.cards.splice(cardIndex, 1);
-                            break;
-                        }
-                    }
+        // Find the containers
+        const findColumn = (id: string | number) => {
+            return board?.lists.find((list) => list.id === id) ||
+                board?.lists.find((list) => list.cards.some((card) => card.id === id));
+        };
 
-                    if (cardToMove) {
-                        targetColumn.cards.push(cardToMove);
+        const sourceColumn = findColumn(activeCardId);
+        const targetColumn = findColumn(overId);
+
+        if (!sourceColumn || !targetColumn) return;
+
+        if (sourceColumn.id !== targetColumn.id) {
+            console.log(`swap columns ${sourceColumn.name} and ${targetColumn.name}`)
+            setBoard((prevBoard) => {
+                if (!prevBoard?.lists) {
+                    return prevBoard;
+                }
+                const newLists = [...prevBoard.lists];
+
+                // Find source and target lists in the new state
+                const sourceListIndex = newLists.findIndex(l => l.id === sourceColumn.id);
+                const targetListIndex = newLists.findIndex(l => l.id === targetColumn.id);
+
+                if (sourceListIndex === -1 || targetListIndex === -1) return prevBoard;
+
+                const sourceList = newLists[sourceListIndex];
+                const targetList = newLists[targetListIndex];
+
+                const cardIndex = sourceList.cards.findIndex((card) => card.id === activeCardId);
+                if (cardIndex === -1) return prevBoard;
+
+                const [cardToMove] = sourceList.cards.splice(cardIndex, 1);
+
+                // If over a card, insert at that position. If over a list, insert at end (or 0 if empty).
+                // But handleDragOver is mostly for moving between containers.
+                // If we are over a list container directly, we usually append.
+                // However, dnd-kit's sortable strategy handles index calculation better in dragEnd usually,
+                // but for cross-container dragOver, we need to move the item into the new container's items array
+                // so the sortable context updates.
+
+                let insertIndex = targetList.cards.length;
+                if (overId !== targetColumn.id) {
+                    const overCardIndex = targetList.cards.findIndex((card) => card.id === overId);
+                    if (overCardIndex !== -1) {
+                        insertIndex = overCardIndex;
+                        // Adjust index based on direction? For simple swap, just inserting at overIndex is usually fine for Sortable.
+                        // But we need to be careful not to flicker.
+                        // Let's just insert at the overIndex.
                     }
-                    return {
-                        ...prevBoard,
-                        lists: newList
-                    }
-                })
-            }
+                }
+
+                targetList.cards.splice(insertIndex, 0, cardToMove);
+
+                return {
+                    ...prevBoard,
+                    lists: newLists
+                }
+            })
         }
     }
 
@@ -155,7 +203,7 @@ export default function BoardPage({ params }: PageProps) {
         <BoardLayout background={board.background} title={board.name}>
             <DndContext
                 sensors={sensors}
-                collisionDetection={rectIntersection}
+                collisionDetection={closestCorners}
                 onDragStart={handleDragStart}
                 onDragOver={handleDragOver}
                 onDragEnd={handleDragEnd}
