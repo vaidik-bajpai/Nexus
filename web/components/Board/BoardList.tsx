@@ -14,16 +14,39 @@ interface BoardListProps {
 }
 
 export default function BoardList({ list, boardId, onCardCreated }: BoardListProps) {
-    const { setNodeRef, isOver } = useDroppable({ id: list.id });
+    const {
+        setNodeRef,
+        attributes,
+        listeners,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({
+        id: list.id,
+        data: {
+            type: "Column",
+            list,
+        },
+    });
+
+    const style = {
+        transition,
+        transform: CSS.Translate.toString(transform),
+        opacity: isDragging ? 0.5 : 1,
+    };
+
     return (
         <Box
             ref={setNodeRef}
+            style={style}
+            {...attributes}
+            {...listeners}
             w="272px"
             minW="272px"
             backdropFilter="blur(4px)"
             borderRadius="xl"
             border="1px solid"
-            borderColor={` ${isOver ? "blue.500" : "whiteAlpha.100"}`}
+            borderColor="whiteAlpha.100"
             p={2}
             mr={3}
             h="fit-content"
@@ -33,7 +56,7 @@ export default function BoardList({ list, boardId, onCardCreated }: BoardListPro
             flexDirection="column"
             bg={"blackAlpha.800"}
         >
-            <Flex align="center" justify="space-between" mb={2} px={2}>
+            <Flex align="center" justify="space-between" mb={2} px={2} cursor="grab">
                 <Text fontWeight="bold" fontSize="sm" color="white">
                     {list.name}
                 </Text>

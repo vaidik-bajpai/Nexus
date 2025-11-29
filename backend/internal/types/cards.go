@@ -11,6 +11,7 @@ type CreateCard struct {
 
 type UpdateCard struct {
 	CardID      string     `json:"-" validate:"required,uuid"`
+	ListID      string     `json:"-" validate:"required,uuid"`
 	Title       *string    `json:"title" validate:"omitempty"`
 	Description *string    `json:"description" validate:"omitempty"`
 	Position    *float64   `json:"position" validate:"omitempty"`

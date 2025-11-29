@@ -4,4 +4,5 @@ export interface Card {
     cover: string;
     coverSize?: string;
     completed: boolean;
+    position: number;
 }

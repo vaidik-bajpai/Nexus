@@ -36,6 +36,7 @@ func (h *handler) handleCreateCard(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) handleUpdateCard(w http.ResponseWriter, r *http.Request) {
+	listID := r.PathValue("listID")
 	cardID := r.PathValue("cardID")
 	var payload types.UpdateCard
 	if err := helper.ReadJSON(r, &payload); err != nil {
@@ -44,6 +45,7 @@ func (h *handler) handleUpdateCard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	payload.CardID = cardID
+	payload.ListID = listID
 
 	if err := h.validator.Struct(payload); err != nil {
 		helper.BadRequest(h.logger, w, "failed validation on the request payload", err)

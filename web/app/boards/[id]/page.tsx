@@ -7,10 +7,13 @@ import BoardLayout from "@/components/Board/BoardLayout";
 import BoardList from "@/components/Board/BoardList";
 import CreateList from "@/components/Board/CreateList";
 import { Flex, Spinner, Center, Text, Box, Icon } from "@chakra-ui/react";
-import { closestCenter, closestCorners, DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, KeyboardSensor, PointerSensor, pointerWithin, rectIntersection, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
-import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { closestCenter, closestCorners, DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, KeyboardSensor, PointerSensor, pointerWithin, rectIntersection, TouchSensor, useSensor, useSensors, UniqueIdentifier } from "@dnd-kit/core";
+import { arrayMove, sortableKeyboardCoordinates, horizontalListSortingStrategy, SortableContext } from "@dnd-kit/sortable";
 import { Card } from "@/lib/types/cards.types";
+import { List } from "@/lib/types/list.types";
 import BoardCardOverlay from "@/components/Board/BoardCardOverlay";
+import BoardListOverlay from "@/components/Board/BoardListOverlay";
+import { updateCard } from "@/lib/services/cards";
 
 interface PageProps {
     params: Promise<{ id: string }>;
@@ -22,6 +25,7 @@ export default function BoardPage({ params }: PageProps) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeCard, setIsActiveCard] = useState<Card | null>(null);
+    const [activeList, setIsActiveList] = useState<List | null>(null); // Added activeList state
     const fetchBoard = async () => {
         try {
             setLoading(true);
@@ -42,142 +46,231 @@ export default function BoardPage({ params }: PageProps) {
     }, [id]);
 
     function handleDragStart(event: DragStartEvent) {
+        if (event.active.data.current?.type === "Column") {
+            setIsActiveList(event.active.data.current.list);
+            return;
+        }
+
         const cardId = event.active.id;
-        const card = board?.lists?.flatMap((list) => list.cards).find((card) => card.id === cardId);
+        const card = board?.lists?.flatMap((list) => list.cards || []).find((card) => card.id === cardId); // Added || []
         if (card) {
             setIsActiveCard(card);
         }
 
     }
 
-    function handleDragEnd(event: DragEndEvent) {
+    const handleDragOver = (event: DragOverEvent) => {
         const { active, over } = event;
-        const activeCardId = active.id;
+        if (!over) return;
+
+        const activeId = active.id;
+        const overId = over.id;
+
+        if (active.data.current?.type === "Column") {
+            // List reordering logic (visual only for now)
+            return;
+        }
+
+        // Find the containers
+        const findContainer = (id: UniqueIdentifier) => {
+            if (board?.lists.find((list) => list.id === id)) {
+                return id as string;
+            }
+            return board?.lists.find((list) => list.cards?.some((card) => card.id === id))?.id;
+        };
+
+        const activeContainer = findContainer(activeId);
+        const overContainer = findContainer(overId);
+
+        if (!activeContainer || !overContainer || activeContainer === overContainer) {
+            return;
+        }
+
+        setBoard((prev) => {
+            if (!prev) return prev;
+            const activeItems = prev.lists.find(l => l.id === activeContainer)?.cards || [];
+            const overItems = prev.lists.find(l => l.id === overContainer)?.cards || [];
+
+            const activeIndex = activeItems.findIndex(c => c.id === activeId);
+            const overIndex = overItems.findIndex(c => c.id === overId);
+
+            let newIndex;
+            if (prev.lists.find(l => l.id === overId)) {
+                // We're over the container itself
+                newIndex = overItems.length + 1;
+            } else {
+                const isBelowOverItem =
+                    over &&
+                    active.rect.current.translated &&
+                    active.rect.current.translated.top >
+                    over.rect.top + over.rect.height;
+
+                const modifier = isBelowOverItem ? 1 : 0;
+                newIndex = overIndex >= 0 ? overIndex + modifier : overItems.length + 1;
+            }
+
+            return {
+                ...prev,
+                lists: prev.lists.map(list => {
+                    if (list.id === activeContainer) {
+                        return { ...list, cards: (list.cards || []).filter(c => c.id !== activeId) };
+                    }
+                    if (list.id === overContainer) {
+                        const newCards = [...(list.cards || [])];
+                        const cardToMove = activeItems[activeIndex];
+                        if (!cardToMove) return list;
+
+                        newCards.splice(newIndex, 0, cardToMove);
+                        return { ...list, cards: newCards };
+                    }
+                    return list;
+                })
+            };
+        });
+    }
+
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (!over) {
+            setIsActiveCard(null);
+            setIsActiveList(null);
+            return;
+        }
+
+        if (active.data.current?.type === "Column") {
+            if (active.id !== over.id) {
+                setBoard((prev) => {
+                    if (!prev) return prev;
+                    const activeIndex = prev.lists.findIndex(l => l.id === active.id);
+                    const overIndex = prev.lists.findIndex(l => l.id === over.id);
+                    return {
+                        ...prev,
+                        lists: arrayMove(prev.lists, activeIndex, overIndex)
+                    };
+                });
+            }
+            setIsActiveList(null);
+            return;
+        }
+
+        const activeId = active.id;
         const overId = over?.id;
 
         if (!overId) return;
 
-        const findColumn = (id: string | number) => {
-            return board?.lists.find((list) => list.id === id) ||
-                board?.lists.find((list) => list.cards.some((card) => card.id === id));
+        const findContainer = (id: UniqueIdentifier) => {
+            if (board?.lists.find((list) => list.id === id)) {
+                return id as string;
+            }
+            return board?.lists.find((list) => list.cards?.some((card) => card.id === id))?.id;
         };
 
-        const sourceColumn = findColumn(activeCardId);
-        const destinationColumn = findColumn(overId);
+        const activeContainer = findContainer(activeId);
+        const overContainer = findContainer(overId);
 
-        if (!sourceColumn || !destinationColumn) {
-            return;
-        }
+        // Get the original container from dnd-kit's active data
+        const originalContainer = active.data.current?.sortable?.containerId;
 
-        if (sourceColumn.id === destinationColumn.id) {
-            const activeIndex = sourceColumn.cards.findIndex((card) => card.id === activeCardId);
-            let overIndex = destinationColumn.cards.findIndex((card) => card.id === overId);
+        if (activeContainer && overContainer) {
+            const activeList = board?.lists.find(l => l.id === activeContainer);
+            const overList = board?.lists.find(l => l.id === overContainer);
 
-            // If dropping on the list container itself, usually means append to end or it's empty
-            if (overId === destinationColumn.id) {
-                overIndex = destinationColumn.cards.length - 1;
-                // If list is empty, overIndex is -1, which is fine, we just want to ensure it's in the list.
-                // But arrayMove needs valid indices.
-                // If we are just reordering in same list, and we dropped on the list container...
-                // It's ambiguous where to put it. But usually Sortable handles this via closestCorners.
-                // If we are here, it means we are in the same list.
-                // If overId is the list ID, it might be because we dragged to an empty space in the list.
-                // Let's assume we don't need to do anything if indices are same.
-            }
+            if (!activeList || !overList) return;
 
-            if (activeIndex !== overIndex && overIndex !== -1) {
-                setBoard((prevBoard) => {
-                    if (!prevBoard?.lists) {
-                        return prevBoard;
-                    }
-                    const newLists = [...prevBoard?.lists];
-                    const list = newLists.find((list) => list.id === sourceColumn.id);
-                    if (list) {
-                        const cards = [...list.cards];
-                        // Use arrayMove for reordering
-                        list.cards = arrayMove(cards, activeIndex, overIndex);
+            const activeIndex = activeList.cards.findIndex(c => c.id === activeId);
+            const overIndex = overList.cards.findIndex(c => c.id === overId);
+
+            let newIndex;
+            if (activeContainer === overContainer) {
+                // Same container reordering (or after dragOver moved it)
+                newIndex = overIndex;
+                if (overId === activeContainer) {
+                    newIndex = activeList.cards.length - 1;
+                }
+
+                // Check if position changed OR list changed
+                // If activeContainer (current) != originalContainer, then list changed!
+                const listChanged = originalContainer && activeContainer !== originalContainer;
+
+                if (activeIndex !== newIndex || listChanged) {
+                    const newCards = arrayMove(activeList.cards, activeIndex, newIndex);
+
+                    // Optimistic update
+                    setBoard((prev) => {
+                        if (!prev) return prev;
                         return {
-                            ...prevBoard,
-                            lists: newLists
+                            ...prev,
+                            lists: prev.lists.map(l => {
+                                if (l.id === activeContainer) {
+                                    return { ...l, cards: newCards };
+                                }
+                                return l;
+                            })
                         };
+                    });
+
+                    // Calculate new position
+                    let newPos = 65536.0;
+                    if (newCards.length > 1) {
+                        if (newIndex === 0) {
+                            newPos = newCards[1].position / 2;
+                        } else if (newIndex === newCards.length - 1) {
+                            newPos = newCards[newIndex - 1].position + 65536.0;
+                        } else {
+                            newPos = (newCards[newIndex - 1].position + newCards[newIndex + 1].position) / 2;
+                        }
                     }
-                    return prevBoard;
-                })
+
+                    try {
+                        await updateCard({
+                            cardID: activeId as string,
+                            listID: activeContainer,
+                            boardID: board!.id,
+                            position: newPos
+                        });
+                    } catch (error) {
+                        console.error("Failed to update card position", error);
+                    }
+                }
+            } else {
+                // This block is likely unreachable if handleDragOver updates state, but keeping it safe
+                // Cross-container moving
+                // The UI is already handled by handleDragOver, we just need to persist the change
+                // We need to find the card in the NEW list (overList) because handleDragOver moved it there in state
+                const cardInNewList = overList.cards.find(c => c.id === activeId);
+                if (!cardInNewList) return; // Should be there due to handleDragOver
+
+                const newIndexInDest = overList.cards.findIndex(c => c.id === activeId);
+
+                // Calculate new position in destination list
+                let newPos = 65536.0;
+                if (overList.cards.length > 1) {
+                    if (newIndexInDest === 0) {
+                        newPos = overList.cards[1].position / 2;
+                    } else if (newIndexInDest === overList.cards.length - 1) {
+                        newPos = overList.cards[newIndexInDest - 1].position + 65536.0;
+                    } else {
+                        newPos = (overList.cards[newIndexInDest - 1].position + overList.cards[newIndexInDest + 1].position) / 2;
+                    }
+                }
+
+                try {
+                    await updateCard({
+                        cardID: activeId as string,
+                        listID: overContainer, // New List ID
+                        boardID: board!.id,
+                        position: newPos
+                    });
+                    alert("Card updated successfully");
+                } catch (error) {
+                    alert("Failed to update card list/position");
+                    console.error("Failed to update card list/position", error);
+                }
             }
         }
-    }
-
-    function handleDragOver(event: DragOverEvent) {
-        const { active, over } = event;
-        if (!over) return;
-
-        const activeCardId = active.id;
-        const overId = over.id;
-
-        // Find the containers
-        const findColumn = (id: string | number) => {
-            return board?.lists.find((list) => list.id === id) ||
-                board?.lists.find((list) => list.cards.some((card) => card.id === id));
-        };
-
-        const sourceColumn = findColumn(activeCardId);
-        const targetColumn = findColumn(overId);
-
-        if (!sourceColumn || !targetColumn) return;
-
-        if (sourceColumn.id !== targetColumn.id) {
-            console.log(`swap columns ${sourceColumn.name} and ${targetColumn.name}`)
-            setBoard((prevBoard) => {
-                if (!prevBoard?.lists) {
-                    return prevBoard;
-                }
-                const newLists = [...prevBoard.lists];
-
-                // Find source and target lists in the new state
-                const sourceListIndex = newLists.findIndex(l => l.id === sourceColumn.id);
-                const targetListIndex = newLists.findIndex(l => l.id === targetColumn.id);
-
-                if (sourceListIndex === -1 || targetListIndex === -1) return prevBoard;
-
-                const sourceList = newLists[sourceListIndex];
-                const targetList = newLists[targetListIndex];
-
-                const cardIndex = sourceList.cards.findIndex((card) => card.id === activeCardId);
-                if (cardIndex === -1) return prevBoard;
-
-                const [cardToMove] = sourceList.cards.splice(cardIndex, 1);
-
-                // If over a card, insert at that position. If over a list, insert at end (or 0 if empty).
-                // But handleDragOver is mostly for moving between containers.
-                // If we are over a list container directly, we usually append.
-                // However, dnd-kit's sortable strategy handles index calculation better in dragEnd usually,
-                // but for cross-container dragOver, we need to move the item into the new container's items array
-                // so the sortable context updates.
-
-                let insertIndex = targetList.cards.length;
-                if (overId !== targetColumn.id) {
-                    const overCardIndex = targetList.cards.findIndex((card) => card.id === overId);
-                    if (overCardIndex !== -1) {
-                        // Calculate if we are below the over item
-                        const isBelowOverItem =
-                            over &&
-                            active.rect.current.translated &&
-                            active.rect.current.translated.top >
-                            over.rect.top + over.rect.height;
-
-                        const modifier = isBelowOverItem ? 1 : 0;
-                        insertIndex = overCardIndex >= 0 ? overCardIndex + modifier : targetList.cards.length + 1;
-                    }
-                }
-
-                targetList.cards.splice(insertIndex, 0, cardToMove);
-
-                return {
-                    ...prevBoard,
-                    lists: newLists
-                }
-            })
-        }
+        setIsActiveCard(null);
+        setIsActiveList(null);
     }
 
     const sensors = useSensors(
@@ -223,11 +316,15 @@ export default function BoardPage({ params }: PageProps) {
                 onDragEnd={handleDragEnd}
             >
                 <Flex h="full" align="flex-start">
-
-                    {board.lists && board.lists.map((list) => (
-                        <BoardList key={list.id} list={list} boardId={board.id} onCardCreated={fetchBoard} />
-                    ))}
-                    <DragOverlay>{activeCard && <BoardCardOverlay card={activeCard} listId={board.lists?.find((list) => list.cards?.includes(activeCard))?.id || ""} boardId={board.id} onUpdate={fetchBoard} />}</DragOverlay>
+                    <SortableContext items={board.lists.map(l => l.id)} strategy={horizontalListSortingStrategy}>
+                        {board.lists && board.lists.map((list) => (
+                            <BoardList key={list.id} list={list} boardId={board.id} onCardCreated={fetchBoard} />
+                        ))}
+                    </SortableContext>
+                    <DragOverlay>
+                        {activeCard && <BoardCardOverlay card={activeCard} listId={board.lists?.find((list) => list.cards?.includes(activeCard))?.id || ""} boardId={board.id} onUpdate={fetchBoard} />}
+                        {activeList && <BoardListOverlay list={activeList} />}
+                    </DragOverlay>
                     <CreateList boardId={board.id} onListCreated={fetchBoard} />
                 </Flex>
             </DndContext>

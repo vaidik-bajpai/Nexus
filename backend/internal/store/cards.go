@@ -35,6 +35,9 @@ func (s *Store) UpdateCard(ctx context.Context, cardID string, card *types.Updat
 		db.Card.Completed.SetIfPresent(card.Completed),
 		db.Card.StartDate.SetIfPresent(card.StartDate),
 		db.Card.DueDate.SetIfPresent(card.DueDate),
+		db.Card.List.Link(
+			db.List.ID.Equals(card.ListID),
+		),
 	).Exec(ctx)
 	return err
 }
