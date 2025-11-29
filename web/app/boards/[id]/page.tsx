@@ -7,8 +7,10 @@ import BoardLayout from "@/components/Board/BoardLayout";
 import BoardList from "@/components/Board/BoardList";
 import CreateList from "@/components/Board/CreateList";
 import { Flex, Spinner, Center, Text, Box, Icon } from "@chakra-ui/react";
-import { closestCenter, DndContext, DragEndEvent, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { closestCenter, DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, KeyboardSensor, PointerSensor, rectIntersection, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { Card } from "@/lib/types/cards.types";
+import BoardCardOverlay from "@/components/Board/BoardCardOverlay";
 
 interface PageProps {
     params: Promise<{ id: string }>;
@@ -19,6 +21,7 @@ export default function BoardPage({ params }: PageProps) {
     const [board, setBoard] = useState<BoardDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [activeCard, setIsActiveCard] = useState<Card | null>(null);
     const fetchBoard = async () => {
         try {
             setLoading(true);
@@ -38,27 +41,90 @@ export default function BoardPage({ params }: PageProps) {
         }
     }, [id]);
 
-    function onDragEnd(event: DragEndEvent) {
+    function handleDragStart(event: DragStartEvent) {
+        const cardId = event.active.id;
+        const card = board?.lists?.flatMap((list) => list.cards).find((card) => card.id === cardId);
+        if (card) {
+            setIsActiveCard(card);
+        }
+
+    }
+
+    function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event;
-        if (active.id === over?.id) {
+        const activeCardId = active.id;
+        const overCardId = over?.id;
+
+        const sourceColumn = board?.lists.find((list) => list.cards.some((card) => card.id === activeCardId));
+        const destinationColumn = board?.lists.find((list) => list.cards.some((card) => card.id === overCardId));
+
+        if (!sourceColumn || !destinationColumn) {
             return;
         }
 
-        setBoard((board) => {
-            if (!board) {
-                return board;
+        if (sourceColumn.id === destinationColumn.id) {
+            const activeIndex = sourceColumn.cards.findIndex((card) => card.id === activeCardId);
+            const overIndex = destinationColumn.cards.findIndex((card) => card.id === overCardId);
+            if (activeIndex !== overIndex) {
+                setBoard((prevBoard) => {
+                    if (!prevBoard?.lists) {
+                        return prevBoard;
+                    }
+                    const newLists = [...prevBoard?.lists];
+                    const list = newLists.find((list) => list.id === sourceColumn.id);
+                    if (list) {
+                        const cards = [...list.cards];
+                        const [removed] = cards.splice(activeIndex, 1);
+                        cards.splice(overIndex, 0, removed);
+                        list.cards = cards;
+                        return {
+                            ...prevBoard,
+                            lists: newLists
+                        };
+                    }
+                    return prevBoard;
+                })
             }
-            const oldIndex = board?.lists.findIndex((list) => list.id === active.id);
-            const newIndex = board?.lists.findIndex((list) => list.id === over?.id);
-            if (oldIndex === undefined || newIndex === undefined) {
-                return board;
+        }
+    }
+
+    function handleDragOver(event: DragOverEvent) {
+        const { active, over } = event;
+        if (!over) return;
+
+        const activeCardId = active.id;
+        const overCardId = over.id;
+
+        const targetColumn = board?.lists.find((list) => list.cards.some((card) => card.id === overCardId));
+        if (targetColumn) {
+            const sourceColumn = board?.lists.find((list) => list.cards.some((card) => card.id === activeCardId));
+            if (sourceColumn && sourceColumn.id !== targetColumn.id) {
+                console.log(`swap columns ${sourceColumn.name} and ${targetColumn.name}`)
+                setBoard((prevBoard) => {
+                    if (!prevBoard?.lists) {
+                        return prevBoard;
+                    }
+                    const newList = [...prevBoard.lists];
+                    let cardToMove: Card | null = null;
+                    for (const list of newList) {
+                        const cardIndex = list.cards.findIndex((card) => card.id === activeCardId);
+                        if (cardIndex !== -1) {
+                            cardToMove = list.cards[cardIndex];
+                            list.cards.splice(cardIndex, 1);
+                            break;
+                        }
+                    }
+
+                    if (cardToMove) {
+                        targetColumn.cards.push(cardToMove);
+                    }
+                    return {
+                        ...prevBoard,
+                        lists: newList
+                    }
+                })
             }
-            const newLists = arrayMove(board.lists, oldIndex, newIndex);
-            return {
-                ...board,
-                lists: newLists,
-            };
-        })
+        }
     }
 
     const sensors = useSensors(
@@ -87,18 +153,22 @@ export default function BoardPage({ params }: PageProps) {
 
     return (
         <BoardLayout background={board.background} title={board.name}>
-            <Flex h="full" align="flex-start">
-                <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={onDragEnd}>
+            <DndContext
+                sensors={sensors}
+                collisionDetection={rectIntersection}
+                onDragStart={handleDragStart}
+                onDragOver={handleDragOver}
+                onDragEnd={handleDragEnd}
+            >
+                <Flex h="full" align="flex-start">
+
                     {board.lists && board.lists.map((list) => (
                         <BoardList key={list.id} list={list} boardId={board.id} onCardCreated={fetchBoard} />
                     ))}
-                </DndContext>
-
-                <CreateList boardId={board.id} onListCreated={fetchBoard} />
-            </Flex>
+                    <DragOverlay>{activeCard && <BoardCardOverlay card={activeCard} listId={board.lists?.find((list) => list.cards.includes(activeCard))?.id || ""} boardId={board.id} onUpdate={fetchBoard} />}</DragOverlay>
+                    <CreateList boardId={board.id} onListCreated={fetchBoard} />
+                </Flex>
+            </DndContext>
         </BoardLayout>
     );
 }
