@@ -3,6 +3,8 @@ import { List } from "@/lib/types/list.types";
 import BoardCard from "./BoardCard";
 import CreateCard from "./CreateCard";
 import { FiMoreHorizontal } from "react-icons/fi";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface BoardListProps {
     list: List;
@@ -11,8 +13,16 @@ interface BoardListProps {
 }
 
 export default function BoardList({ list, boardId, onCardCreated }: BoardListProps) {
+    const { attributes, listeners, setNodeRef, transform, transition } =
+        useSortable({ id: list.id });
+    const style = {
+        transition,
+        transform: CSS.Transform.toString(transform),
+    };
     return (
         <Box
+            ref={setNodeRef}
+            style={style}
             w="272px"
             minW="272px"
             bg="blackAlpha.800"
@@ -26,6 +36,8 @@ export default function BoardList({ list, boardId, onCardCreated }: BoardListPro
             maxH="full"
             display="flex"
             flexDirection="column"
+            {...attributes}
+            {...listeners}
         >
             <Flex align="center" justify="space-between" mb={2} px={2}>
                 <Text fontWeight="bold" fontSize="sm" color="white">
