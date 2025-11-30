@@ -161,13 +161,13 @@ I have written a comprehensive feature list based on Trello's functionality and 
 
 ### **Board Management**
 - [x] Create board
-- [ ] Get board details
+- [x] Get board details
 - [x] Update board (name, description, background, visibility)
 - [x] Delete board (owner only)
 - [x] Archive/unarchive board
 - [x] List user's boards (with filters: owned, member, archived)
 - [x] Board visibility settings (private, team, public)
-- [ ] Board background customization (colors and images)
+- [x] Board background customization (colors and images)
 - [ ] Copy/duplicate board
 - [ ] Create board from template
 
@@ -177,7 +177,7 @@ I have written a comprehensive feature list based on Trello's functionality and 
 - [x] Update list (name, position, color)
 - [x] Delete list
 - [x] Archive/unarchive list
-- [ ] Reorder lists (drag and drop position)
+- [x] Reorder lists (drag and drop position)
 - [x] Collapse/expand list
 - [ ] List color customization
 
@@ -187,8 +187,8 @@ I have written a comprehensive feature list based on Trello's functionality and 
 - [x] Update card (title, description, position)
 - [x] Delete card
 - [x] Archive/unarchive card
-- [ ] Move card between lists
-- [ ] Reorder cards within list (drag and drop)
+- [x] Move card between lists
+- [x] Reorder cards within list (drag and drop)
 - [ ] Copy/duplicate card
 - [ ] Convert card to template
 
