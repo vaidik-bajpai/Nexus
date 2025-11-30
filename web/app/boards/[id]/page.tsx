@@ -14,6 +14,7 @@ import { List } from "@/lib/types/list.types";
 import BoardCardOverlay from "@/components/Board/BoardCardOverlay";
 import BoardListOverlay from "@/components/Board/BoardListOverlay";
 import { updateCard } from "@/lib/services/cards";
+import CardModal from "@/components/Board/CardModal";
 
 interface PageProps {
     params: Promise<{ id: string }>;
@@ -26,6 +27,7 @@ export default function BoardPage({ params }: PageProps) {
     const [error, setError] = useState<string | null>(null);
     const [activeCard, setIsActiveCard] = useState<Card | null>(null);
     const [activeList, setIsActiveList] = useState<List | null>(null); // Added activeList state
+    const [selectedCard, setSelectedCard] = useState<Card | null>(null);
     const fetchBoard = async () => {
         try {
             setLoading(true);
@@ -344,7 +346,13 @@ export default function BoardPage({ params }: PageProps) {
                 <Flex h="full" align="flex-start">
                     <SortableContext items={board.lists?.map(l => l.id) || []} strategy={horizontalListSortingStrategy}>
                         {board.lists && board.lists.map((list) => (
-                            <BoardList key={list.id} list={list} boardId={board.id} onCardCreated={fetchBoard} />
+                            <BoardList
+                                key={list.id}
+                                list={list}
+                                boardId={board.id}
+                                onCardCreated={fetchBoard}
+                                onCardClick={(card) => setSelectedCard(card)}
+                            />
                         ))}
                     </SortableContext>
                     <DragOverlay>
@@ -354,6 +362,19 @@ export default function BoardPage({ params }: PageProps) {
                     <CreateList boardId={board.id} onListCreated={fetchBoard} lists={board.lists || []} />
                 </Flex>
             </DndContext>
+            {selectedCard && board && (
+                <CardModal
+                    isOpen={!!selectedCard}
+                    onClose={() => setSelectedCard(null)}
+                    card={selectedCard}
+                    listName={board.lists.find(l => l.cards?.some(c => c.id === selectedCard.id))?.name || ""}
+                    boardId={board.id}
+                    listId={board.lists.find(l => l.cards?.some(c => c.id === selectedCard.id))?.id || ""}
+                    onUpdate={() => {
+                        fetchBoard();
+                    }}
+                />
+            )}
         </BoardLayout>
     );
 }

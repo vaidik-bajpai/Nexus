@@ -13,9 +13,10 @@ interface BoardCardProps {
     listId: string;
     boardId: string;
     onUpdate: () => void;
+    onClick: () => void;
 }
 
-export default function BoardCard({ card, listId, boardId, onUpdate }: BoardCardProps) {
+export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: BoardCardProps) {
     const {
         attributes,
         listeners,
@@ -79,7 +80,6 @@ export default function BoardCard({ card, listId, boardId, onUpdate }: BoardCard
             // export const updateCard = async (card: { cardID: string, listID: string, boardID: string, completed?: boolean })
             // It only accepts completed. I should update the service first.
             // But for this step, I will just implement the UI and call updateCard with title casted or updated.
-
             // Actually, I'll update the service in the next step or implicitly here if I can.
             // Let's just pass it for now and I'll fix the service immediately after.
             await updateCard({
@@ -116,6 +116,7 @@ export default function BoardCard({ card, listId, boardId, onUpdate }: BoardCard
                 onMouseLeave={() => setIsHovered(false)}
                 role="group"
                 opacity={isEditing ? 0 : 1} // Hide original card when editing
+                onClick={onClick}
             >
                 {card.cover && (
                     <Box

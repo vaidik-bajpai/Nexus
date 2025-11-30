@@ -6,13 +6,16 @@ import { FiMoreHorizontal } from "react-icons/fi";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+import { Card } from "@/lib/types/cards.types";
+
 interface BoardListProps {
     list: List;
     boardId: string;
     onCardCreated: () => void;
+    onCardClick: (card: Card) => void;
 }
 
-export default function BoardList({ list, boardId, onCardCreated }: BoardListProps) {
+export default function BoardList({ list, boardId, onCardCreated, onCardClick }: BoardListProps) {
     const {
         setNodeRef,
         attributes,
@@ -73,7 +76,7 @@ export default function BoardList({ list, boardId, onCardCreated }: BoardListPro
             <SortableContext items={(list.cards || []).map((card) => card.id)} strategy={verticalListSortingStrategy}>
                 <Box flex={1} overflowY="auto" px={1} className="custom-scrollbar">
                     {list.cards?.map((card) => (
-                        <BoardCard key={card.id} card={card} listId={list.id} boardId={boardId} onUpdate={onCardCreated} />
+                        <BoardCard key={card.id} card={card} listId={list.id} boardId={boardId} onUpdate={onCardCreated} onClick={() => onCardClick(card)} />
                     ))}
                 </Box>
             </SortableContext>

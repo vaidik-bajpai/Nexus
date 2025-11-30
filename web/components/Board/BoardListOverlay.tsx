@@ -44,7 +44,7 @@ export default function BoardListOverlay({ list }: BoardListOverlayProps) {
 
             <Box flex={1} overflowY="auto" px={1} className="custom-scrollbar">
                 {list.cards?.map((card) => (
-                    <BoardCard key={card.id} card={card} listId={list.id} boardId="" onUpdate={() => { }} />
+                    <BoardCard key={card.id} card={card} listId={list.id} boardId="" onUpdate={() => { }} onClick={() => { }} />
                 ))}
             </Box>
         </Box>
