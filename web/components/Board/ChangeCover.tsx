@@ -55,7 +55,8 @@ const ChangeCover = ({ onClose, onUpdate, currentCover, currentSize = "normal" }
                     "Content-Type": "multipart/form-data",
                 },
             });
-            onUpdate(response.data.url, currentSize);
+            console.log(response.data)
+            onUpdate(response.data.data.url, currentSize);
         } catch (error) {
             console.error("Upload failed", error);
             toaster.create({
@@ -128,6 +129,19 @@ const ChangeCover = ({ onClose, onUpdate, currentCover, currentSize = "normal" }
                                     </Grid>
                                 </Box>
 
+                                {currentCover && <Box>
+                                    <Button
+                                        w="full"
+                                        size="sm"
+                                        variant="outline"
+                                        color="gray.600"
+                                        onClick={() => onUpdate("", currentSize)}
+                                        mb={2}
+                                    >
+                                        Remove cover
+                                    </Button>
+                                </Box>}
+
                                 <Box mb={4}>
                                     <Text fontSize="xs" fontWeight="semibold" color="gray.500" mb={2}>Colors</Text>
                                     <Grid templateColumns="repeat(5, 1fr)" gap={2}>
@@ -180,6 +194,7 @@ const ChangeCover = ({ onClose, onUpdate, currentCover, currentSize = "normal" }
                                                 bgSize="cover"
                                                 borderRadius="sm"
                                                 _hover={{ opacity: 0.8 }}
+                                                onClick={() => handlePhotoSelect(url)}
                                             >
                                             </Button>
                                         ))}
