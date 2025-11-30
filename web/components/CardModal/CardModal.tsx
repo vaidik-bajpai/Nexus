@@ -6,7 +6,7 @@ import {
     DialogTitle,
     DialogCloseTrigger,
 } from "@/components/ui/dialog"
-import { Box, Flex, Text, Button, Textarea, Icon, HStack, VStack, Separator } from "@chakra-ui/react"
+import { Box, Flex, Text, Button, Textarea, Icon, HStack, VStack, Separator, Dialog } from "@chakra-ui/react"
 import { Card } from "@/lib/types/cards.types"
 import { useState, useEffect } from "react"
 import ReactMarkdown from "react-markdown"
@@ -16,6 +16,11 @@ import { updateCard } from "@/lib/services/cards"
 import { toaster } from "@/components/ui/toaster"
 import { Megaphone, Image, Ellipsis, X, Plus, Calendar, Tag, Check, User } from "lucide-react"
 import * as cardsService from "@/lib/services/cards"
+import CardEditButton from "./CardEditButton"
+import ChangeCover from "../Board/ChangeCover"
+import CardActionButton from "./CardActionButton"
+import ChangeMembers from "../Board/ChangeMembers"
+import AddCheckList from "../Board/AddCheckList"
 
 interface CardModalProps {
     isOpen: boolean
@@ -29,8 +34,28 @@ interface CardModalProps {
 
 export default function CardModal({ isOpen, onClose, card, listName, boardId, listId, onUpdate }: CardModalProps) {
     const [description, setDescription] = useState(card.description || "")
+    const [cover, setCover] = useState(card.cover || "")
+    const [coverSize, setCoverSize] = useState(card.coverSize || "")
     const [isEditingDesc, setIsEditingDesc] = useState(false)
     const [showActivity, setShowActivity] = useState(true)
+
+    const handleCoverUpdate = async (cover: string, coverSize: string) => {
+        try {
+            await updateCard({
+                cardID: card.id,
+                listID: listId,
+                boardID: boardId,
+                cover,
+                coverSize
+            });
+            onUpdate();
+        } catch (error) {
+            toaster.create({
+                title: "Failed to update cover",
+                type: "error",
+            });
+        }
+    };
 
     useEffect(() => {
         cardsService.getCardDetail({
@@ -69,12 +94,12 @@ export default function CardModal({ isOpen, onClose, card, listName, boardId, li
                     </Button>
                     <Flex gap={6} color="gray.400">
                         <Flex gap={4}>
-                            <Megaphone size={16} />
+                            <CardEditButton icon={<Megaphone size={16} />} tooltipText="Share feedback" />
                             <Separator orientation="vertical" color="gray.400" size={"sm"} />
-                            <Image size={16} />
+                            <CardEditButton icon={<Image size={16} />} tooltipText="Add image" portal={<ChangeCover onClose={() => { }} onUpdate={handleCoverUpdate} currentCover={cover} currentSize={coverSize} />} />
                         </Flex>
-                        <Ellipsis size={16} />
-                        <X size={16} />
+                        <CardEditButton icon={<Ellipsis size={16} />} tooltipText="More options" />
+                        <CardEditButton icon={<X size={16} />} tooltipText="Close" onClick={onClose} />
                     </Flex>
                 </Flex>
                 <DialogHeader>
@@ -107,11 +132,11 @@ export default function CardModal({ isOpen, onClose, card, listName, boardId, li
 
                 <DialogBody>
                     <Flex gap={2}>
-                        <Button size="xs" variant={"outline"} _hover={{ bg: "gray.700" }} fontSize={"sm"} fontWeight={"medium"}><Plus />Add</Button>
-                        <Button size="xs" variant={"outline"} _hover={{ bg: "gray.700" }} fontSize={"sm"} fontWeight={"medium"}><Tag />Label</Button>
-                        <Button size="xs" variant={"outline"} _hover={{ bg: "gray.700" }} fontSize={"sm"} fontWeight={"medium"}><Calendar />Dates</Button>
-                        <Button size="xs" variant={"outline"} _hover={{ bg: "gray.700" }} fontSize={"sm"} fontWeight={"medium"}><Check />Checklist</Button>
-                        <Button size="xs" variant={"outline"} _hover={{ bg: "gray.700" }} fontSize={"sm"} fontWeight={"medium"}><User />Members</Button>
+                        <CardActionButton icon={<Plus />} text="Add" />
+                        <CardActionButton icon={<Tag />} text="Label" />
+                        <CardActionButton icon={<Calendar />} text="Dates" />
+                        <CardActionButton icon={<Check />} text="Checklist" portal={<AddCheckList />} />
+                        <CardActionButton icon={<User />} text="Members" portal={<ChangeMembers />} />
                     </Flex>
                 </DialogBody>
 

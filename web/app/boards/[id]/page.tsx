@@ -14,7 +14,7 @@ import { List } from "@/lib/types/list.types";
 import BoardCardOverlay from "@/components/Board/BoardCardOverlay";
 import BoardListOverlay from "@/components/Board/BoardListOverlay";
 import { updateCard } from "@/lib/services/cards";
-import CardModal from "@/components/Board/CardModal";
+import CardModal from "@/components/CardModal/CardModal";
 
 interface PageProps {
     params: Promise<{ id: string }>;

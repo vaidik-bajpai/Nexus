@@ -77,17 +77,18 @@ const ChangeCover = ({ onClose, onUpdate, currentCover, currentSize = "normal" }
                             <Flex align="center" justify="space-between" mb={2} px={2} mt={2} borderColor="gray.200" pb={2}>
                                 <Box w={8} />
                                 <Heading size="sm" fontWeight="semibold" flex={1} textAlign="center">Cover</Heading>
-                                <Button
-                                    size="xs"
-                                    variant="ghost"
-                                    color="gray.500"
-                                    _hover={{ color: "gray.800" }}
-                                    p={0}
-                                    minW={8}
-                                    onClick={onClose}
-                                >
-                                    <Icon as={FiX} boxSize={4} />
-                                </Button>
+                                <Popover.CloseTrigger as={"div"}>
+                                    <Button
+                                        size="xs"
+                                        variant="ghost"
+                                        color="gray.500"
+                                        _hover={{ color: "gray.800" }}
+                                        p={0}
+                                        minW={8}
+                                    >
+                                        <Icon as={FiX} boxSize={4} />
+                                    </Button>
+                                </Popover.CloseTrigger>
                             </Flex>
 
                             <Box px={3} pb={3} overflowY="auto">
