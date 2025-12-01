@@ -40,10 +40,11 @@ type Card struct {
 }
 
 type CardMember struct {
-	UserID   string `json:"userID"`
-	Avatar   string `json:"avatar"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
+	UserID       string `json:"userID"`
+	Avatar       string `json:"avatar"`
+	Username     string `json:"username"`
+	Email        string `json:"email"`
+	IsCardMember bool   `json:"isCardMember"`
 }
 
 type CardLabel struct {
@@ -62,4 +63,9 @@ type ChecklistItem struct {
 	Title  string `json:"title"`
 	Done   bool   `json:"done"`
 	UserID string `json:"userID"`
+}
+
+type ToggleCardMembership struct {
+	CardID string `json:"-" validate:"required,uuid"`
+	UserID string `json:"userID" validate:"required,uuid"`
 }

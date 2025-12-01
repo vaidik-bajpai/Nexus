@@ -47,12 +47,19 @@ func (s *Store) GetCardDetail(ctx context.Context, cardID string) (*types.Card, 
 	card, err := s.db.Card.FindUnique(
 		db.Card.ID.Equals(cardID),
 	).With(
-		db.Card.CardMembers.Fetch(),
+		db.Card.CardMembers.Fetch().With(
+			db.CardMember.User.Fetch(),
+		),
 		db.Card.CardLabels.Fetch().With(
 			db.CardLabel.Label.Fetch(),
 		),
 		db.Card.Checklists.Fetch().With(
 			db.Checklist.Items.Fetch(),
+		),
+		db.Card.Board.Fetch().With(
+			db.Board.BoardMembers.Fetch().With(
+				db.BoardMember.User.Fetch(),
+			),
 		),
 	).Exec(ctx)
 	if err != nil {
@@ -75,24 +82,33 @@ func (s *Store) GetCardDetail(ctx context.Context, cardID string) (*types.Card, 
 		res.Cover = ""
 	}
 
-	for _, member := range card.CardMembers() {
-		username, ok := member.User().Username()
+	cardMemberIDs := make(map[string]bool)
+	for _, cm := range card.CardMembers() {
+		cardMemberIDs[cm.UserID] = true
+	}
+
+	var members []types.CardMember
+	for _, member := range card.Board().BoardMembers() {
+		user := member.User()
+		username, ok := user.Username()
 		if !ok {
 			username = ""
 		}
 
-		avatar, ok := member.User().Avatar()
+		avatar, ok := user.Avatar()
 		if !ok {
 			avatar = ""
 		}
-
-		res.Members = append(res.Members, types.CardMember{
-			UserID:   member.User().ID,
-			Avatar:   avatar,
-			Username: username,
-			Email:    member.User().Email,
+		members = append(members, types.CardMember{
+			UserID:       user.ID,
+			Avatar:       avatar,
+			Username:     username,
+			Email:        user.Email,
+			IsCardMember: cardMemberIDs[user.ID],
 		})
 	}
+
+	res.Members = members
 
 	var labels []types.CardLabel
 	for _, label := range card.CardLabels() {
@@ -127,6 +143,31 @@ func (s *Store) GetCardDetail(ctx context.Context, cardID string) (*types.Card, 
 func (s *Store) DeleteCard(ctx context.Context, cardID string) error {
 	_, err := s.db.Card.FindUnique(
 		db.Card.ID.Equals(cardID),
+	).Delete().Exec(ctx)
+	return err
+}
+
+func (s *Store) ToggleCardMembership(ctx context.Context, member *types.ToggleCardMembership) error {
+	cardMember, err := s.db.CardMember.FindFirst(
+		db.CardMember.CardID.Equals(member.CardID),
+		db.CardMember.UserID.Equals(member.UserID),
+	).Exec(ctx)
+	if err != nil {
+		if db.IsErrNotFound(err) {
+			_, err = s.db.CardMember.CreateOne(
+				db.CardMember.Card.Link(
+					db.Card.ID.Equals(member.CardID),
+				),
+				db.CardMember.User.Link(
+					db.User.ID.Equals(member.UserID),
+				),
+			).Exec(ctx)
+			return err
+		}
+		return err
+	}
+	_, err = s.db.CardMember.FindUnique(
+		db.CardMember.ID.Equals(cardMember.ID),
 	).Delete().Exec(ctx)
 	return err
 }

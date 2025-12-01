@@ -7,7 +7,7 @@ import {
     DialogCloseTrigger,
 } from "@/components/ui/dialog"
 import { Box, Flex, Text, Button, Textarea, Icon, HStack, VStack, Separator, Dialog } from "@chakra-ui/react"
-import { Card } from "@/lib/types/cards.types"
+import { Card, CardDetail } from "@/lib/types/cards.types"
 import { useState, useEffect } from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
@@ -34,6 +34,7 @@ interface CardModalProps {
 
 export default function CardModal({ isOpen, onClose, card, listName, boardId, listId, onUpdate }: CardModalProps) {
     const [description, setDescription] = useState(card.description || "")
+    const [cardDetail, setCardDetail] = useState<CardDetail | null>(null)
     const [cover, setCover] = useState(card.cover || "")
     const [coverSize, setCoverSize] = useState(card.coverSize || "")
     const [isEditingDesc, setIsEditingDesc] = useState(false)
@@ -63,7 +64,7 @@ export default function CardModal({ isOpen, onClose, card, listName, boardId, li
             boardId: boardId,
             listId: listId
         }).then((res) => {
-            setDescription(res.data.description || "")
+            setCardDetail(res.data)
         })
     }, [card])
 
@@ -136,7 +137,7 @@ export default function CardModal({ isOpen, onClose, card, listName, boardId, li
                         <CardActionButton icon={<Tag />} text="Label" />
                         <CardActionButton icon={<Calendar />} text="Dates" />
                         <CardActionButton icon={<Check />} text="Checklist" portal={<AddCheckList />} />
-                        <CardActionButton icon={<User />} text="Members" portal={<ChangeMembers />} />
+                        <CardActionButton icon={<User />} text="Members" portal={<ChangeMembers members={cardDetail?.members || []} cardID={card.id} listID={listId} boardID={boardId} onUpdate={onUpdate} />} />
                     </Flex>
                 </DialogBody>
 

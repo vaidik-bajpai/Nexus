@@ -36,3 +36,13 @@ export const getCardDetail = async (card: { cardId: string, boardId: string, lis
         throw error;
     }
 }
+
+export const toggleMemberToCard = async (member: { cardID: string, userID: string, listID: string, boardID: string }) => {
+    try {
+        const response = await apiClient.post(`/boards/${member.boardID}/lists/${member.listID}/cards/${member.cardID}/toggle-member`, { userID: member.userID });
+        return response.data;
+    } catch (error) {
+        console.error("Error adding member to card:", error);
+        throw error;
+    }
+}

@@ -108,6 +108,7 @@ func (h *handler) SetupRoutes() *chi.Mux {
 								r.Put("/update", h.handleUpdateCard)
 								r.Get("/detail", h.handleGetCardDetail)
 								r.Delete("/delete", h.handleDeleteCard)
+								r.Post("/toggle-member", h.handleToggleCardMembership)
 							})
 						})
 					})

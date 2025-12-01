@@ -36,6 +36,7 @@ type Storer interface {
 	UpdateCard(ctx context.Context, cardID string, card *types.UpdateCard) error
 	GetCardDetail(ctx context.Context, cardID string) (*types.Card, error)
 	DeleteCard(ctx context.Context, cardID string) error
+	ToggleCardMembership(ctx context.Context, member *types.ToggleCardMembership) error
 }
 
 type Store struct {

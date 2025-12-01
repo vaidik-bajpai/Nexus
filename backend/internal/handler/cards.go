@@ -82,3 +82,27 @@ func (h *handler) handleDeleteCard(w http.ResponseWriter, r *http.Request) {
 
 	helper.Created(h.logger, w, "card deleted successfully", nil)
 }
+
+func (h *handler) handleToggleCardMembership(w http.ResponseWriter, r *http.Request) {
+	h.logger.Info("adding member to card")
+	cardID := r.PathValue("cardID")
+	var payload types.ToggleCardMembership
+	if err := helper.ReadJSON(r, &payload); err != nil {
+		helper.BadRequest(h.logger, w, "failed to read the request payload", err)
+		return
+	}
+
+	payload.CardID = cardID
+
+	if err := h.validator.Struct(payload); err != nil {
+		helper.BadRequest(h.logger, w, "failed validation on the request payload", err)
+		return
+	}
+
+	if err := h.store.ToggleCardMembership(r.Context(), &payload); err != nil {
+		helper.InternalServerError(h.logger, w, nil, err)
+		return
+	}
+
+	helper.Created(h.logger, w, "member added to card successfully", nil)
+}

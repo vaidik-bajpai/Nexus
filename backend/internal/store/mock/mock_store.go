@@ -150,3 +150,8 @@ func (m *MockStore) GetBoards(ctx context.Context, boardID string) (*types.Board
 	}
 	return args.Get(0).(*types.BoardDetail), args.Error(1)
 }
+
+func (m *MockStore) ToggleCardMembership(ctx context.Context, member *types.ToggleCardMembership) error {
+	args := m.Called(ctx, member)
+	return args.Error(0)
+}
