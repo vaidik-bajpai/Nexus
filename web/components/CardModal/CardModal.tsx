@@ -21,6 +21,7 @@ import ChangeCover from "../Board/ChangeCover"
 import CardActionButton from "./CardActionButton"
 import ChangeMembers from "../Board/ChangeMembers"
 import AddCheckList from "../Board/AddCheckList"
+import LabelPortal from "../LabelPortal"
 
 interface CardModalProps {
     isOpen: boolean
@@ -134,7 +135,7 @@ export default function CardModal({ isOpen, onClose, card, listName, boardId, li
                 <DialogBody>
                     <Flex gap={2}>
                         <CardActionButton icon={<Plus />} text="Add" />
-                        <CardActionButton icon={<Tag />} text="Label" />
+                        <CardActionButton icon={<Tag />} text="Label" portal={<LabelPortal boardId={boardId} />} />
                         <CardActionButton icon={<Calendar />} text="Dates" />
                         <CardActionButton icon={<Check />} text="Checklist" portal={<AddCheckList />} />
                         <CardActionButton icon={<User />} text="Members" portal={<ChangeMembers members={cardDetail?.members || []} cardID={card.id} listID={listId} boardID={boardId} onUpdate={onUpdate} />} />

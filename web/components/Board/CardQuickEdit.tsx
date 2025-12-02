@@ -1,5 +1,5 @@
 import { Box, Button, Textarea, VStack, HStack, Text, Icon, Portal, Flex, Popover } from "@chakra-ui/react";
-import { Card } from "@/lib/types/cards.types";
+import { Card, CardMember } from "@/lib/types/cards.types";
 import {
     FiLayout, FiTag, FiUser, FiImage, FiClock,
     FiArrowRight, FiCopy, FiLink, FiArchive, FiMonitor
@@ -7,7 +7,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import ChangeMembers from "./ChangeMembers";
 import ChangeCover from "./ChangeCover";
-import { updateCard } from "@/lib/services/cards";
+import { updateCard, getCardDetail } from "@/lib/services/cards";
 import { toaster } from "@/components/ui/toaster";
 
 interface CardQuickEditProps {
@@ -23,11 +23,17 @@ interface CardQuickEditProps {
 
 export default function CardQuickEdit({ isOpen, onClose, card, position, onSave, onUpdate, listId, boardId }: CardQuickEditProps) {
     const [title, setTitle] = useState(card.title);
+    const [members, setMembers] = useState<CardMember[]>([]);
     const contentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         setTitle(card.title);
-    }, [card]);
+        if (isOpen) {
+            getCardDetail({ cardId: card.id, boardId, listId }).then((res) => {
+                setMembers(res.data.members);
+            });
+        }
+    }, [card, isOpen, boardId, listId]);
 
     // Close on click outside
     useEffect(() => {
@@ -97,7 +103,7 @@ export default function CardQuickEdit({ isOpen, onClose, card, position, onSave,
     const menuItems = [
         { icon: FiLayout, label: "Open card" },
         { icon: FiTag, label: "Edit labels" },
-        { icon: FiUser, label: "Change members", portal: <ChangeMembers /> },
+        { icon: FiUser, label: "Change members", portal: <ChangeMembers members={members} cardID={card.id} listID={listId} boardID={boardId} onUpdate={onUpdate} /> },
         {
             icon: FiImage,
             label: "Change cover",

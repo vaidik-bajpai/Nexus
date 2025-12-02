@@ -95,6 +95,11 @@ func (h *handler) SetupRoutes() *chi.Mux {
 				r.With(h.middleware.IsAdmin).Delete("/delete", h.handleDeleteBoard)
 				r.With(h.middleware.IsMember).Get("/detail", h.handleGetBoardDetail)
 
+				r.Route("/labels", func(r chi.Router) {
+					r.Use(h.middleware.IsMember)
+					r.Post("/create", h.handleCreateLabel)
+				})
+
 				r.Route("/lists", func(r chi.Router) {
 					r.Use(h.middleware.IsMember)
 					r.Post("/create", h.handleCreateList)

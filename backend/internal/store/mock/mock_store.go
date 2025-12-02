@@ -155,3 +155,8 @@ func (m *MockStore) ToggleCardMembership(ctx context.Context, member *types.Togg
 	args := m.Called(ctx, member)
 	return args.Error(0)
 }
+
+func (m *MockStore) CreateLabel(ctx context.Context, label *types.CreateLabel) error {
+	args := m.Called(ctx, label)
+	return args.Error(0)
+}
