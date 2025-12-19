@@ -99,6 +99,7 @@ func (h *handler) SetupRoutes() *chi.Mux {
 					r.Use(h.middleware.IsMember)
 					r.Post("/create", h.handleCreateLabel)
 					r.Post("/modify", h.handleModifyLabel)
+					r.Get("/list", h.handleListBoardLabels)
 				})
 
 				r.Route("/lists", func(r chi.Router) {
@@ -117,7 +118,7 @@ func (h *handler) SetupRoutes() *chi.Mux {
 								r.Post("/toggle-member", h.handleToggleCardMembership)
 
 								r.Route("/labels", func(r chi.Router) {
-									r.Post("/add", h.handleAddLabelToCard)
+									r.Post("/toggle", h.handleToggleLabelToCard)
 								})
 							})
 						})

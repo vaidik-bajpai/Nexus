@@ -180,3 +180,11 @@ func (m *MockStore) RemoveLabelFromCard(ctx context.Context, label *types.Toggle
 	args := m.Called(ctx, label)
 	return args.Error(0)
 }
+
+func (m *MockStore) ListBoardLabels(ctx context.Context, boardID string) ([]*types.ListLabels, error) {
+	args := m.Called(ctx, boardID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*types.ListLabels), args.Error(1)
+}

@@ -213,7 +213,7 @@ I have written a comprehensive feature list based on Trello's functionality and 
 - [x] Delete label
 - [x] Add label to card
 - [x] Remove label from card
-- [ ] List all labels on board
+- [x] List all labels on board
 - [ ] List labels on specific card
 
 ### **Checklists**

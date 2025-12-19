@@ -22,3 +22,9 @@ type ToggleLabelToCard struct {
 
 	BoardID string `json:"-" validate:"required,uuid"`
 }
+
+type ListLabels struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Color string `json:"color"`
+}

@@ -53,3 +53,28 @@ func (s *Store) RemoveLabelFromCard(ctx context.Context, label *types.ToggleLabe
 	).Delete().Exec(ctx)
 	return err
 }
+
+func (s *Store) ListBoardLabels(ctx context.Context, boardID string) ([]*types.ListLabels, error) {
+	labels, err := s.db.Label.FindMany(
+		db.Label.Board.Link(
+			db.Board.ID.Equals(boardID),
+		),
+	).Select(
+		db.Label.ID.Field(),
+		db.Label.Name.Field(),
+		db.Label.Color.Field(),
+	).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []*types.ListLabels
+	for _, label := range labels {
+		res = append(res, &types.ListLabels{
+			ID:    label.ID,
+			Name:  label.Name,
+			Color: label.Color,
+		})
+	}
+	return res, nil
+}

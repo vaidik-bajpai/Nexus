@@ -65,7 +65,7 @@ func (h *handler) handleModifyLabel(w http.ResponseWriter, r *http.Request) {
 	helper.Created(h.logger, w, "label updated successfully", nil)
 }
 
-func (h *handler) handleAddLabelToCard(w http.ResponseWriter, r *http.Request) {
+func (h *handler) handleToggleLabelToCard(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info("add label to card called")
 	cardID := r.PathValue("cardID")
 	boardID := r.PathValue("boardID")
@@ -100,4 +100,21 @@ func (h *handler) handleAddLabelToCard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helper.Created(h.logger, w, "label added to card successfully", nil)
+}
+
+func (h *handler) handleListBoardLabels(w http.ResponseWriter, r *http.Request) {
+	h.logger.Info("list board labels called")
+	boardID := r.PathValue("boardID")
+	if err := h.validator.Var(boardID, "required,uuid"); err != nil {
+		helper.BadRequest(h.logger, w, "validation failed", err)
+		return
+	}
+
+	labels, err := h.store.ListBoardLabels(r.Context(), boardID)
+	if err != nil {
+		helper.InternalServerError(h.logger, w, "failed to list board labels", err)
+		return
+	}
+
+	helper.OK(h.logger, w, "board labels listed successfully", labels)
 }
