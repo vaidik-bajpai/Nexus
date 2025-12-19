@@ -208,9 +208,9 @@ I have written a comprehensive feature list based on Trello's functionality and 
 - [ ] Multiple members per card support
 
 ### **Labels**
-- [ ] Create label on board
-- [ ] Update label (name, color)
-- [ ] Delete label
+- [x] Create label on board
+- [x] Update label (name, color)
+- [x] Delete label
 - [ ] Add label to card
 - [ ] Remove label from card
 - [ ] List all labels on board

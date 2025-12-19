@@ -160,3 +160,13 @@ func (m *MockStore) CreateLabel(ctx context.Context, label *types.CreateLabel) e
 	args := m.Called(ctx, label)
 	return args.Error(0)
 }
+
+func (m *MockStore) UpdateLabel(ctx context.Context, label *types.ModifyLabel) error {
+	args := m.Called(ctx, label)
+	return args.Error(0)
+}
+
+func (m *MockStore) DeleteLabel(ctx context.Context, label *types.ModifyLabel) error {
+	args := m.Called(ctx, label)
+	return args.Error(0)
+}

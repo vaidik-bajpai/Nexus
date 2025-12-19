@@ -17,3 +17,20 @@ func (s *Store) CreateLabel(ctx context.Context, label *types.CreateLabel) error
 	).Exec(ctx)
 	return err
 }
+
+func (s *Store) UpdateLabel(ctx context.Context, label *types.ModifyLabel) error {
+	_, err := s.db.Label.FindUnique(
+		db.Label.ID.Equals(label.ID),
+	).Update(
+		db.Label.Name.Set(label.Name),
+		db.Label.Color.Set(label.Color),
+	).Exec(ctx)
+	return err
+}
+
+func (s *Store) DeleteLabel(ctx context.Context, label *types.ModifyLabel) error {
+	_, err := s.db.Label.FindUnique(
+		db.Label.ID.Equals(label.ID),
+	).Delete().Exec(ctx)
+	return err
+}
