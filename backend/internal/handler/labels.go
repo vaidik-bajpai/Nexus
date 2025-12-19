@@ -64,3 +64,40 @@ func (h *handler) handleModifyLabel(w http.ResponseWriter, r *http.Request) {
 
 	helper.Created(h.logger, w, "label updated successfully", nil)
 }
+
+func (h *handler) handleAddLabelToCard(w http.ResponseWriter, r *http.Request) {
+	h.logger.Info("add label to card called")
+	cardID := r.PathValue("cardID")
+	boardID := r.PathValue("boardID")
+	var addLabelToCard *types.ToggleLabelToCard
+	if err := helper.ReadJSON(r, &addLabelToCard); err != nil {
+		helper.BadRequest(h.logger, w, "invalid request body", err)
+		return
+	}
+
+	addLabelToCard.CardID = cardID
+	addLabelToCard.BoardID = boardID
+
+	if err := h.validator.Struct(addLabelToCard); err != nil {
+		helper.BadRequest(h.logger, w, "validation failed", err)
+		return
+	}
+
+	switch addLabelToCard.Type {
+	case "add":
+		if err := h.store.AddLabelToCard(r.Context(), addLabelToCard); err != nil {
+			helper.InternalServerError(h.logger, w, "failed to add label to card", err)
+			return
+		}
+	case "remove":
+		if err := h.store.RemoveLabelFromCard(r.Context(), addLabelToCard); err != nil {
+			helper.InternalServerError(h.logger, w, "failed to remove label from card", err)
+			return
+		}
+	default:
+		helper.BadRequest(h.logger, w, "invalid request body", nil)
+		return
+	}
+
+	helper.Created(h.logger, w, "label added to card successfully", nil)
+}

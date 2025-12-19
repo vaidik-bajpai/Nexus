@@ -170,3 +170,13 @@ func (m *MockStore) DeleteLabel(ctx context.Context, label *types.ModifyLabel) e
 	args := m.Called(ctx, label)
 	return args.Error(0)
 }
+
+func (m *MockStore) AddLabelToCard(ctx context.Context, label *types.ToggleLabelToCard) error {
+	args := m.Called(ctx, label)
+	return args.Error(0)
+}
+
+func (m *MockStore) RemoveLabelFromCard(ctx context.Context, label *types.ToggleLabelToCard) error {
+	args := m.Called(ctx, label)
+	return args.Error(0)
+}

@@ -34,3 +34,22 @@ func (s *Store) DeleteLabel(ctx context.Context, label *types.ModifyLabel) error
 	).Delete().Exec(ctx)
 	return err
 }
+
+func (s *Store) AddLabelToCard(ctx context.Context, label *types.ToggleLabelToCard) error {
+	_, err := s.db.CardLabel.CreateOne(
+		db.CardLabel.Card.Link(
+			db.Card.ID.Equals(label.CardID),
+		),
+		db.CardLabel.Label.Link(
+			db.Label.ID.Equals(label.LabelID),
+		),
+	).Exec(ctx)
+	return err
+}
+
+func (s *Store) RemoveLabelFromCard(ctx context.Context, label *types.ToggleLabelToCard) error {
+	_, err := s.db.CardLabel.FindUnique(
+		db.CardLabel.ID.Equals(label.LabelID),
+	).Delete().Exec(ctx)
+	return err
+}
