@@ -94,6 +94,7 @@ func (h *handler) SetupRoutes() *chi.Mux {
 				r.Group(func(r chi.Router) {
 					r.Use(h.middleware.IsMember)
 					r.Get("/cards-and-lists", h.handleGetCardsAndLists)
+					r.Get("/details", h.handleGetBoardDetails)
 				})
 
 				r.Group(func(r chi.Router) {

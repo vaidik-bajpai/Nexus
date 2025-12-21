@@ -1,11 +1,14 @@
 export interface Card {
     id: string;
+    board_id: string;
+    list_id: string;
     title: string;
     cover: string;
-    coverSize?: string;
+    coverSize: string;
+    due: string;
     completed: boolean;
     position: number;
-    description?: string;
+    labels: BoardLabel[];
 }
 
 export interface CardDetail {

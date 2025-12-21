@@ -10,12 +10,13 @@ import { Card } from "@/lib/types/cards.types";
 
 interface BoardListProps {
     list: List;
+    cards: Card[];
     boardId: string;
     onCardCreated: () => void;
     onCardClick: (card: Card) => void;
 }
 
-export default function BoardList({ list, boardId, onCardCreated, onCardClick }: BoardListProps) {
+export default function BoardList({ list, cards, boardId, onCardCreated, onCardClick }: BoardListProps) {
     const {
         setNodeRef,
         attributes,
@@ -73,15 +74,15 @@ export default function BoardList({ list, boardId, onCardCreated, onCardClick }:
                 </IconButton>
             </Flex>
 
-            <SortableContext items={(list.cards || []).map((card) => card.id)} strategy={verticalListSortingStrategy}>
+            <SortableContext items={cards.map((card) => card.id)} strategy={verticalListSortingStrategy}>
                 <Box flex={1} overflowY="auto" px={1} className="custom-scrollbar">
-                    {list.cards?.map((card) => (
+                    {cards.map((card) => (
                         <BoardCard key={card.id} card={card} listId={list.id} boardId={boardId} onUpdate={onCardCreated} onClick={() => onCardClick(card)} />
                     ))}
                 </Box>
             </SortableContext>
 
-            <CreateCard listId={list.id} boardId={boardId} onCardCreated={onCardCreated} cards={list.cards || []} />
+            <CreateCard listId={list.id} boardId={boardId} onCardCreated={onCardCreated} cards={cards} />
         </Box>
     );
 }

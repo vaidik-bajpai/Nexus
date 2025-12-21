@@ -20,12 +20,22 @@ export const listBoard = async (paginate: { page: number, size: number }) => {
     }
 }
 
-export const getBoard = async (id: string) => {
+export const getCardAndLists = async (id: string) => {
     try {
         const response = await apiClient.get(`/boards/${id}/cards-and-lists`);
         return response.data;
     } catch (error) {
-        console.error("Error getting board:", error);
+        console.error("Error getting board cards and lists:", error);
+        throw error;
+    }
+}
+
+export const getBoardDetails = async (id: string) => {
+    try {
+        const response = await apiClient.get(`/boards/${id}/details`);
+        return response.data;
+    } catch (error) {
+        console.error("Error getting board details:", error);
         throw error;
     }
 }

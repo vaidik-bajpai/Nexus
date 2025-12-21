@@ -27,6 +27,7 @@ type Storer interface {
 	UpdateBoard(ctx context.Context, board *types.UpdateBoard) error
 	DeleteBoard(ctx context.Context, boardID string) error
 	GetCardsAndLists(ctx context.Context, boardID string) (*types.BoardDetail, error)
+	GetBoard(ctx context.Context, boardID string) (*types.CompleteBoard, error)
 
 	CreateList(ctx context.Context, list *types.CreateList) error
 	UpdateList(ctx context.Context, payload *types.UpdateList) error

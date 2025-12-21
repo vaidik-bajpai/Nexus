@@ -238,3 +238,41 @@ func (s *Store) GetCardsAndLists(ctx context.Context, boardID string) (*types.Bo
 
 	return &board, nil
 }
+
+func (s *Store) GetBoard(ctx context.Context, boardID string) (*types.CompleteBoard, error) {
+	dbBoard, err := s.db.Board.FindUnique(
+		db.Board.ID.Equals(boardID),
+	).Select(
+		db.Board.ID.Field(),
+		db.Board.Name.Field(),
+		db.Board.Background.Field(),
+	).With(
+		db.Board.Labels.Fetch().Select(
+			db.Label.ID.Field(),
+			db.Label.Color.Field(),
+			db.Label.Name.Field(),
+		),
+	).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var board types.CompleteBoard
+	board.ID = dbBoard.ID
+	board.Name = dbBoard.Name
+	background, ok := dbBoard.Background()
+	if !ok {
+		background = "#FFFFFF"
+	}
+	board.Background = background
+
+	for _, label := range dbBoard.Labels() {
+		board.Labels = append(board.Labels, &types.BoardLabel{
+			LabelID: label.ID,
+			Color:   label.Color,
+			Name:    label.Name,
+		})
+	}
+
+	return &board, nil
+}
