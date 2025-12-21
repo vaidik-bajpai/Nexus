@@ -161,10 +161,10 @@ func (h *handler) handleDeleteBoard(w http.ResponseWriter, r *http.Request) {
 	helper.OK(h.logger, w, "board deleted successfully", nil)
 }
 
-func (h *handler) handleGetBoardDetail(w http.ResponseWriter, r *http.Request) {
+func (h *handler) handleGetCardsAndLists(w http.ResponseWriter, r *http.Request) {
 	boardID := r.PathValue("boardID")
 
-	board, err := h.store.GetBoards(r.Context(), boardID)
+	board, err := h.store.GetCardsAndLists(r.Context(), boardID)
 	if err != nil {
 		helper.InternalServerError(h.logger, w, nil, err)
 		return

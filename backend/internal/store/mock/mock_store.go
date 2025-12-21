@@ -143,7 +143,7 @@ func (m *MockStore) DeleteCard(ctx context.Context, cardID string) error {
 	return args.Error(0)
 }
 
-func (m *MockStore) GetBoards(ctx context.Context, boardID string) (*types.BoardDetail, error) {
+func (m *MockStore) GetCardsAndLists(ctx context.Context, boardID string) (*types.BoardDetail, error) {
 	args := m.Called(ctx, boardID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)

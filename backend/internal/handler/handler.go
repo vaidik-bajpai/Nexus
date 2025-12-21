@@ -89,11 +89,19 @@ func (h *handler) SetupRoutes() *chi.Mux {
 			r.With(h.middleware.Paginate).Get("/list", h.handleListBoards)
 
 			r.Route("/{boardID}", func(r chi.Router) {
-				r.With(h.middleware.IsAdmin).Post("/invite", h.handleInviteToBoard)
 				r.Post("/accept-invite", h.handleAcceptInviteToBoard)
-				r.With(h.middleware.IsAdmin).Put("/update", h.handleUpdateBoard)
-				r.With(h.middleware.IsAdmin).Delete("/delete", h.handleDeleteBoard)
-				r.With(h.middleware.IsMember).Get("/detail", h.handleGetBoardDetail)
+
+				r.Group(func(r chi.Router) {
+					r.Use(h.middleware.IsMember)
+					r.Get("/cards-and-lists", h.handleGetCardsAndLists)
+				})
+
+				r.Group(func(r chi.Router) {
+					r.Use(h.middleware.IsAdmin)
+					r.Post("/invite", h.handleInviteToBoard)
+					r.Put("/update", h.handleUpdateBoard)
+					r.Delete("/delete", h.handleDeleteBoard)
+				})
 
 				r.Route("/labels", func(r chi.Router) {
 					r.Use(h.middleware.IsMember)

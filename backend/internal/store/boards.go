@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/vaidik-bajpai/Nexus/backend/internal/db/db"
@@ -147,8 +148,8 @@ func (s *Store) DeleteBoard(ctx context.Context, boardID string) error {
 	return err
 }
 
-func (s *Store) GetBoards(ctx context.Context, boardID string) (*types.BoardDetail, error) {
-	board, err := s.db.Board.FindUnique(
+func (s *Store) GetCardsAndLists(ctx context.Context, boardID string) (*types.BoardDetail, error) {
+	dbBoard, err := s.db.Board.FindUnique(
 		db.Board.ID.Equals(boardID),
 	).With(
 		db.Board.Lists.Fetch().Select(
@@ -161,10 +162,19 @@ func (s *Store) GetBoards(ctx context.Context, boardID string) (*types.BoardDeta
 			db.List.Cards.Fetch().Select(
 				db.Card.ID.Field(),
 				db.Card.Title.Field(),
-				db.Card.Description.Field(),
 				db.Card.Completed.Field(),
 				db.Card.Cover.Field(),
+				db.Card.CoverSize.Field(),
+				db.Card.DueDate.Field(),
 				db.Card.Position.Field(),
+			).With(
+				db.Card.CardLabels.Fetch().With(
+					db.CardLabel.Label.Fetch().Select(
+						db.Label.ID.Field(),
+						db.Label.Color.Field(),
+						db.Label.Name.Field(),
+					),
+				),
 			).OrderBy(
 				db.Card.Position.Order(db.SortOrder("asc")),
 			),
@@ -174,34 +184,57 @@ func (s *Store) GetBoards(ctx context.Context, boardID string) (*types.BoardDeta
 		return nil, err
 	}
 
-	boardRes := &types.BoardDetail{}
-	boardRes.ID = board.ID
-	boardRes.Name = board.Name
-	if background, ok := board.Background(); ok {
-		boardRes.Background = background
-	}
+	var board types.BoardDetail
+	board.ID = dbBoard.ID
 
-	for ind, list := range board.Lists() {
-		boardRes.Lists = append(boardRes.Lists, types.List{
+	for _, list := range dbBoard.Lists() {
+		board.Lists = append(board.Lists, &types.List{
 			ID:       list.ID,
 			Name:     list.Name,
 			Position: list.Position,
 		})
 
-		for _, card := range list.Cards() {
-			cover, ok := card.Cover()
+		cards := list.Cards()
+		for _, card := range cards {
+			cardCover, ok := card.Cover()
 			if !ok {
-				cover = ""
+				cardCover = ""
 			}
-			boardRes.Lists[ind].Cards = append(boardRes.Lists[ind].Cards, types.ListCard{
+
+			cardCoverSize, ok := card.CoverSize()
+			if !ok {
+				cardCoverSize = ""
+			}
+
+			cardDueDate, ok := card.DueDate()
+			if !ok {
+				cardDueDate = time.Time{}
+			}
+
+			var cardLabels []*types.BoardLabel
+			for _, label := range card.CardLabels() {
+				l := label.Label()
+				cardLabels = append(cardLabels, &types.BoardLabel{
+					LabelID: l.ID,
+					Color:   l.Color,
+					Name:    l.Name,
+				})
+			}
+
+			board.Cards = append(board.Cards, &types.MinimalCard{
 				ID:        card.ID,
+				ListID:    list.ID,
+				BoardID:   boardID,
 				Title:     card.Title,
-				Cover:     cover,
+				Cover:     cardCover,
+				CoverSize: cardCoverSize,
+				Due:       cardDueDate,
 				Completed: card.Completed,
 				Position:  card.Position,
+				Labels:    cardLabels,
 			})
 		}
 	}
 
-	return boardRes, nil
+	return &board, nil
 }
