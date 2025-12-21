@@ -188,3 +188,11 @@ func (m *MockStore) ListBoardLabels(ctx context.Context, boardID string) ([]*typ
 	}
 	return args.Get(0).([]*types.ListLabels), args.Error(1)
 }
+
+func (m *MockStore) ListCardLabels(ctx context.Context, boardID, cardID string) ([]*types.ListCardLabels, error) {
+	args := m.Called(ctx, boardID, cardID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*types.ListCardLabels), args.Error(1)
+}

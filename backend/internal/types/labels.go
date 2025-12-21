@@ -28,3 +28,12 @@ type ListLabels struct {
 	Name  string `json:"name"`
 	Color string `json:"color"`
 }
+
+type ListCardLabels struct {
+	ID        string `json:"id"`
+	LabelID   string `json:"label_id"`
+	CardID    string `json:"card_id"`
+	Name      string `json:"name"`
+	Color     string `json:"color"`
+	IsChecked bool   `json:"is_checked"`
+}

@@ -78,3 +78,37 @@ func (s *Store) ListBoardLabels(ctx context.Context, boardID string) ([]*types.L
 	}
 	return res, nil
 }
+
+func (s *Store) ListCardLabels(ctx context.Context, boardID, cardID string) ([]*types.ListCardLabels, error) {
+	labels, err := s.db.Label.FindMany(
+		db.Label.BoardID.Equals(boardID),
+	).With(
+		db.Label.CardLabels.Fetch(
+			db.CardLabel.CardID.Equals(cardID),
+		).Select(
+			db.CardLabel.ID.Field(),
+		),
+	).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []*types.ListCardLabels
+	for _, label := range labels {
+		cardLabels := label.CardLabels()
+		isChecked := len(cardLabels) > 0
+		cardLabelID := ""
+		if isChecked {
+			cardLabelID = cardLabels[0].ID
+		}
+		res = append(res, &types.ListCardLabels{
+			ID:        cardLabelID,
+			LabelID:   label.ID,
+			CardID:    cardID,
+			Name:      label.Name,
+			Color:     label.Color,
+			IsChecked: isChecked,
+		})
+	}
+	return res, nil
+}
