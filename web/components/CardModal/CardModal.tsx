@@ -6,7 +6,7 @@ import {
     DialogTitle,
     DialogCloseTrigger,
 } from "@/components/ui/dialog"
-import { Box, Flex, Text, Button, Textarea, Icon, HStack, VStack, Separator, Dialog } from "@chakra-ui/react"
+import { Box, Flex, Text, Button, Textarea, Icon, HStack, VStack, Separator, Dialog, Input, Popover } from "@chakra-ui/react"
 import { Card, CardDetail } from "@/lib/types/cards.types"
 import { useState, useEffect } from "react"
 import ReactMarkdown from "react-markdown"
@@ -22,68 +22,77 @@ import CardActionButton from "./CardActionButton"
 import ChangeMembers from "../Board/ChangeMembers"
 import AddCheckList from "../Board/AddCheckList"
 import LabelPortal from "../LabelPortal"
+import { useBoardStore } from "@/lib/store/board"
 
 interface CardModalProps {
     isOpen: boolean
     onClose: () => void
-    card: Card
+    cardId: string
     listName: string
     boardId: string
     listId: string
-    onUpdate: () => void
 }
 
-export default function CardModal({ isOpen, onClose, card, listName, boardId, listId, onUpdate }: CardModalProps) {
-    const [description, setDescription] = useState(card.description || "")
-    const [cardDetail, setCardDetail] = useState<CardDetail | null>(null)
-    const [cover, setCover] = useState(card.cover || "")
-    const [coverSize, setCoverSize] = useState(card.coverSize || "")
-    const [isEditingDesc, setIsEditingDesc] = useState(false)
-    const [showActivity, setShowActivity] = useState(true)
+export default function CardModal({ isOpen, onClose, cardId, listName, boardId, listId }: CardModalProps) {
+    const { cards, enrichCards } = useBoardStore()
+    const card = cards.find(c => c.id === cardId)
 
-    const handleCoverUpdate = async (cover: string, coverSize: string) => {
+    const [description, setDescription] = useState(card?.description || "")
+    const [isEditingDesc, setIsEditingDesc] = useState(false)
+    const [title, setTitle] = useState(card?.title || "")
+
+    useEffect(() => {
+        if (card?.title) setTitle(card.title)
+    }, [card?.title])
+
+    const handleTitleSave = () => {
+        if (card && title !== card.title) {
+            handleUpdateCardField("title", title)
+        }
+    }
+
+    useEffect(() => {
+        if (isOpen && cardId) {
+            cardsService.getCardDetail({
+                cardId: cardId,
+                boardId: boardId,
+                listId: listId
+            }).then((res) => {
+                const detail = res.data;
+                enrichCards(cardId, {
+                    description: detail.description,
+                    members: detail.members,
+                    checklist: detail.checklist,
+                    archived: detail.archived,
+                    start: detail.start ? detail.start.toString() : undefined,
+                    // due: detail.due ? detail.due.toString() : undefined, // Already in Card
+                    labels: detail.labels, // Ensure types match
+                    completed: detail.completed,
+                    cover: detail.cover,
+                    coverSize: detail.coverSize
+                })
+            })
+        }
+    }, [isOpen, cardId, boardId, listId, enrichCards])
+
+    if (!card) return null
+
+    const handleUpdateCardField = async (fieldName: string, fieldValue: any) => {
+        const oldValue = card[fieldName as keyof Card];
         try {
+            enrichCards(card.id, { [fieldName]: fieldValue });
             await updateCard({
                 cardID: card.id,
                 listID: listId,
                 boardID: boardId,
-                cover,
-                coverSize
+                [fieldName]: fieldValue
             });
-            onUpdate();
         } catch (error) {
+            enrichCards(card.id, { [fieldName]: oldValue });
             toaster.create({
-                title: "Failed to update cover",
+                title: "Failed to update card, reverting",
                 type: "error",
             });
-        }
-    };
-
-    useEffect(() => {
-        cardsService.getCardDetail({
-            cardId: card.id,
-            boardId: boardId,
-            listId: listId
-        }).then((res) => {
-            setCardDetail(res.data)
-        })
-    }, [card])
-
-    const handleSaveDescription = async () => {
-        try {
-            await cardsService.updateCard({
-                cardID: card.id,
-                listID: listId,
-                boardID: boardId,
-                description
-            })
-            onUpdate()
-            setIsEditingDesc(false)
-        } catch (error) {
-            toaster.create({
-                title: "Failed to update description",
-                type: "error"
-            })
         }
     }
 
@@ -98,7 +107,7 @@ export default function CardModal({ isOpen, onClose, card, listName, boardId, li
                         <Flex gap={4}>
                             <CardEditButton icon={<Megaphone size={16} />} tooltipText="Share feedback" />
                             <Separator orientation="vertical" color="gray.400" size={"sm"} />
-                            <CardEditButton icon={<Image size={16} />} tooltipText="Add image" portal={<ChangeCover onClose={() => { }} onUpdate={handleCoverUpdate} currentCover={cover} currentSize={coverSize} />} />
+                            <CardEditButton icon={<Image size={16} />} tooltipText="Add image" portal={<ChangeCover onClose={() => { }} onUpdate={handleUpdateCardField} currentCover={card.cover} currentSize={card.coverSize} />} />
                         </Flex>
                         <CardEditButton icon={<Ellipsis size={16} />} tooltipText="More options" />
                         <CardEditButton icon={<X size={16} />} tooltipText="Close" onClick={onClose} />
@@ -114,6 +123,7 @@ export default function CardModal({ isOpen, onClose, card, listName, boardId, li
                                 mt={0.5}
                                 animation="fadeIn 0.3s ease-out 0.1s both"
                                 cursor="pointer"
+                                onClick={() => handleUpdateCardField("completed", true)}
                                 _hover={{ color: "green.400" }}
                             />
                         ) : (
@@ -123,11 +133,34 @@ export default function CardModal({ isOpen, onClose, card, listName, boardId, li
                                 boxSize={4}
                                 mt={0.5}
                                 animation="fadeIn 0.3s ease-out 0.1s both"
+                                onClick={() => handleUpdateCardField("completed", false)}
                                 cursor="pointer"
                             />
                         )}
-                        <Box>
-                            <DialogTitle fontSize="2xl" fontWeight="bold">{card.title}</DialogTitle>
+                        <Box flex={1}>
+                            <Input
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                onBlur={handleTitleSave}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        e.currentTarget.blur()
+                                    }
+                                }}
+                                fontSize="2xl"
+                                fontWeight="bold"
+                                px={2}
+                                py={1}
+                                borderRadius="md"
+                                _focus={{
+                                    border: "2px solid",
+                                    borderColor: "blue.500",
+                                    bg: "gray.800"
+                                }}
+                                border="2px solid"
+                                borderColor="transparent"
+                                bg="transparent"
+                            />
                         </Box>
                     </Flex>
                 </DialogHeader>
@@ -135,16 +168,98 @@ export default function CardModal({ isOpen, onClose, card, listName, boardId, li
                 <DialogBody>
                     <Flex gap={2}>
                         <CardActionButton icon={<Plus />} text="Add" />
-                        <CardActionButton icon={<Tag />} text="Label" portal={<LabelPortal boardId={boardId} />} />
+                        {card.labels && card.labels.length === 0 && (<CardActionButton icon={<Tag />} text="Label" portal={<LabelPortal boardId={boardId} cardId={cardId} listId={listId} activeLabels={card.labels} />} />)}
                         <CardActionButton icon={<Calendar />} text="Dates" />
                         <CardActionButton icon={<Check />} text="Checklist" portal={<AddCheckList />} />
-                        <CardActionButton icon={<User />} text="Members" portal={<ChangeMembers members={cardDetail?.members || []} cardID={card.id} listID={listId} boardID={boardId} onUpdate={onUpdate} />} />
+                        <CardActionButton icon={<User />} text="Members" portal={<ChangeMembers members={card.members || []} cardID={card.id} listID={listId} boardID={boardId} />} />
                     </Flex>
                 </DialogBody>
 
                 <DialogBody>
                     <Flex gap={8} direction={{ base: "column", md: "row" }}>
                         <Box flex={1}>
+                            {/* Members and Labels Section */}
+                            <Flex gap={4} mb={6} wrap="wrap">
+                                {card.members && card.members.length > 0 && (
+                                    <Box>
+                                        <Text fontSize="xs" fontWeight="semibold" color="gray.400" mb={2}>Members</Text>
+                                        <Flex gap={2} wrap="wrap">
+                                            {card.members.map((member) => (
+                                                <Box
+                                                    key={member.userID}
+                                                    bg="gray.700"
+                                                    borderRadius="full"
+                                                    w={8}
+                                                    h={8}
+                                                    display="flex"
+                                                    alignItems="center"
+                                                    justifyContent="center"
+                                                    title={member.username}
+                                                >
+                                                    <Text fontSize="xs" fontWeight="bold">{member.username.charAt(0).toUpperCase()}</Text>
+                                                </Box>
+                                            ))}
+                                            <Box
+                                                as="button"
+                                                bg="gray.700"
+                                                w={8}
+                                                h={8}
+                                                borderRadius="full"
+                                                cursor="pointer"
+                                                _hover={{ bg: "gray.600" }}
+                                                display="flex"
+                                                alignItems="center"
+                                                justifyContent="center"
+                                            >
+                                                <Icon as={Plus} boxSize={4} color="gray.400" />
+                                            </Box>
+                                        </Flex>
+                                    </Box>
+                                )}
+
+                                {card.labels && card.labels.length > 0 && (
+                                    <Box>
+                                        <Text fontSize="xs" fontWeight="semibold" color="gray.400" mb={2}>Labels</Text>
+                                        <Flex gap={2} wrap="wrap">
+                                            {card.labels.map((label: any) => (
+                                                <Box
+                                                    key={label.labelID || label.id}
+                                                    bg={label.color}
+                                                    px={3}
+                                                    h={8}
+                                                    borderRadius="sm"
+                                                    cursor="pointer"
+                                                    _hover={{ opacity: 0.8 }}
+                                                    display="flex"
+                                                    alignItems="center"
+                                                >
+                                                    <Text fontSize="xs" fontWeight="bold" color="white">{label.name}</Text>
+                                                </Box>
+                                            ))}
+                                            <Popover.Root positioning={{ placement: "bottom-start" }} lazyMount unmountOnExit>
+                                                <Popover.Trigger asChild>
+                                                    <Box
+                                                        as="button"
+                                                        bg="gray.700"
+                                                        w={8}
+                                                        h={8}
+                                                        borderRadius="sm"
+                                                        cursor="pointer"
+                                                        _hover={{ bg: "gray.600" }}
+                                                        display="flex"
+                                                        alignItems="center"
+                                                        justifyContent="center"
+                                                    >
+                                                        <Icon as={Plus} boxSize={4} color="gray.400" />
+                                                    </Box>
+                                                </Popover.Trigger>
+                                                <LabelPortal boardId={boardId} cardId={cardId} listId={listId} activeLabels={card.labels} />
+                                            </Popover.Root>
+                                        </Flex>
+                                    </Box>
+                                )}
+                            </Flex>
+
                             {/* Description Section */}
                             <Flex align="center" gap={4} mb={4}>
                                 <Icon as={FiList} boxSize={6} color="gray.400" />
@@ -165,7 +280,7 @@ export default function CardModal({ isOpen, onClose, card, listName, boardId, li
                                             mb={2}
                                         />
                                         <HStack>
-                                            <Button size="sm" colorPalette="blue" onClick={handleSaveDescription}>Save</Button>
+                                            <Button size="sm" colorPalette="blue" onClick={() => handleUpdateCardField("description", description)}>Save</Button>
                                             <Button size="sm" variant="ghost" onClick={() => setIsEditingDesc(false)}>Cancel</Button>
                                         </HStack>
                                     </Box>
@@ -190,52 +305,6 @@ export default function CardModal({ isOpen, onClose, card, listName, boardId, li
                                     </Box>
                                 )}
                             </Box>
-
-                            {/* Activity Section */}
-                            {/* <Flex align="center" justify="space-between" mb={4}>
-                                <Flex align="center" gap={4}>
-                                    <Icon as={FiActivity} boxSize={6} color="gray.400" />
-                                    <Text fontSize="lg" fontWeight="semibold">Activity</Text>
-                                </Flex>
-                                <Button size="sm" variant="subtle" onClick={() => setShowActivity(!showActivity)}>
-                                    {showActivity ? "Hide details" : "Show details"}
-                                </Button>
-                            </Flex>
-                            */}
-                            {
-                                // showActivity && (
-                                //     <Box ml={10}>
-                                //         <Flex gap={2} mb={4}>
-                                //             <Box w={8} h={8} borderRadius="full" bg="orange.500" display="flex" alignItems="center" justifyContent="center" fontWeight="bold">
-                                //                 VB
-                                //             </Box>
-                                //             <Box flex={1}>
-                                //                 <Textarea
-                                //                     placeholder="Write a comment..."
-                                //                     bg="gray.800"
-                                //                     border="none"
-                                //                     rows={1}
-                                //                     resize="none"
-                                //                     _focus={{ ring: 2, ringColor: "blue.500", minH: "80px" }}
-                                //                     transition="all 0.2s"
-                                //                 />
-                                //             </Box>
-                                //         </Flex>
-                                //         {/* Placeholder for activity log */}
-                                //         <VStack align="stretch" gap={4}>
-                                //             <Flex gap={3}>
-                                //                 <Box w={8} h={8} borderRadius="full" bg="orange.500" display="flex" alignItems="center" justifyContent="center" fontSize="xs" fontWeight="bold">
-                                //                     VB
-                                //                 </Box>
-                                //                 <Box>
-                                //                     <Text fontSize="sm"><Text as="span" fontWeight="bold">Vaidik Bajpai</Text> added this card to {listName}</Text>
-                                //                     <Text fontSize="xs" color="gray.500">Just now</Text>
-                                //                 </Box>
-                                //             </Flex>
-                                //         </VStack>
-                                //     </Box>
-                                // )
-                            }
                         </Box>
                     </Flex>
                 </DialogBody>

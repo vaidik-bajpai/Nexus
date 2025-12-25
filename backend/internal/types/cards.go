@@ -30,6 +30,7 @@ type Card struct {
 	Description string  `json:"description,omitempty"`
 	Position    float64 `json:"position"`
 	Cover       string  `json:"cover,omitempty"`
+	CoverSize   string  `json:"coverSize,omitempty"`
 	Archived    bool    `json:"archived"`
 	Completed   bool    `json:"completed"`
 
@@ -68,4 +69,22 @@ type ChecklistItem struct {
 type ToggleCardMembership struct {
 	CardID string `json:"-" validate:"required,uuid"`
 	UserID string `json:"userID" validate:"required,uuid"`
+}
+
+type CompleteCard struct {
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Position    float64   `json:"position"`
+	Cover       string    `json:"cover"`
+	CoverSize   string    `json:"coverSize"`
+	Archived    bool      `json:"archived"`
+	Completed   bool      `json:"completed"`
+	Start       time.Time `json:"start"`
+	Due         time.Time `json:"due"`
+
+	MemberIDs []*string     `json:"member_ids"`
+	Labels    []*BoardLabel `json:"labels"`
+	// Checklist []Checklists `json:"checklist"`
+	// Attachments []Attachment `json:"attachments"`
 }

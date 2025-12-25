@@ -6,7 +6,7 @@ import apiClient from "@/lib/apiClient";
 
 interface ChangeCoverProps {
     onClose: () => void;
-    onUpdate: (cover: string, coverSize: string) => void;
+    onUpdate: (field: string, value: any) => void;
     currentCover?: string;
     currentSize?: string;
 }
@@ -28,17 +28,15 @@ const ChangeCover = ({ onClose, onUpdate, currentCover, currentSize = "normal" }
     const [uploading, setUploading] = useState(false);
 
     const handleColorSelect = (color: string) => {
-        onUpdate(color, currentSize);
+        onUpdate("cover", color);
     };
 
     const handleSizeSelect = (size: string) => {
-        // If no cover is selected, we can't really set a size, but let's assume we can set it for future covers
-        // Or if a cover exists, we update the size.
-        onUpdate(currentCover || "", size);
+        onUpdate("coverSize", size);
     };
 
     const handlePhotoSelect = (url: string) => {
-        onUpdate(url, currentSize);
+        onUpdate("cover", url);
     };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,7 +54,7 @@ const ChangeCover = ({ onClose, onUpdate, currentCover, currentSize = "normal" }
                 },
             });
             console.log(response.data)
-            onUpdate(response.data.data.url, currentSize);
+            onUpdate("cover", response.data.data.url);
         } catch (error) {
             console.error("Upload failed", error);
             toaster.create({
@@ -136,7 +134,7 @@ const ChangeCover = ({ onClose, onUpdate, currentCover, currentSize = "normal" }
                                         size="sm"
                                         variant="outline"
                                         color="gray.600"
-                                        onClick={() => onUpdate("", currentSize)}
+                                        onClick={() => onUpdate("cover", "")}
                                         mb={2}
                                     >
                                         Remove cover

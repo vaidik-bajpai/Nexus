@@ -40,6 +40,7 @@ func (h *handler) handleUpdateCard(w http.ResponseWriter, r *http.Request) {
 	cardID := r.PathValue("cardID")
 	var payload types.UpdateCard
 	if err := helper.ReadJSON(r, &payload); err != nil {
+		h.logger.Error("failed to read the request payload", zap.Error(err))
 		helper.BadRequest(h.logger, w, "failed to read the request payload", err)
 		return
 	}

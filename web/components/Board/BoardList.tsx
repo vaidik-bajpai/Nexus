@@ -77,7 +77,7 @@ export default function BoardList({ list, cards, boardId, onCardCreated, onCardC
             <SortableContext items={cards.map((card) => card.id)} strategy={verticalListSortingStrategy}>
                 <Box flex={1} overflowY="auto" px={1} className="custom-scrollbar">
                     {cards.map((card) => (
-                        <BoardCard key={card.id} card={card} listId={list.id} boardId={boardId} onUpdate={onCardCreated} onClick={() => onCardClick(card)} />
+                        <BoardCard key={`${card.id}-${card.coverSize}`} card={card} listId={list.id} boardId={boardId} onUpdate={onCardCreated} onClick={() => onCardClick(card)} />
                     ))}
                 </Box>
             </SortableContext>

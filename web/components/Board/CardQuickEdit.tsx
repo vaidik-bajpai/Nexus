@@ -82,14 +82,13 @@ export default function CardQuickEdit({ isOpen, onClose, card, position, onSave,
 
     if (!isOpen || !position) return null;
 
-    const handleCoverUpdate = async (cover: string, coverSize: string) => {
+    const handleCoverUpdate = async (field: string, value: any) => {
         try {
             await updateCard({
                 cardID: card.id,
                 listID: listId,
                 boardID: boardId,
-                cover,
-                coverSize
+                [field]: value
             });
             onUpdate();
         } catch (error) {

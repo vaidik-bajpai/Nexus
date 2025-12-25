@@ -9,7 +9,7 @@ interface ChangeMembersProps {
     cardID: string;
     listID: string;
     boardID: string;
-    onUpdate: () => void;
+    onUpdate?: () => void;
 }
 
 const ChangeMembers = ({ members, cardID, listID, boardID, onUpdate }: ChangeMembersProps) => {
@@ -23,7 +23,7 @@ const ChangeMembers = ({ members, cardID, listID, boardID, onUpdate }: ChangeMem
 
     async function toggleMemberToCard(member: CardMember) {
         await cardService.toggleMemberToCard({ cardID, userID: member.userID, listID, boardID })
-        onUpdate()
+        if (onUpdate) onUpdate()
     }
 
     return (

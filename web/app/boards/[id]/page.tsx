@@ -323,7 +323,7 @@ export default function BoardPage({ params }: PageProps) {
                 <CardModal
                     isOpen={!!selectedCard}
                     onClose={() => setSelectedCard(null)}
-                    card={selectedCard}
+                    cardId={selectedCard.id}
                     listName={lists.find(l => l.id === selectedCard.list_id)?.name || ""}
                     boardId={id}
                     listId={selectedCard.list_id}

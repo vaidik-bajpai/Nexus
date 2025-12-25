@@ -203,7 +203,7 @@ func (s *Store) GetCardsAndLists(ctx context.Context, boardID string) (*types.Bo
 
 			cardCoverSize, ok := card.CoverSize()
 			if !ok {
-				cardCoverSize = ""
+				cardCoverSize = "normal"
 			}
 
 			cardDueDate, ok := card.DueDate()

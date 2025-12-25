@@ -103,12 +103,16 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
         <div ref={setNodeRef} {...attributes} style={style} {...listeners}>
             <Box
                 ref={cardRef}
-                bg="gray.700"
+
                 borderRadius="md"
                 boxShadow="sm"
                 mb={2}
                 cursor="pointer"
-                _hover={{ bg: "gray.600", boxShadow: "md", borderColor: "blue.400" }}
+                _hover={{
+                    bg: card.coverSize === "full" && card.cover ? (card.cover.startsWith("#") ? card.cover : "gray.700") : "gray.600",
+                    boxShadow: "md",
+                    borderColor: "blue.400"
+                }}
                 border="1px solid"
                 borderColor="whiteAlpha.100"
                 transition="all 0.5s ease-in-out"
@@ -117,10 +121,19 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
                 role="group"
                 opacity={isEditing ? 0 : 1} // Hide original card when editing
                 onClick={onClick}
+                position="relative"
+                overflow="hidden"
+                h={card.coverSize === "full" && card.cover ? "250px" : "auto"}
+                minH={card.coverSize === "full" && card.cover ? "250px" : "auto"}
+                bg={card.coverSize === "full" && card.cover && card.cover.startsWith("#") ? card.cover : "gray.700"}
+                bgImage={card.coverSize === "full" && card.cover && !card.cover.startsWith("#") ? `url(${card.cover})` : undefined}
+                bgSize="cover"
+                backgroundPosition="center"
             >
-                {card.cover && (
+                {/* Normal Cover (Top Strip) */}
+                {card.cover && card.coverSize !== "full" && (
                     <Box
-                        h={card.coverSize === "full" ? "200px" : "120px"}
+                        h="120px"
                         w="full"
                         bg={card.cover.startsWith("#") ? card.cover : undefined}
                         bgImage={!card.cover.startsWith("#") ? `url(${card.cover})` : undefined}
@@ -130,11 +143,48 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
                         mb={2}
                     />
                 )}
-                <Flex align="start" gap={2} p={2}>
+
+                {/* Gradient Overlay for Full Image Cover */}
+                {card.coverSize === "full" && card.cover && !card.cover.startsWith("#") && (
+                    <Box
+                        position="absolute"
+                        bottom={0}
+                        left={0}
+                        w="full"
+                        h="full"
+                        bgGradient="linear(to-t, blackAlpha.900, transparent)"
+                        pointerEvents="none"
+                    />
+                )}
+
+                {/* Labels */}
+                {card.labels && card.labels.length > 0 && (
+                    <Flex gap={1} px={2} pt={card.cover && card.coverSize !== "full" ? 0 : 2} wrap="wrap" mb={1} position="relative" zIndex={1}>
+                        {card.labels.map((label: any) => (
+                            <Box
+                                key={label.labelID || label.id}
+                                bg={label.color}
+                                w={10}
+                                h={2}
+                                borderRadius="full"
+                                title={label.name}
+                            />
+                        ))}
+                    </Flex>
+                )}
+
+                <Flex
+                    align={card.coverSize === "full" && card.cover ? "flex-end" : "start"}
+                    gap={2}
+                    p={2}
+                    h={card.coverSize === "full" && card.cover ? "100%" : "auto"}
+                    position="relative"
+                    zIndex={1}
+                >
                     {isHovered && !card.completed && (
                         <Icon
                             as={FiCircle}
-                            color="gray.400"
+                            color={card.coverSize === "full" && card.cover ? "whiteAlpha.800" : "gray.400"}
                             boxSize={4}
                             mt={0.5}
                             animation="fadeIn 0.3s ease-out 0.1s both"
@@ -155,19 +205,21 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
                         />
                     )}
                     <Text
-                        fontSize="sm"
+                        fontSize={card.coverSize === "full" && card.cover ? "md" : "sm"}
+                        fontWeight={card.coverSize === "full" && card.cover ? "bold" : "normal"}
                         color="white"
                         flex={1}
                         textDecoration={card.completed ? "line-through" : "none"}
                         opacity={card.completed ? 0.7 : 1}
                         animation={isHovered ? "slideIn 0.4s ease-out 0.2s both" : "none"}
+                        textShadow={card.coverSize === "full" && card.cover ? "0 1px 2px rgba(0,0,0,0.8)" : "none"}
                     >
                         {card.title}
                     </Text>
                     {isHovered && (
                         <Icon
                             as={FiEdit2}
-                            color="gray.400"
+                            color={card.coverSize === "full" && card.cover ? "whiteAlpha.800" : "gray.400"}
                             boxSize={3.5}
                             _hover={{ color: "white" }}
                             mt={0.5}
@@ -176,26 +228,28 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
                         />
                     )}
                 </Flex>
-                {
-                    // card.completed && (
-                    //     <HStack gap={2} mt={1}>
-                    //         <Badge
-                    //             colorPalette="green"
-                    //             variant="solid"
-                    //             size="xs"
-                    //             animation="pulse 2s infinite 0.5s"
-                    //         >
-                    //             <Icon
-                    //                 as={FiCheckSquare}
-                    //                 mr={1}
-                    //                 animation="checkBounce 0.6s ease-out"
-                    //             />
-                    //             Done
-                    //         </Badge>
-                    //     </HStack>
-                    // )
-                }
+
             </Box>
+            {
+                // card.completed && (
+                //     <HStack gap={2} mt={1}>
+                //         <Badge
+                //             colorPalette="green"
+                //             variant="solid"
+                //             size="xs"
+                //             animation="pulse 2s infinite 0.5s"
+                //         >
+                //             <Icon
+                //                 as={FiCheckSquare}
+                //                 mr={1}
+                //                 animation="checkBounce 0.6s ease-out"
+                //             />
+                //             Done
+                //         </Badge>
+                //     </HStack>
+                // )
+            }
+
             <CardQuickEdit
                 isOpen={isEditing}
                 onClose={() => setIsEditing(false)}

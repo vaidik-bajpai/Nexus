@@ -48,8 +48,9 @@ func (s *Store) AddLabelToCard(ctx context.Context, label *types.ToggleLabelToCa
 }
 
 func (s *Store) RemoveLabelFromCard(ctx context.Context, label *types.ToggleLabelToCard) error {
-	_, err := s.db.CardLabel.FindUnique(
-		db.CardLabel.ID.Equals(label.LabelID),
+	_, err := s.db.CardLabel.FindMany(
+		db.CardLabel.CardID.Equals(label.CardID),
+		db.CardLabel.LabelID.Equals(label.LabelID),
 	).Delete().Exec(ctx)
 	return err
 }

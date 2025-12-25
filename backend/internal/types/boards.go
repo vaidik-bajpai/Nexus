@@ -35,7 +35,7 @@ type MinimalCard struct {
 	ListID    string        `json:"list_id"`
 	Title     string        `json:"title"`
 	Cover     string        `json:"cover"`
-	CoverSize string        `json:"cover_size"`
+	CoverSize string        `json:"coverSize"`
 	Due       time.Time     `json:"due"`
 	Completed bool          `json:"completed"`
 	Position  float64       `json:"position"`

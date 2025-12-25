@@ -16,7 +16,7 @@ type ModifyLabel struct {
 }
 
 type ToggleLabelToCard struct {
-	Type    string `json:"type" validate:"required,one of=add,remove"`
+	Type    string `json:"type" validate:"required,oneof=add remove"`
 	LabelID string `json:"label_id" validate:"required,uuid"`
 	CardID  string `json:"-" validate:"required,uuid"`
 
