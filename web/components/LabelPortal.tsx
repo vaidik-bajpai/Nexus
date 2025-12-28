@@ -104,8 +104,29 @@ const LabelPortal = ({ boardId, cardId, listId, activeLabels }: LabelPortalProps
 
     return (
         <Portal>
-            <Popover.Positioner>
-                <Popover.Content width="300px" p={0} borderRadius="md" boxShadow="lg" zIndex={1600} onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()} bg="gray.800" border="1px solid" borderColor="gray.700">
+            <Box
+                position="fixed"
+                top="4rem"
+                left="50%"
+                transform="translateX(-50%)"
+                zIndex={1600}
+                maxH="calc(100vh - 5rem)"
+                w="300px"
+                outline="none"
+            >
+                <Popover.Content
+                    width="full"
+                    maxH="full"
+                    overflowY="auto"
+                    p={0}
+                    borderRadius="md"
+                    boxShadow="lg"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                    bg="gray.800"
+                    border="1px solid"
+                    borderColor="gray.700"
+                >
                     <Popover.Body p={0}>
                         <Box color="gray.300" px={4} pb={4} pt={2}>
                             <Flex align="center" justify="space-between" mb={4} px={0} borderBottom="1px solid" borderColor="gray.700" pb={2}>
@@ -272,7 +293,7 @@ const LabelPortal = ({ boardId, cardId, listId, activeLabels }: LabelPortalProps
                         </Box>
                     </Popover.Body>
                 </Popover.Content>
-            </Popover.Positioner>
+            </Box>
         </Portal>
     )
 }

@@ -168,7 +168,7 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
                 <DialogBody>
                     <Flex gap={2}>
                         <CardActionButton icon={<Plus />} text="Add" />
-                        {card.labels && card.labels.length === 0 && (<CardActionButton icon={<Tag />} text="Label" portal={<LabelPortal boardId={boardId} cardId={cardId} listId={listId} activeLabels={card.labels} />} />)}
+                        <CardActionButton isHidden={!card.labels || card.labels.length === 0} icon={<Tag />} text="Label" portal={<LabelPortal boardId={boardId} cardId={cardId} listId={listId} activeLabels={card.labels} />} />
                         <CardActionButton icon={<Calendar />} text="Dates" />
                         <CardActionButton icon={<Check />} text="Checklist" portal={<AddCheckList />} />
                         <CardActionButton icon={<User />} text="Members" portal={<ChangeMembers members={card.members || []} cardID={card.id} listID={listId} boardID={boardId} />} />
