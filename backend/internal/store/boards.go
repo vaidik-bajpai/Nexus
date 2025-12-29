@@ -162,6 +162,7 @@ func (s *Store) GetCardsAndLists(ctx context.Context, boardID string) (*types.Bo
 			db.List.Cards.Fetch().Select(
 				db.Card.ID.Field(),
 				db.Card.Title.Field(),
+				db.Card.Description.Field(),
 				db.Card.Completed.Field(),
 				db.Card.Cover.Field(),
 				db.Card.CoverSize.Field(),
@@ -174,6 +175,9 @@ func (s *Store) GetCardsAndLists(ctx context.Context, boardID string) (*types.Bo
 						db.Label.Color.Field(),
 						db.Label.Name.Field(),
 					),
+				),
+				db.Card.CardMembers.Fetch().Select(
+					db.CardMember.UserID.Field(),
 				),
 			).OrderBy(
 				db.Card.Position.Order(db.SortOrder("asc")),
@@ -211,6 +215,11 @@ func (s *Store) GetCardsAndLists(ctx context.Context, boardID string) (*types.Bo
 				cardDueDate = time.Time{}
 			}
 
+			cardDescription, ok := card.Description()
+			if !ok {
+				cardDescription = ""
+			}
+
 			var cardLabels []*types.BoardLabel
 			for _, label := range card.CardLabels() {
 				l := label.Label()
@@ -221,17 +230,24 @@ func (s *Store) GetCardsAndLists(ctx context.Context, boardID string) (*types.Bo
 				})
 			}
 
+			var memberIDs []string
+			for _, member := range card.CardMembers() {
+				memberIDs = append(memberIDs, member.UserID)
+			}
+
 			board.Cards = append(board.Cards, &types.MinimalCard{
-				ID:        card.ID,
-				ListID:    list.ID,
-				BoardID:   boardID,
-				Title:     card.Title,
-				Cover:     cardCover,
-				CoverSize: cardCoverSize,
-				Due:       cardDueDate,
-				Completed: card.Completed,
-				Position:  card.Position,
-				Labels:    cardLabels,
+				ID:          card.ID,
+				ListID:      list.ID,
+				BoardID:     boardID,
+				Title:       card.Title,
+				Description: cardDescription,
+				Cover:       cardCover,
+				CoverSize:   cardCoverSize,
+				Due:         cardDueDate,
+				Completed:   card.Completed,
+				Position:    card.Position,
+				Labels:      cardLabels,
+				MemberIDs:   memberIDs,
 			})
 		}
 	}
@@ -252,6 +268,16 @@ func (s *Store) GetBoard(ctx context.Context, boardID string) (*types.CompleteBo
 			db.Label.Color.Field(),
 			db.Label.Name.Field(),
 		),
+		db.Board.BoardMembers.Fetch().Select(
+			db.BoardMember.UserID.Field(),
+			db.BoardMember.Role.Field(),
+		).With(
+			db.BoardMember.User.Fetch().Select(
+				db.User.Email.Field(),
+				db.User.FirstName.Field(),
+				db.User.LastName.Field(),
+			),
+		),
 	).Exec(ctx)
 	if err != nil {
 		return nil, err
@@ -271,6 +297,30 @@ func (s *Store) GetBoard(ctx context.Context, boardID string) (*types.CompleteBo
 			LabelID: label.ID,
 			Color:   label.Color,
 			Name:    label.Name,
+		})
+	}
+
+	for _, member := range dbBoard.BoardMembers() {
+		firstName, ok := member.User().FirstName()
+		if !ok {
+			firstName = ""
+		}
+		lastName, ok := member.User().LastName()
+		if !ok {
+			lastName = ""
+		}
+
+		username, ok := member.User().Username()
+		if !ok {
+			username = ""
+		}
+
+		board.Members = append(board.Members, &types.BoardMembers{
+			ID:       member.UserID,
+			Email:    member.User().Email,
+			FullName: firstName + " " + lastName,
+			Username: username,
+			Role:     member.Role,
 		})
 	}
 

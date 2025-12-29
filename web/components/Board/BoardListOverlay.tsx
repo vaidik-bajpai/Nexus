@@ -3,11 +3,14 @@ import { List } from "@/lib/types/list.types";
 import BoardCard from "./BoardCard";
 import { FiMoreHorizontal } from "react-icons/fi";
 
+import { Card } from "@/lib/types/cards.types";
+
 interface BoardListOverlayProps {
     list: List;
+    cards: Card[];
 }
 
-export default function BoardListOverlay({ list }: BoardListOverlayProps) {
+export default function BoardListOverlay({ list, cards }: BoardListOverlayProps) {
     return (
         <Box
             w="272px"
@@ -43,7 +46,7 @@ export default function BoardListOverlay({ list }: BoardListOverlayProps) {
             </Flex>
 
             <Box flex={1} overflowY="auto" px={1} className="custom-scrollbar">
-                {list.cards?.map((card) => (
+                {cards.map((card) => (
                     <BoardCard key={card.id} card={card} listId={list.id} boardId="" onUpdate={() => { }} onClick={() => { }} />
                 ))}
             </Box>

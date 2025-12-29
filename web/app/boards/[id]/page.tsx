@@ -314,7 +314,7 @@ export default function BoardPage({ params }: PageProps) {
                     </SortableContext>
                     <DragOverlay>
                         {activeCard && <BoardCardOverlay card={activeCard} listId={activeCard.list_id} boardId={id} onUpdate={fetchCompleteBoard} />}
-                        {activeList && <BoardListOverlay list={activeList} />}
+                        {activeList && <BoardListOverlay list={activeList} cards={cards.filter(c => c.list_id === activeList.id)} />}
                     </DragOverlay>
                     <CreateList boardId={id} onListCreated={fetchCompleteBoard} lists={lists} />
                 </Flex>
@@ -327,9 +327,6 @@ export default function BoardPage({ params }: PageProps) {
                     listName={lists.find(l => l.id === selectedCard.list_id)?.name || ""}
                     boardId={id}
                     listId={selectedCard.list_id}
-                    onUpdate={() => {
-                        fetchCompleteBoard();
-                    }}
                 />
             )}
         </BoardLayout>

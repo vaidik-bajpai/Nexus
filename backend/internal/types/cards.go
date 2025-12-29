@@ -83,7 +83,7 @@ type CompleteCard struct {
 	Start       time.Time `json:"start"`
 	Due         time.Time `json:"due"`
 
-	MemberIDs []*string     `json:"member_ids"`
+	MemberIDs []string      `json:"member_ids"`
 	Labels    []*BoardLabel `json:"labels"`
 	// Checklist []Checklists `json:"checklist"`
 	// Attachments []Attachment `json:"attachments"`

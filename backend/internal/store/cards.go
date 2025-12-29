@@ -91,7 +91,7 @@ func (s *Store) GetCardDetail(ctx context.Context, cardID string) (*types.Comple
 	}
 
 	for _, member := range dbCard.CardMembers() {
-		card.MemberIDs = append(card.MemberIDs, &member.UserID)
+		card.MemberIDs = append(card.MemberIDs, member.UserID)
 	}
 	for _, label := range dbCard.CardLabels() {
 		card.Labels = append(card.Labels, &types.BoardLabel{

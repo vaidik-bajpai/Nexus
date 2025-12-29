@@ -23,40 +23,16 @@ interface CardQuickEditProps {
 
 export default function CardQuickEdit({ isOpen, onClose, card, position, onSave, onUpdate, listId, boardId }: CardQuickEditProps) {
     const [title, setTitle] = useState(card.title);
-    const [members, setMembers] = useState<CardMember[]>([]);
     const contentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         setTitle(card.title);
-        if (isOpen) {
-            getCardDetail({ cardId: card.id, boardId, listId }).then((res) => {
-                setMembers(res.data.members);
-            });
-        }
     }, [card, isOpen, boardId, listId]);
 
     // Close on click outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (contentRef.current && !contentRef.current.contains(event.target as Node)) {
-                // Check if the click is inside a portal (like ChangeCover)
-                // This is a bit tricky since portals are outside the DOM hierarchy of contentRef
-                // But Chakra's Popover usually handles outside clicks.
-                // However, our custom overlay might interfere.
-                // For now, let's rely on the fact that if we click on the overlay (which is covered by contentRef's parent Box?), we close.
-                // Wait, the overlay is the parent Box. contentRef is the Flex container.
-                // If we click on the overlay (Box), we should close.
-                // But the event listener is on document.
-
-                // Let's just check if the target is within the contentRef or any portal.
-                // A simple way is to check if the target is inside the Chakra Portal container.
-                // But we don't have easy access to that.
-
-                // For now, let's keep the existing logic but be careful.
-                // If the user clicks on the ChangeCover popover, it shouldn't close the QuickEdit.
-                // The ChangeCover popover is in a Portal, so it's outside contentRef.
-                // We need to detect if the click is in a chakra-popover-content.
-
                 const target = event.target as HTMLElement;
                 if (target.closest(".chakra-popover__content")) {
                     return;
@@ -102,7 +78,7 @@ export default function CardQuickEdit({ isOpen, onClose, card, position, onSave,
     const menuItems = [
         { icon: FiLayout, label: "Open card" },
         { icon: FiTag, label: "Edit labels" },
-        { icon: FiUser, label: "Change members", portal: <ChangeMembers members={members} cardID={card.id} listID={listId} boardID={boardId} onUpdate={onUpdate} /> },
+        { icon: FiUser, label: "Change members", portal: <ChangeMembers memberIds={card.member_ids || []} cardID={card.id} listID={listId} boardID={boardId} onUpdate={onUpdate} /> },
         {
             icon: FiImage,
             label: "Change cover",

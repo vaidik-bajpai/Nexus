@@ -1,9 +1,11 @@
 import { Box, Text, Image, Badge, HStack, Icon, Flex } from "@chakra-ui/react";
 import { Card } from "@/lib/types/cards.types";
-import { FiCheckCircle, FiCheckSquare, FiCircle, FiEdit2 } from "react-icons/fi";
+import { FiCheckCircle, FiCheckSquare, FiCircle, FiEdit2, FiAlignLeft } from "react-icons/fi";
 import { useState, useRef } from "react";
 import { updateCard } from "@/lib/services/cards";
 import { toaster } from "@/components/ui/toaster";
+import { Tooltip } from "@/components/ui/tooltip";
+import { useBoardStore } from "@/lib/store/board";
 import CardQuickEdit from "./CardQuickEdit";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -17,6 +19,9 @@ interface BoardCardProps {
 }
 
 export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: BoardCardProps) {
+    const { metadata, cards } = useBoardStore();
+    const storeCard = cards.find(c => c.id === card.id) || card;
+
     const {
         attributes,
         listeners,
@@ -24,7 +29,7 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
         transform,
         transition,
         isDragging
-    } = useSortable({ id: card.id });
+    } = useSortable({ id: storeCard.id });
     const style = {
         transition,
         transform: CSS.Translate.toString(transform),
@@ -40,10 +45,10 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
         e.stopPropagation();
         try {
             await updateCard({
-                cardID: card.id,
+                cardID: storeCard.id,
                 listID: listId,
                 boardID: boardId,
-                completed: !card.completed
+                completed: !storeCard.completed
             });
             onUpdate();
         } catch (error) {
@@ -70,23 +75,10 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
 
     const handleSaveTitle = async (newTitle: string) => {
         try {
-            // Assuming updateCard supports title update, if not we might need to modify the service/backend
-            // But based on the previous context, updateCard takes a payload.
-            // Let's check the service signature. It takes completed?
-            // We need to update the service to accept title as well.
-            // For now, let's assume we can pass title.
-            // Wait, I need to check if updateCard supports title.
-            // The service I wrote earlier: 
-            // export const updateCard = async (card: { cardID: string, listID: string, boardID: string, completed?: boolean })
-            // It only accepts completed. I should update the service first.
-            // But for this step, I will just implement the UI and call updateCard with title casted or updated.
-            // Actually, I'll update the service in the next step or implicitly here if I can.
-            // Let's just pass it for now and I'll fix the service immediately after.
             await updateCard({
-                cardID: card.id,
+                cardID: storeCard.id,
                 listID: listId,
                 boardID: boardId,
-                // @ts-ignore
                 title: newTitle
             });
             onUpdate();
@@ -99,6 +91,19 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
         }
     };
 
+    // Derived state for members
+    const displayMembers = (storeCard.member_ids || []).map(id => {
+        const member = metadata?.members.find(m => m.id === id);
+        return member ? {
+            userID: member.id,
+            username: member.username,
+            fullName: member.fullName,
+            email: member.email,
+            avatar: "", // Avatar not in BoardMember yet
+            isCardMember: true
+        } : null;
+    }).filter(Boolean) as any[];
+
     return (
         <div ref={setNodeRef} {...attributes} style={style} {...listeners}>
             <Box
@@ -109,7 +114,7 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
                 mb={2}
                 cursor="pointer"
                 _hover={{
-                    bg: card.coverSize === "full" && card.cover ? (card.cover.startsWith("#") ? card.cover : "gray.700") : "gray.600",
+                    bg: storeCard.coverSize === "full" && storeCard.cover ? (storeCard.cover.startsWith("#") ? storeCard.cover : "gray.700") : "gray.600",
                     boxShadow: "md",
                     borderColor: "blue.400"
                 }}
@@ -123,20 +128,20 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
                 onClick={onClick}
                 position="relative"
                 overflow="hidden"
-                h={card.coverSize === "full" && card.cover ? "250px" : "auto"}
-                minH={card.coverSize === "full" && card.cover ? "250px" : "auto"}
-                bg={card.coverSize === "full" && card.cover && card.cover.startsWith("#") ? card.cover : "gray.700"}
-                bgImage={card.coverSize === "full" && card.cover && !card.cover.startsWith("#") ? `url(${card.cover})` : undefined}
+                h={storeCard.coverSize === "full" && storeCard.cover ? "250px" : "auto"}
+                minH={storeCard.coverSize === "full" && storeCard.cover ? "250px" : "auto"}
+                bg={storeCard.coverSize === "full" && storeCard.cover && storeCard.cover.startsWith("#") ? storeCard.cover : "gray.700"}
+                bgImage={storeCard.coverSize === "full" && storeCard.cover && !storeCard.cover.startsWith("#") ? `url(${storeCard.cover})` : undefined}
                 bgSize="cover"
                 backgroundPosition="center"
             >
                 {/* Normal Cover (Top Strip) */}
-                {card.cover && card.coverSize !== "full" && (
+                {storeCard.cover && storeCard.coverSize !== "full" && (
                     <Box
                         h="120px"
                         w="full"
-                        bg={card.cover.startsWith("#") ? card.cover : undefined}
-                        bgImage={!card.cover.startsWith("#") ? `url(${card.cover})` : undefined}
+                        bg={storeCard.cover.startsWith("#") ? storeCard.cover : undefined}
+                        bgImage={!storeCard.cover.startsWith("#") ? `url(${storeCard.cover})` : undefined}
                         bgSize="cover"
                         backgroundPosition="center"
                         borderTopRadius="md"
@@ -145,7 +150,7 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
                 )}
 
                 {/* Gradient Overlay for Full Image Cover */}
-                {card.coverSize === "full" && card.cover && !card.cover.startsWith("#") && (
+                {storeCard.coverSize === "full" && storeCard.cover && !storeCard.cover.startsWith("#") && (
                     <Box
                         position="absolute"
                         bottom={0}
@@ -158,9 +163,9 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
                 )}
 
                 {/* Labels */}
-                {card.labels && card.labels.length > 0 && (
-                    <Flex gap={1} px={2} pt={card.cover && card.coverSize !== "full" ? 0 : 2} wrap="wrap" mb={1} position="relative" zIndex={1}>
-                        {card.labels.map((label: any) => (
+                {storeCard.labels && storeCard.labels.length > 0 && (
+                    <Flex gap={1} px={2} pt={storeCard.cover && storeCard.coverSize !== "full" ? 0 : 2} wrap="wrap" mb={1} position="relative" zIndex={1}>
+                        {storeCard.labels.map((label: any) => (
                             <Box
                                 key={label.labelID || label.id}
                                 bg={label.color}
@@ -174,58 +179,119 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
                 )}
 
                 <Flex
-                    align={card.coverSize === "full" && card.cover ? "flex-end" : "start"}
+                    justify={storeCard.coverSize === "full" && storeCard.cover ? "flex-end" : "start"}
+                    align="start"
                     gap={2}
                     p={2}
-                    h={card.coverSize === "full" && card.cover ? "100%" : "auto"}
+                    h={storeCard.coverSize === "full" && storeCard.cover ? "100%" : "auto"}
                     position="relative"
                     zIndex={1}
+                    direction="column"
                 >
-                    {isHovered && !card.completed && (
-                        <Icon
-                            as={FiCircle}
-                            color={card.coverSize === "full" && card.cover ? "whiteAlpha.800" : "gray.400"}
-                            boxSize={4}
-                            mt={0.5}
-                            animation="fadeIn 0.3s ease-out 0.1s both"
-                            onClick={handleToggleComplete}
-                            cursor="pointer"
-                            _hover={{ color: "green.400" }}
-                        />
-                    )}
-                    {card.completed && (
-                        <Icon
-                            as={FiCheckCircle}
-                            color="green.400"
-                            boxSize={4}
-                            mt={0.5}
-                            animation="fadeIn 0.3s ease-out 0.1s both"
-                            onClick={handleToggleComplete}
-                            cursor="pointer"
-                        />
-                    )}
-                    <Text
-                        fontSize={card.coverSize === "full" && card.cover ? "md" : "sm"}
-                        fontWeight={card.coverSize === "full" && card.cover ? "bold" : "normal"}
-                        color="white"
-                        flex={1}
-                        textDecoration={card.completed ? "line-through" : "none"}
-                        opacity={card.completed ? 0.7 : 1}
-                        animation={isHovered ? "slideIn 0.4s ease-out 0.2s both" : "none"}
-                        textShadow={card.coverSize === "full" && card.cover ? "0 1px 2px rgba(0,0,0,0.8)" : "none"}
-                    >
-                        {card.title}
-                    </Text>
-                    {isHovered && (
-                        <Icon
-                            as={FiEdit2}
-                            color={card.coverSize === "full" && card.cover ? "whiteAlpha.800" : "gray.400"}
-                            boxSize={3.5}
-                            _hover={{ color: "white" }}
-                            mt={0.5}
-                            animation="fadeIn 0.3s ease-out 0.3s both"
-                            onClick={handleEditClick}
-                        />
+                    <Flex w="full" gap={2} align="start">
+                        {isHovered && !storeCard.completed && (
+                            <Icon
+                                as={FiCircle}
+                                color={storeCard.coverSize === "full" && storeCard.cover ? "whiteAlpha.800" : "gray.400"}
+                                boxSize={4}
+                                mt={0.5}
+                                animation="fadeIn 0.3s ease-out 0.1s both"
+                                onClick={handleToggleComplete}
+                                cursor="pointer"
+                                _hover={{ color: "green.400" }}
+                            />
+                        )}
+                        {storeCard.completed && (
+                            <Icon
+                                as={FiCheckCircle}
+                                color="green.400"
+                                boxSize={4}
+                                mt={0.5}
+                                animation="fadeIn 0.3s ease-out 0.1s both"
+                                onClick={handleToggleComplete}
+                                cursor="pointer"
+                            />
+                        )}
+                        <Text
+                            fontSize={storeCard.coverSize === "full" && storeCard.cover ? "md" : "sm"}
+                            fontWeight={storeCard.coverSize === "full" && storeCard.cover ? "bold" : "normal"}
+                            color="white"
+                            flex={1}
+                            textDecoration={storeCard.completed ? "line-through" : "none"}
+                            opacity={storeCard.completed ? 0.7 : 1}
+                            animation={isHovered ? "slideIn 0.4s ease-out 0.2s both" : "none"}
+                            textShadow={storeCard.coverSize === "full" && storeCard.cover ? "0 1px 2px rgba(0,0,0,0.8)" : "none"}
+                        >
+                            {storeCard.title}
+                        </Text>
+                        {isHovered && (
+                            <Icon
+                                as={FiEdit2}
+                                color={storeCard.coverSize === "full" && storeCard.cover ? "whiteAlpha.800" : "gray.400"}
+                                boxSize={3.5}
+                                _hover={{ color: "white" }}
+                                mt={0.5}
+                                animation="fadeIn 0.3s ease-out 0.3s both"
+                                onClick={handleEditClick}
+                            />
+                        )}
+                    </Flex>
+
+                    {/* Footer: Description Icon & Members */}
+                    {(storeCard.description || displayMembers.length > 0) && (
+                        <Flex w="full" justify="space-between" align="center" mt={2}>
+                            <Flex gap={3} align="center">
+                                {storeCard.description && (
+                                    <Tooltip content="This card has a description" positioning={{ placement: "bottom" }}>
+                                        <Icon as={FiAlignLeft} color="gray.400" boxSize={4} />
+                                    </Tooltip>
+                                )}
+                            </Flex>
+
+                            {displayMembers.length > 0 && (
+                                <Flex gap={1}>
+                                    {displayMembers.slice(0, 2).map((member) => (
+                                        <Tooltip
+                                            key={member.userID}
+                                            content={member.fullName || member.username}
+                                            positioning={{ placement: "bottom" }}
+                                        >
+                                            <Box
+                                                bg="blue.500"
+                                                borderRadius="full"
+                                                w={6}
+                                                h={6}
+                                                display="flex"
+                                                alignItems="center"
+                                                justifyContent="center"
+                                                fontSize="xs"
+                                                fontWeight="bold"
+                                                color="white"
+                                                title={member.username}
+                                            >
+                                                {member.username.charAt(0).toUpperCase()}
+                                            </Box>
+                                        </Tooltip>
+                                    ))}
+                                    {displayMembers.length > 2 && (
+                                        <Box
+                                            bg="gray.600"
+                                            borderRadius="full"
+                                            w={6}
+                                            h={6}
+                                            display="flex"
+                                            alignItems="center"
+                                            justifyContent="center"
+                                            fontSize="xs"
+                                            fontWeight="bold"
+                                            color="white"
+                                        >
+                                            +{displayMembers.length - 2}
+                                        </Box>
+                                    )}
+                                </Flex>
+                            )}
+                        </Flex>
                     )}
                 </Flex>
 
@@ -253,7 +319,7 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
             <CardQuickEdit
                 isOpen={isEditing}
                 onClose={() => setIsEditing(false)}
-                card={card}
+                card={storeCard}
                 position={editPos}
                 onSave={handleSaveTitle}
                 onUpdate={onUpdate}

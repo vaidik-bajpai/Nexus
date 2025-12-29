@@ -1,94 +1,175 @@
 import { CardMember } from "@/lib/types/cards.types";
 import { Avatar, Box, Button, Flex, Heading, Icon, Input, Popover, Portal, Text } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
-import { FiX } from "react-icons/fi";
+import { useState } from "react";
+import { FiX, FiCheck } from "react-icons/fi";
 import * as cardService from "@/lib/services/cards";
+import { useBoardStore } from "@/lib/store/board";
+import { BoardMember } from "@/lib/types/board.types";
 
 interface ChangeMembersProps {
-    members: CardMember[];
+    memberIds: string[];
     cardID: string;
     listID: string;
     boardID: string;
     onUpdate?: () => void;
 }
 
-const ChangeMembers = ({ members, cardID, listID, boardID, onUpdate }: ChangeMembersProps) => {
-    const [cardMembers, setCardMembers] = useState<CardMember[] | null>(null)
-    const [boardMembers, setBoardMembers] = useState<CardMember[] | null>(null)
+const ChangeMembers = ({ memberIds, cardID, listID, boardID, onUpdate }: ChangeMembersProps) => {
+    const { metadata, enrichCards } = useBoardStore();
+    const [searchQuery, setSearchQuery] = useState("");
 
-    useEffect(() => {
-        setCardMembers(members.filter((member) => member.isCardMember))
-        setBoardMembers(members.filter((member) => !member.isCardMember))
-    }, [members])
+    // Derived state
+    const boardMembers = metadata?.members || [];
 
-    async function toggleMemberToCard(member: CardMember) {
-        await cardService.toggleMemberToCard({ cardID, userID: member.userID, listID, boardID })
-        if (onUpdate) onUpdate()
+    // Filter members
+    const assignedMembers = boardMembers.filter(bm =>
+        memberIds.includes(bm.id)
+    );
+
+    const unassignedMembers = boardMembers.filter(bm =>
+        !memberIds.includes(bm.id)
+    ).filter(bm =>
+        bm.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        bm.fullName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    async function toggleMemberToCard(memberId: string) {
+        const isAssigned = memberIds.includes(memberId);
+        let newMemberIds = [...memberIds];
+
+        if (isAssigned) {
+            newMemberIds = newMemberIds.filter(id => id !== memberId);
+        } else {
+            newMemberIds.push(memberId);
+        }
+
+        // Optimistic update
+        enrichCards(cardID, { member_ids: newMemberIds });
+
+        try {
+            await cardService.toggleMemberToCard({ cardID, userID: memberId, listID, boardID });
+            if (onUpdate) onUpdate();
+        } catch (error) {
+            // Revert on error
+            enrichCards(cardID, { member_ids: memberIds });
+        }
     }
 
     return (
         <Portal>
-            <Popover.Positioner>
-                <Popover.Content width="auto" p={0} borderRadius="md" boxShadow="lg" zIndex={1600} onMouseDown={(e) => e.stopPropagation()}>
+            <Box
+                position="fixed"
+                top="4rem"
+                left="50%"
+                transform="translateX(-50%)"
+                zIndex={1600}
+                maxH="calc(100vh - 5rem)"
+                w="300px"
+                outline="none"
+            >
+                <Popover.Content
+                    width="full"
+                    maxH="full"
+                    overflowY="auto"
+                    p={0}
+                    borderRadius="md"
+                    boxShadow="lg"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                    bg="gray.800"
+                    border="1px solid"
+                    borderColor="gray.700"
+                >
                     <Popover.Body p={0}>
-                        <Box w={"xs"} color="gray.700" >
-                            <Flex align="center" justify="space-between" mb={4} px={2} mt={2}>
+                        <Box color="gray.300" px={4} pb={4} pt={2}>
+                            <Flex align="center" justify="space-between" mb={4} px={0} borderBottom="1px solid" borderColor="gray.700" pb={2}>
                                 <Box w={8} />
-                                <Heading size="sm" fontWeight="semibold" flex={1} textAlign="center">Change members</Heading>
-                                <Popover.CloseTrigger as={"div"}>
+                                <Heading size="sm" fontWeight="semibold" flex={1} textAlign="center" color="gray.300">
+                                    Members
+                                </Heading>
+                                <Popover.CloseTrigger asChild>
                                     <Button
                                         size="xs"
                                         variant="ghost"
-                                        color="gray.500"
-                                        _hover={{ color: "gray.800" }}
+                                        color="gray.400"
+                                        _hover={{ color: "white", bg: "gray.700" }}
                                         p={0}
                                         minW={8}
+                                        onClick={(e) => e.stopPropagation()}
                                     >
                                         <Icon as={FiX} boxSize={4} />
                                     </Button>
                                 </Popover.CloseTrigger>
                             </Flex>
 
-                            <Box mb={4} mx={3}>
-                                <Input placeholder="Search members" />
+                            <Box mb={4}>
+                                <Input
+                                    placeholder="Search members..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    bg="gray.900"
+                                    border="1px solid"
+                                    borderColor="gray.700"
+                                    _focus={{ borderColor: "blue.500", outline: "none" }}
+                                    size="sm"
+                                    color="white"
+                                />
                             </Box>
 
-                            {cardMembers && cardMembers.length > 0 && <Box mx={4} mb={4}>
-                                <Text fontSize="sm" fontWeight="semibold" mb={2}>Card Members</Text>
-                                {cardMembers?.map((member) => {
-                                    return (
-                                        <Flex align="center" justify={"space-between"} key={member.userID} gap={2} _hover={{ bg: "gray.600" }} p={0.5} cursor="pointer" onClick={() => toggleMemberToCard(member)}>
-                                            <Flex align="center" key={member.userID} gap={2} _hover={{ bg: "gray.600" }} p={0.5} cursor="pointer">
-                                                <Avatar.Root>
-                                                    <Avatar.Fallback name={member.username} />
-                                                </Avatar.Root>
-                                                <Text fontSize="md" color="gray.600">{member.username}</Text>
-                                            </Flex>
-                                            <Icon as={FiX} boxSize={4} />
-                                        </Flex>
-                                    )
-                                })}
-                            </Box>}
+                            <Flex direction="column" gap={1}>
+                                <Text fontSize="xs" fontWeight="bold" color="gray.500" mb={1}>Card Members</Text>
+                                {assignedMembers.length === 0 && <Text fontSize="xs" color="gray.500" fontStyle="italic">No members assigned</Text>}
+                                {assignedMembers.map((member) => (
+                                    <MemberItem
+                                        key={member.id}
+                                        member={member}
+                                        isAssigned={true}
+                                        onToggle={() => toggleMemberToCard(member.id)}
+                                    />
+                                ))}
+                            </Flex>
 
-                            {boardMembers && boardMembers.length > 0 && <Box mx={4} mb={4}>
-                                <Text fontSize="sm" fontWeight="semibold" mb={2}>Board Members</Text>
-                                {boardMembers.map((member) => {
-                                    return (
-                                        <Flex align="center" key={member.userID} gap={2} _hover={{ bg: "gray.800" }} p={0.5} cursor="pointer" onClick={() => toggleMemberToCard(member)}>
-                                            <Avatar.Root>
-                                                <Avatar.Fallback name={member.username} />
-                                            </Avatar.Root>
-                                            <Text fontSize="md" color="gray.500">{member.username}</Text>
-                                        </Flex>
-                                    )
-                                })}
-                            </Box>}
+                            <Flex direction="column" gap={1} mt={4}>
+                                <Text fontSize="xs" fontWeight="bold" color="gray.500" mb={1}>Board Members</Text>
+                                {unassignedMembers.length === 0 && <Text fontSize="xs" color="gray.500" fontStyle="italic">No other members found</Text>}
+                                {unassignedMembers.map((member) => (
+                                    <MemberItem
+                                        key={member.id}
+                                        member={member}
+                                        isAssigned={false}
+                                        onToggle={() => toggleMemberToCard(member.id)}
+                                    />
+                                ))}
+                            </Flex>
                         </Box>
                     </Popover.Body>
                 </Popover.Content>
-            </Popover.Positioner>
+            </Box>
         </Portal>
     );
 };
+
+const MemberItem = ({ member, isAssigned, onToggle }: { member: BoardMember, isAssigned: boolean, onToggle: () => void }) => {
+    return (
+        <Flex
+            align="center"
+            justify="space-between"
+            gap={2}
+            p={2}
+            cursor="pointer"
+            borderRadius="sm"
+            _hover={{ bg: "gray.700" }}
+            onClick={onToggle}
+        >
+            <Flex align="center" gap={2}>
+                <Avatar.Root size="xs">
+                    <Avatar.Fallback name={member.fullName} />
+                </Avatar.Root>
+                <Text fontSize="sm" color="gray.300">{member.fullName}</Text>
+            </Flex>
+            {isAssigned && <Icon as={FiCheck} boxSize={4} color="blue.400" />}
+        </Flex>
+    )
+}
 
 export default ChangeMembers;

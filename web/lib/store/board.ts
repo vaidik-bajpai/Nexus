@@ -21,7 +21,8 @@ export const useBoardStore = create<BoardState>()((set) => ({
         id: "",
         name: "",
         background: "",
-        labels: []
+        labels: [],
+        members: []
     },
     lists: [],
     cards: [],

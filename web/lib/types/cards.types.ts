@@ -10,7 +10,7 @@ export interface Card {
     position: number;
     labels: BoardLabel[];
     description?: string;
-    members?: CardMember[];
+    member_ids?: string[];
     checklist?: Checklists[];
     archived?: boolean;
     start?: string;
@@ -25,7 +25,7 @@ export interface CardDetail {
     coverSize: string;
     archived: boolean;
     completed: boolean;
-    members: CardMember[];
+    member_ids: string[];
     labels: CardLabel[];
     checklist: Checklists[];
 }

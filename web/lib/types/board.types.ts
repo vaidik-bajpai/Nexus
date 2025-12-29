@@ -15,5 +15,14 @@ export interface BoardMetadata {
     name: string;
     background: string;
     labels: BoardLabel[];
+    members: BoardMember[];
+}
+
+export interface BoardMember {
+    id: string;
+    fullName: string;
+    username: string;
+    role: string;
+    email: string;
 }
 

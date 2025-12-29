@@ -14,6 +14,7 @@ import remarkGfm from "remark-gfm"
 import { FiList, FiCheckCircle, FiCircle } from "react-icons/fi"
 import { updateCard } from "@/lib/services/cards"
 import { toaster } from "@/components/ui/toaster"
+import { Tooltip } from "@/components/ui/tooltip"
 import { Megaphone, Image, Ellipsis, X, Plus, Calendar, Tag, Check, User } from "lucide-react"
 import * as cardsService from "@/lib/services/cards"
 import CardEditButton from "./CardEditButton"
@@ -34,7 +35,7 @@ interface CardModalProps {
 }
 
 export default function CardModal({ isOpen, onClose, cardId, listName, boardId, listId }: CardModalProps) {
-    const { cards, enrichCards } = useBoardStore()
+    const { cards, enrichCards, metadata } = useBoardStore()
     const card = cards.find(c => c.id === cardId)
 
     const [description, setDescription] = useState(card?.description || "")
@@ -61,7 +62,7 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
                 const detail = res.data;
                 enrichCards(cardId, {
                     description: detail.description,
-                    members: detail.members,
+                    member_ids: detail.member_ids,
                     checklist: detail.checklist,
                     archived: detail.archived,
                     start: detail.start ? detail.start.toString() : undefined,
@@ -76,6 +77,19 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
     }, [isOpen, cardId, boardId, listId, enrichCards])
 
     if (!card) return null
+
+    // Derived state
+    const displayMembers = (card.member_ids || []).map(id => {
+        const member = metadata?.members.find(m => m.id === id);
+        return member ? {
+            userID: member.id,
+            username: member.username,
+            fullName: member.fullName,
+            email: member.email,
+            avatar: "", // Avatar not in BoardMember yet, assuming empty or handled elsewhere
+            isCardMember: true
+        } : null;
+    }).filter(Boolean) as any[]; // Cast to any or correct type if defined
 
     const handleUpdateCardField = async (fieldName: string, fieldValue: any) => {
         const oldValue = card[fieldName as keyof Card];
@@ -171,7 +185,7 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
                         <CardActionButton isHidden={!card.labels || card.labels.length === 0} icon={<Tag />} text="Label" portal={<LabelPortal boardId={boardId} cardId={cardId} listId={listId} activeLabels={card.labels} />} />
                         <CardActionButton icon={<Calendar />} text="Dates" />
                         <CardActionButton icon={<Check />} text="Checklist" portal={<AddCheckList />} />
-                        <CardActionButton icon={<User />} text="Members" portal={<ChangeMembers members={card.members || []} cardID={card.id} listID={listId} boardID={boardId} />} />
+                        <CardActionButton isHidden={displayMembers.length > 0} icon={<User />} text="Members" portal={<ChangeMembers memberIds={card.member_ids || []} cardID={card.id} listID={listId} boardID={boardId} />} />
                     </Flex>
                 </DialogBody>
 
@@ -180,39 +194,49 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
                         <Box flex={1}>
                             {/* Members and Labels Section */}
                             <Flex gap={4} mb={6} wrap="wrap">
-                                {card.members && card.members.length > 0 && (
+                                {displayMembers.length > 0 && (
                                     <Box>
                                         <Text fontSize="xs" fontWeight="semibold" color="gray.400" mb={2}>Members</Text>
                                         <Flex gap={2} wrap="wrap">
-                                            {card.members.map((member) => (
-                                                <Box
+                                            {displayMembers.map((member) => (
+                                                <Tooltip
                                                     key={member.userID}
-                                                    bg="gray.700"
-                                                    borderRadius="full"
-                                                    w={8}
-                                                    h={8}
-                                                    display="flex"
-                                                    alignItems="center"
-                                                    justifyContent="center"
-                                                    title={member.username}
+                                                    content={member.fullName || member.username}
+                                                    positioning={{ placement: "top" }}
                                                 >
-                                                    <Text fontSize="xs" fontWeight="bold">{member.username.charAt(0).toUpperCase()}</Text>
-                                                </Box>
+                                                    <Box
+                                                        bg="gray.700"
+                                                        borderRadius="full"
+                                                        w={8}
+                                                        h={8}
+                                                        display="flex"
+                                                        alignItems="center"
+                                                        justifyContent="center"
+                                                        cursor="default"
+                                                    >
+                                                        <Text fontSize="xs" fontWeight="bold">{member.username.charAt(0).toUpperCase()}</Text>
+                                                    </Box>
+                                                </Tooltip>
                                             ))}
-                                            <Box
-                                                as="button"
-                                                bg="gray.700"
-                                                w={8}
-                                                h={8}
-                                                borderRadius="full"
-                                                cursor="pointer"
-                                                _hover={{ bg: "gray.600" }}
-                                                display="flex"
-                                                alignItems="center"
-                                                justifyContent="center"
-                                            >
-                                                <Icon as={Plus} boxSize={4} color="gray.400" />
-                                            </Box>
+                                            <Popover.Root positioning={{ placement: "bottom-start" }}>
+                                                <Popover.Trigger asChild>
+                                                    <Box
+                                                        as="button"
+                                                        bg="gray.700"
+                                                        w={8}
+                                                        h={8}
+                                                        borderRadius="full"
+                                                        cursor="pointer"
+                                                        _hover={{ bg: "gray.600" }}
+                                                        display="flex"
+                                                        alignItems="center"
+                                                        justifyContent="center"
+                                                    >
+                                                        <Icon as={Plus} boxSize={4} color="gray.400" />
+                                                    </Box>
+                                                </Popover.Trigger>
+                                                <ChangeMembers memberIds={card.member_ids || []} cardID={card.id} listID={listId} boardID={boardId} />
+                                            </Popover.Root>
                                         </Flex>
                                     </Box>
                                 )}
