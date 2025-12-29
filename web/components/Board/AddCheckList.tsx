@@ -1,41 +1,108 @@
-import { Box, Button, Field, Flex, Heading, Icon, Input, Popover, Portal } from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, Icon, Input, Popover, Portal, Text } from "@chakra-ui/react";
+import { useState } from "react";
 import { FiX } from "react-icons/fi";
 
-const AddCheckList = () => {
+interface AddCheckListProps {
+    onAdd?: (title: string) => void;
+    onClose?: () => void;
+}
+
+const AddCheckList = ({ onAdd, onClose }: AddCheckListProps) => {
+    const [title, setTitle] = useState("Checklist");
+
+    const handleAdd = () => {
+        if (title.trim()) {
+            onAdd?.(title);
+            onClose?.();
+        }
+    };
+
     return (
         <Portal>
-            <Popover.Positioner>
-                <Popover.Content width="auto" p={0} borderRadius="md" boxShadow="lg" zIndex={1600} onMouseDown={(e) => e.stopPropagation()}>
+            <Box
+                position="fixed"
+                top="4rem"
+                left="50%"
+                transform="translateX(-50%)"
+                zIndex={1600}
+                maxH="calc(100vh - 5rem)"
+                w="300px"
+                outline="none"
+            >
+                <Popover.Content
+                    width="full"
+                    maxH="full"
+                    overflowY="auto"
+                    p={0}
+                    borderRadius="md"
+                    boxShadow="lg"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                    bg="gray.800"
+                    border="1px solid"
+                    borderColor="gray.700"
+                >
                     <Popover.Body p={0}>
-                        <Box w={"xs"} color="gray.700" px={4}>
-                            <Flex align="center" justify="space-between" mb={4} px={2} mt={2}>
-                                <Box w={8} /> {/* Spacer for centering */}
-                                <Heading size="sm" fontWeight="semibold" flex={1} textAlign="center">Add checklist</Heading>
-                                <Popover.CloseTrigger as={"div"}>
+                        <Box color="gray.300" px={4} pb={4} pt={2}>
+                            <Flex align="center" justify="space-between" mb={4} px={0} borderBottom="1px solid" borderColor="gray.700" pb={2}>
+                                <Box w={8} />
+                                <Heading size="sm" fontWeight="semibold" flex={1} textAlign="center" color="gray.300">
+                                    Add checklist
+                                </Heading>
+                                <Popover.CloseTrigger asChild>
                                     <Button
                                         size="xs"
                                         variant="ghost"
-                                        color="gray.500"
-                                        _hover={{ color: "gray.800" }}
+                                        color="gray.400"
+                                        _hover={{ color: "white", bg: "gray.700" }}
                                         p={0}
                                         minW={8}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onClose?.();
+                                        }}
                                     >
                                         <Icon as={FiX} boxSize={4} />
                                     </Button>
                                 </Popover.CloseTrigger>
                             </Flex>
 
-                            <Field.Root pb={5}>
-                                <Field.Label>Title</Field.Label>
-                                <Input placeholder="Checklist name" size={"xs"} />
-                            </Field.Root>
-                            <Button size={"2xs"} px={6} py={4} background={"blue.500"} _hover={{ background: "blue.600" }} fontSize={"sm"}>
+                            <Box>
+                                <Text fontSize="xs" fontWeight="bold" color="gray.500" mb={1.5}>Title</Text>
+                                <Input
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    bg="gray.900"
+                                    border="1px solid"
+                                    borderColor="gray.700"
+                                    _focus={{ borderColor: "blue.500", outline: "none" }}
+                                    size="sm"
+                                    color="white"
+                                    autoFocus
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            handleAdd();
+                                        }
+                                    }}
+                                />
+                            </Box>
+
+                            <Button
+                                size="sm"
+                                colorPalette="blue"
+                                w="fit-content"
+                                mt={3}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAdd();
+                                }}
+                            >
                                 Add
                             </Button>
                         </Box>
                     </Popover.Body>
                 </Popover.Content>
-            </Popover.Positioner>
+            </Box>
         </Portal>
     );
 };

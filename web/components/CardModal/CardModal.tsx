@@ -22,6 +22,7 @@ import ChangeCover from "../Board/ChangeCover"
 import CardActionButton from "./CardActionButton"
 import ChangeMembers from "../Board/ChangeMembers"
 import AddCheckList from "../Board/AddCheckList"
+import Checklist, { ChecklistData } from "./Checklist"
 import LabelPortal from "../LabelPortal"
 import { useBoardStore } from "@/lib/store/board"
 
@@ -41,15 +42,46 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
     const [description, setDescription] = useState(card?.description || "")
     const [isEditingDesc, setIsEditingDesc] = useState(false)
     const [title, setTitle] = useState(card?.title || "")
+    const [checklists, setChecklists] = useState<ChecklistData[]>([])
 
     useEffect(() => {
         if (card?.title) setTitle(card.title)
-    }, [card?.title])
+        if (card?.checklist) {
+            setChecklists(card.checklist.map(cl => ({
+                id: crypto.randomUUID(),
+                title: cl.title,
+                items: cl.items.map(item => ({
+                    id: item.id,
+                    title: item.title,
+                    done: item.done
+                }))
+            })));
+        } else {
+            setChecklists([]);
+        }
+    }, [card?.title, card?.checklist])
 
     const handleTitleSave = () => {
         if (card && title !== card.title) {
             handleUpdateCardField("title", title)
         }
+    }
+
+    const handleAddChecklist = (title: string) => {
+        const newChecklist: ChecklistData = {
+            id: crypto.randomUUID(),
+            title,
+            items: []
+        }
+        setChecklists([...checklists, newChecklist])
+    }
+
+    const handleDeleteChecklist = (id: string) => {
+        setChecklists(checklists.filter(c => c.id !== id))
+    }
+
+    const handleUpdateChecklist = (id: string, data: Partial<ChecklistData>) => {
+        setChecklists(checklists.map(c => c.id === id ? { ...c, ...data } : c))
     }
 
     useEffect(() => {
@@ -67,7 +99,7 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
                     archived: detail.archived,
                     start: detail.start ? detail.start.toString() : undefined,
                     // due: detail.due ? detail.due.toString() : undefined, // Already in Card
-                    labels: detail.labels, // Ensure types match
+                    labels: detail.labels,
                     completed: detail.completed,
                     cover: detail.cover,
                     coverSize: detail.coverSize
@@ -86,10 +118,10 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
             username: member.username,
             fullName: member.fullName,
             email: member.email,
-            avatar: "", // Avatar not in BoardMember yet, assuming empty or handled elsewhere
+            avatar: "",
             isCardMember: true
         } : null;
-    }).filter(Boolean) as any[]; // Cast to any or correct type if defined
+    }).filter(Boolean) as any[];
 
     const handleUpdateCardField = async (fieldName: string, fieldValue: any) => {
         const oldValue = card[fieldName as keyof Card];
@@ -184,7 +216,7 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
                         <CardActionButton icon={<Plus />} text="Add" />
                         <CardActionButton isHidden={!card.labels || card.labels.length === 0} icon={<Tag />} text="Label" portal={<LabelPortal boardId={boardId} cardId={cardId} listId={listId} activeLabels={card.labels} />} />
                         <CardActionButton icon={<Calendar />} text="Dates" />
-                        <CardActionButton icon={<Check />} text="Checklist" portal={<AddCheckList />} />
+                        <CardActionButton icon={<Check />} text="Checklist" portal={<AddCheckList onAdd={handleAddChecklist} />} />
                         <CardActionButton isHidden={displayMembers.length > 0} icon={<User />} text="Members" portal={<ChangeMembers memberIds={card.member_ids || []} cardID={card.id} listID={listId} boardID={boardId} />} />
                     </Flex>
                 </DialogBody>
@@ -329,6 +361,16 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
                                     </Box>
                                 )}
                             </Box>
+
+                            {/* Checklists Section */}
+                            {checklists.map(checklist => (
+                                <Checklist
+                                    key={checklist.id}
+                                    checklist={checklist}
+                                    onDelete={handleDeleteChecklist}
+                                    onUpdate={handleUpdateChecklist}
+                                />
+                            ))}
                         </Box>
                     </Flex>
                 </DialogBody>
