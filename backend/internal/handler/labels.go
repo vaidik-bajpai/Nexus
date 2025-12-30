@@ -25,12 +25,13 @@ func (h *handler) handleCreateLabel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.store.CreateLabel(r.Context(), &req); err != nil {
+	newLabel, err := h.store.CreateLabel(r.Context(), &req)
+	if err != nil {
 		helper.InternalServerError(h.logger, w, "failed to create label", err)
 		return
 	}
 
-	helper.Created(h.logger, w, "label created successfully", nil)
+	helper.Created(h.logger, w, "label created successfully", newLabel)
 }
 
 func (h *handler) handleModifyLabel(w http.ResponseWriter, r *http.Request) {

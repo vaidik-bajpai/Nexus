@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -387,14 +388,23 @@ func (h *handler) handleUserOAuthCallback(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	helper.WriteJSON(w, http.StatusOK, &types.Response{
-		Status:  http.StatusOK,
-		Message: "user oauth callback successfully",
-		Data: map[string]string{
-			"accessToken":  accessToken,
-			"refreshToken": refreshToken,
-		},
-	})
+	frontendURL := "http://localhost:3000/oauth/callback"
+	redirectURL, err := url.Parse(frontendURL)
+	if err != nil {
+		h.logger.Error("failed to parse frontend url", zap.Error(err))
+		helper.WriteJSON(w, http.StatusInternalServerError, &types.Response{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to parse frontend url",
+		})
+		return
+	}
+
+	q := redirectURL.Query()
+	q.Set("accessToken", accessToken)
+	q.Set("refreshToken", refreshToken)
+	redirectURL.RawQuery = q.Encode()
+
+	http.Redirect(w, r, redirectURL.String(), http.StatusTemporaryRedirect)
 }
 
 func (h *handler) handleUserLogout(w http.ResponseWriter, r *http.Request) {
@@ -645,5 +655,14 @@ func (h *handler) handleRefreshToken(w http.ResponseWriter, r *http.Request) {
 		Data: map[string]any{
 			"access_token": accessToken,
 		},
+	})
+}
+
+func (h *handler) handleGetMe(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(types.UserCtxKey).(*types.User)
+	helper.WriteJSON(w, http.StatusOK, &types.Response{
+		Status:  http.StatusOK,
+		Message: "user fetched successfully",
+		Data:    user,
 	})
 }

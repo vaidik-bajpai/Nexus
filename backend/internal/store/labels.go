@@ -7,15 +7,23 @@ import (
 	"github.com/vaidik-bajpai/Nexus/backend/internal/types"
 )
 
-func (s *Store) CreateLabel(ctx context.Context, label *types.CreateLabel) error {
-	_, err := s.db.Label.CreateOne(
+func (s *Store) CreateLabel(ctx context.Context, label *types.CreateLabel) (*types.ListLabels, error) {
+	newLabel, err := s.db.Label.CreateOne(
 		db.Label.Name.Set(label.Name),
 		db.Label.Color.Set(label.Color),
 		db.Label.Board.Link(
 			db.Board.ID.Equals(label.BoardID),
 		),
 	).Exec(ctx)
-	return err
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.ListLabels{
+		ID:    newLabel.ID,
+		Name:  newLabel.Name,
+		Color: newLabel.Color,
+	}, nil
 }
 
 func (s *Store) UpdateLabel(ctx context.Context, label *types.ModifyLabel) error {

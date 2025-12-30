@@ -182,14 +182,14 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
                         <CardEditButton icon={<X size={16} />} tooltipText="Close" onClick={onClose} />
                     </Flex>
                 </Flex>
-                <DialogHeader>
-                    <Flex align="center" gap={4} justify="center">
+                <DialogHeader w={"full"}>
+                    <Flex align="flex-start" gap={4} justify="center" w={"full"}>
                         {!card.completed ? (
                             <Icon
                                 as={FiCircle}
                                 color="gray.400"
                                 boxSize={4}
-                                mt={0.5}
+                                mt={2.5}
                                 animation="fadeIn 0.3s ease-out 0.1s both"
                                 cursor="pointer"
                                 onClick={() => handleUpdateCardField("completed", true)}
@@ -200,14 +200,14 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
                                 as={FiCheckCircle}
                                 color="green.400"
                                 boxSize={4}
-                                mt={0.5}
+                                mt={2.5}
                                 animation="fadeIn 0.3s ease-out 0.1s both"
                                 onClick={() => handleUpdateCardField("completed", false)}
                                 cursor="pointer"
                             />
                         )}
-                        <Box flex={1}>
-                            <Input
+                        <Flex flex={1} gap={4} flexDirection={"column"}>
+                            <Textarea
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 onBlur={handleTitleSave}
@@ -226,29 +226,24 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
                                     borderColor: "blue.500",
                                     bg: "gray.800"
                                 }}
+                                w={"full"}
                                 border="2px solid"
                                 borderColor="transparent"
                                 bg="transparent"
+                                whiteSpace={"wrap"}
+                                lineHeight={"normal"}
+                                resize={"none"}
                             />
-                        </Box>
-                    </Flex>
-                </DialogHeader>
 
-                <DialogBody>
-                    <Flex gap={2}>
-                        <CardActionButton icon={<Plus />} text="Add" />
-                        <CardActionButton isHidden={!card.labels || card.labels.length === 0} icon={<Tag />} text="Label" portal={<LabelPortal boardId={boardId} cardId={cardId} listId={listId} activeLabels={card.labels} />} />
-                        <CardActionButton icon={<Calendar />} text="Dates" />
-                        <CardActionButton icon={<Check />} text="Checklist" portal={<AddCheckList cardID={cardId} listID={listId} boardID={boardId} onAdded={fetchCardDetails} />} />
-                        <CardActionButton isHidden={displayMembers.length > 0} icon={<User />} text="Members" portal={<ChangeMembers memberIds={card.member_ids || []} cardID={card.id} listID={listId} boardID={boardId} />} />
-                    </Flex>
-                </DialogBody>
+                            <Flex gap={2} px={2}>
+                                <CardActionButton icon={<Plus />} text="Add" />
+                                <CardActionButton isHidden={!card.labels || card.labels.length === 0} icon={<Tag />} text="Label" portal={<LabelPortal boardId={boardId} cardId={cardId} listId={listId} activeLabels={card.labels} />} />
+                                <CardActionButton icon={<Calendar />} text="Dates" />
+                                <CardActionButton icon={<Check />} text="Checklist" portal={<AddCheckList cardID={cardId} listID={listId} boardID={boardId} onAdded={fetchCardDetails} />} />
+                                <CardActionButton icon={<User />} text="Members" portal={<ChangeMembers memberIds={card.member_ids || []} cardID={card.id} listID={listId} boardID={boardId} />} />
+                            </Flex>
 
-                <DialogBody>
-                    <Flex gap={8} direction={{ base: "column", md: "row" }}>
-                        <Box flex={1}>
-                            {/* Members and Labels Section */}
-                            <Flex gap={4} mb={6} wrap="wrap">
+                            <Flex gap={4} mb={6} wrap="wrap" px={2}>
                                 {displayMembers.length > 0 && (
                                     <Box>
                                         <Text fontSize="xs" fontWeight="semibold" color="gray.400" mb={2}>Members</Text>
@@ -297,47 +292,60 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
                                 )}
 
                                 {card.labels && card.labels.length > 0 && (
-                                    <Box>
-                                        <Text fontSize="xs" fontWeight="semibold" color="gray.400" mb={2}>Labels</Text>
-                                        <Flex gap={2} wrap="wrap">
-                                            {card.labels.map((label: any) => (
-                                                <Box
-                                                    key={label.labelID || label.id}
-                                                    bg={label.color}
-                                                    px={3}
-                                                    h={8}
-                                                    borderRadius="sm"
-                                                    cursor="pointer"
-                                                    _hover={{ opacity: 0.8 }}
-                                                    display="flex"
-                                                    alignItems="center"
-                                                >
-                                                    <Text fontSize="xs" fontWeight="bold" color="white">{label.name}</Text>
-                                                </Box>
-                                            ))}
-                                            <Popover.Root positioning={{ placement: "bottom-start" }} lazyMount unmountOnExit>
-                                                <Popover.Trigger asChild>
-                                                    <Box
-                                                        as="button"
-                                                        bg="gray.700"
-                                                        w={8}
-                                                        h={8}
-                                                        borderRadius="sm"
-                                                        cursor="pointer"
-                                                        _hover={{ bg: "gray.600" }}
-                                                        display="flex"
-                                                        alignItems="center"
-                                                        justifyContent="center"
-                                                    >
-                                                        <Icon as={Plus} boxSize={4} color="gray.400" />
-                                                    </Box>
-                                                </Popover.Trigger>
-                                                <LabelPortal boardId={boardId} cardId={cardId} listId={listId} activeLabels={card.labels} />
-                                            </Popover.Root>
-                                        </Flex>
-                                    </Box>
+                                    <Popover.Root lazyMount unmountOnExit positioning={{ placement: "bottom-start" }}>
+                                        <Box>
+                                            <Text fontSize="xs" fontWeight="semibold" color="gray.400" mb={2}>Labels</Text>
+                                            <Popover.Anchor asChild>
+                                                <Flex gap={2} wrap="wrap">
+                                                    {card.labels.map((label: any) => (
+                                                        <Box
+                                                            key={label.labelID || label.id}
+                                                            bg={label.color}
+                                                            px={3}
+                                                            h={8}
+                                                            borderRadius="sm"
+                                                            cursor="pointer"
+                                                            _hover={{ opacity: 0.8 }}
+                                                            display="flex"
+                                                            alignItems="center"
+                                                        >
+                                                            <Text fontSize="xs" fontWeight="bold" color="white">{label.name}</Text>
+                                                        </Box>
+                                                    ))}
+                                                    <Popover.Trigger asChild>
+                                                        <Box
+                                                            as="button"
+                                                            bg="gray.700"
+                                                            w={8}
+                                                            h={8}
+                                                            borderRadius="sm"
+                                                            cursor="pointer"
+                                                            _hover={{ bg: "gray.600" }}
+                                                            display="flex"
+                                                            alignItems="center"
+                                                            justifyContent="center"
+                                                        >
+                                                            <Icon as={Plus} boxSize={4} color="gray.400" />
+                                                        </Box>
+                                                    </Popover.Trigger>
+                                                </Flex>
+                                            </Popover.Anchor>
+                                            <LabelPortal boardId={boardId} cardId={cardId} listId={listId} activeLabels={card.labels} />
+                                        </Box>
+                                    </Popover.Root>
                                 )}
                             </Flex>
+                        </Flex>
+                    </Flex>
+                </DialogHeader>
+
+
+
+                <DialogBody>
+                    <Flex gap={8} direction={{ base: "column", md: "row" }}>
+                        <Box flex={1}>
+                            {/* Members and Labels Section */}
+
 
                             <Flex align="center" gap={4} mb={4}>
                                 <Icon as={FiList} boxSize={6} color="gray.400" />

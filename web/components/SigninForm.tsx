@@ -60,7 +60,7 @@ export default function SigninForm() {
             localStorage.setItem("accessToken", response.data.user.access_token);
             localStorage.setItem("refreshToken", response.data.user.refresh_token);
             userStore.setUser(response.data.user);
-            router.push("/");
+            router.push("/boards");
         } catch (error) {
             userStore.clearUser();
             console.log("Login error:", error);
@@ -110,13 +110,19 @@ export default function SigninForm() {
                     <Separator flex="1" />
                 </Flex>
 
-                <Button variant="outline" width="full">
+                <Button
+                    variant="outline"
+                    width="full"
+                    onClick={() => {
+                        window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/users/google`;
+                    }}
+                >
                     <FcGoogle />
                     <Text>Google</Text>
                 </Button>
 
                 <Text fontSize="sm" color="fg.muted">
-                    Don't have an account?{" "}
+                    Don&apos;t have an account?{" "}
                     <Link href="/signup" style={{ color: "var(--chakra-colors-blue-500)", fontWeight: "bold" }}>
                         Create one
                     </Link>

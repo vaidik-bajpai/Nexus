@@ -156,9 +156,12 @@ func (m *MockStore) ToggleCardMembership(ctx context.Context, member *types.Togg
 	return args.Error(0)
 }
 
-func (m *MockStore) CreateLabel(ctx context.Context, label *types.CreateLabel) error {
+func (m *MockStore) CreateLabel(ctx context.Context, label *types.CreateLabel) (*types.ListLabels, error) {
 	args := m.Called(ctx, label)
-	return args.Error(0)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*types.ListLabels), args.Error(1)
 }
 
 func (m *MockStore) UpdateLabel(ctx context.Context, label *types.ModifyLabel) error {

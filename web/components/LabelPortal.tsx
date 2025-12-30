@@ -103,33 +103,43 @@ const LabelPortal = ({ boardId, cardId, listId, activeLabels }: LabelPortalProps
     };
 
     return (
-        <Portal>
-            <Box
-                position="fixed"
-                top="4rem"
-                left="50%"
-                transform="translateX(-50%)"
-                zIndex={1600}
+        <Popover.Positioner>
+            <Popover.Content
+                width="300px"
                 maxH="calc(100vh - 5rem)"
-                w="300px"
-                outline="none"
+                overflowY="auto"
+                p={0}
+                borderRadius="md"
+                boxShadow="lg"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+                bg="gray.800"
+                border="1px solid"
+                borderColor="gray.700"
             >
-                <Popover.Content
-                    width="full"
-                    maxH="full"
-                    overflowY="auto"
-                    p={0}
-                    borderRadius="md"
-                    boxShadow="lg"
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onClick={(e) => e.stopPropagation()}
-                    bg="gray.800"
-                    border="1px solid"
-                    borderColor="gray.700"
-                >
-                    <Popover.Body p={0}>
-                        <Box color="gray.300" px={4} pb={4} pt={2}>
-                            <Flex align="center" justify="space-between" mb={4} px={0} borderBottom="1px solid" borderColor="gray.700" pb={2}>
+                <Popover.Body p={0}>
+                    <Box color="gray.300" px={4} pb={4} pt={2}>
+                        <Flex align="center" justify="space-between" mb={4} px={0} borderBottom="1px solid" borderColor="gray.700" pb={2}>
+                            <Button
+                                size="xs"
+                                variant="ghost"
+                                color="gray.400"
+                                _hover={{ color: "white", bg: "gray.700" }}
+                                p={0}
+                                minW={8}
+                                display={isCreating ? "inline-flex" : "none"}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setIsCreating(false);
+                                }}
+                            >
+                                <Icon as={FiChevronLeft} boxSize={4} />
+                            </Button>
+                            <Box w={8} display={!isCreating ? "block" : "none"} />
+                            <Heading size="sm" fontWeight="semibold" flex={1} textAlign="center" color="gray.300">
+                                {isCreating ? "Create label" : "Labels"}
+                            </Heading>
+                            <Popover.CloseTrigger asChild>
                                 <Button
                                     size="xs"
                                     variant="ghost"
@@ -137,114 +147,32 @@ const LabelPortal = ({ boardId, cardId, listId, activeLabels }: LabelPortalProps
                                     _hover={{ color: "white", bg: "gray.700" }}
                                     p={0}
                                     minW={8}
-                                    display={isCreating ? "inline-flex" : "none"}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setIsCreating(false);
-                                    }}
+                                    onClick={(e) => e.stopPropagation()}
                                 >
-                                    <Icon as={FiChevronLeft} boxSize={4} />
+                                    <Icon as={FiX} boxSize={4} />
                                 </Button>
-                                <Box w={8} display={!isCreating ? "block" : "none"} />
-                                <Heading size="sm" fontWeight="semibold" flex={1} textAlign="center" color="gray.300">
-                                    {isCreating ? "Create label" : "Labels"}
-                                </Heading>
-                                <Popover.CloseTrigger asChild>
-                                    <Button
-                                        size="xs"
-                                        variant="ghost"
-                                        color="gray.400"
-                                        _hover={{ color: "white", bg: "gray.700" }}
-                                        p={0}
-                                        minW={8}
-                                        onClick={(e) => e.stopPropagation()}
-                                    >
-                                        <Icon as={FiX} boxSize={4} />
-                                    </Button>
-                                </Popover.CloseTrigger>
-                            </Flex>
-
-                            <Flex direction="column" gap={3} display={isCreating ? "flex" : "none"}>
-                                <Box
-                                    h="32px"
-                                    w="full"
-                                    bg={selectedColor || "gray.700"}
-                                    borderRadius="sm"
-                                    display="flex"
-                                    alignItems="center"
-                                    px={3}
-                                >
-                                    <Text fontSize="sm" fontWeight="medium" color="white">
-                                        {title}
-                                    </Text>
-                                </Box>
-
-                                <Box>
-                                    <Text fontSize="xs" fontWeight="bold" color="gray.500" mb={1.5}>Title</Text>
-                                    <Input
-                                        placeholder="Label title"
-                                        value={title}
-                                        onChange={(e) => setTitle(e.target.value)}
-                                        bg="gray.900"
-                                        border="1px solid"
-                                        borderColor="gray.700"
-                                        _focus={{ borderColor: "blue.500", outline: "none" }}
-                                        size="sm"
-                                        color="white"
-                                    />
-                                </Box>
-
-                                <Box>
-                                    <Text fontSize="xs" fontWeight="bold" color="gray.500" mb={1.5}>Select a color</Text>
-                                    <Grid templateColumns="repeat(5, 1fr)" gap={2}>
-                                        {colors.map((color) => (
-                                            <Box
-                                                key={color.normal}
-                                                h="32px"
-                                                bg={color.normal}
-                                                borderRadius="sm"
-                                                cursor="pointer"
-                                                _hover={{ bg: color.hover }}
-                                                onClick={() => setSelectedColor(color.normal)}
-                                                border={selectedColor === color.normal ? "2px solid white" : "none"}
-                                            />
-                                        ))}
-                                    </Grid>
-                                </Box>
-
-                                <Button
-                                    size="sm"
-                                    variant="subtle"
-                                    w="full"
-                                    mt={2}
-                                    onClick={() => setSelectedColor("")}
-                                    bg="gray.700"
-                                    color="gray.300"
-                                    _hover={{ bg: "gray.600" }}
-                                >
-                                    <Icon as={FiX} mr={1} />
-                                    Remove color
-                                </Button>
-
-                                <Button
-                                    size="sm"
-                                    colorPalette="blue"
-                                    w="fit-content"
-                                    mt={2}
-                                    onClick={(e) => {
-                                        console.log("create a label");
-                                        e.stopPropagation();
-                                        handleCreateLabel();
-                                    }}
-                                >
-                                    Create
-                                </Button>
-                            </Flex>
-
-                            <Box display={!isCreating ? "block" : "none"}>
+                            </Popover.CloseTrigger>
+                        </Flex>
+                        <Flex direction="column" gap={3} display={isCreating ? "flex" : "none"}>
+                            <Box
+                                h="32px"
+                                w="full"
+                                bg={selectedColor || "gray.700"}
+                                borderRadius="sm"
+                                display="flex"
+                                alignItems="center"
+                                px={3}
+                            >
+                                <Text fontSize="sm" fontWeight="medium" color="white">
+                                    {title}
+                                </Text>
+                            </Box>
+                            <Box>
+                                <Text fontSize="xs" fontWeight="bold" color="gray.500" mb={1.5}>Title</Text>
                                 <Input
-                                    placeholder="Search labels..."
-                                    mb={3}
+                                    placeholder="Label title"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
                                     bg="gray.900"
                                     border="1px solid"
                                     borderColor="gray.700"
@@ -252,49 +180,101 @@ const LabelPortal = ({ boardId, cardId, listId, activeLabels }: LabelPortalProps
                                     size="sm"
                                     color="white"
                                 />
-
-                                <Flex flexDirection="column" gap={1}>
-                                    <Text fontSize="xs" fontWeight="bold" color="gray.500" mb={1}>Labels</Text>
-                                    {labels?.map((label) => {
-                                        if (!label) return null;
-                                        const isChecked = activeLabels?.some(l => l && (l.id === label.id || l.labelID === label.id));
-                                        return (
-                                            <LabelItem
-                                                key={label.id}
-                                                color={label.color}
-                                                hoverColor={label.color}
-                                                text={label.name}
-                                                isChecked={isChecked}
-                                                onToggle={() => handleToggleLabel(label)}
-                                            />
-                                        )
-                                    })}
-                                </Flex>
-
-                                <Button
-                                    size="xs"
-                                    variant="subtle"
-                                    w="full"
-                                    mt={4}
-                                    fontSize="sm"
-                                    fontWeight="semibold"
-                                    bg="gray.700"
-                                    color="gray.300"
-                                    _hover={{ bg: "gray.600" }}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        e.preventDefault();
-                                        setIsCreating(true);
-                                    }}
-                                >
-                                    Create A new label
-                                </Button>
                             </Box>
+                            <Box>
+                                <Text fontSize="xs" fontWeight="bold" color="gray.500" mb={1.5}>Select a color</Text>
+                                <Grid templateColumns="repeat(5, 1fr)" gap={2}>
+                                    {colors.map((color) => (
+                                        <Box
+                                            key={color.normal}
+                                            h="32px"
+                                            bg={color.normal}
+                                            borderRadius="sm"
+                                            cursor="pointer"
+                                            _hover={{ bg: color.hover }}
+                                            onClick={() => setSelectedColor(color.normal)}
+                                            border={selectedColor === color.normal ? "2px solid white" : "none"}
+                                        />
+                                    ))}
+                                </Grid>
+                            </Box>
+                            <Button
+                                size="sm"
+                                variant="subtle"
+                                w="full"
+                                mt={2}
+                                onClick={() => setSelectedColor("")}
+                                bg="gray.700"
+                                color="gray.300"
+                                _hover={{ bg: "gray.600" }}
+                            >
+                                <Icon as={FiX} mr={1} />
+                                Remove color
+                            </Button>
+                            <Button
+                                size="sm"
+                                colorPalette="blue"
+                                w="fit-content"
+                                mt={2}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCreateLabel();
+                                }}
+                            >
+                                Create
+                            </Button>
+                        </Flex>
+                        <Box display={!isCreating ? "block" : "none"}>
+                            <Input
+                                placeholder="Search labels..."
+                                mb={3}
+                                bg="gray.900"
+                                border="1px solid"
+                                borderColor="gray.700"
+                                _focus={{ borderColor: "blue.500", outline: "none" }}
+                                size="sm"
+                                color="white"
+                            />
+                            <Flex flexDirection="column" gap={1}>
+                                <Text fontSize="xs" fontWeight="bold" color="gray.500" mb={1}>Labels</Text>
+                                {labels?.map((label) => {
+                                    if (!label) return null;
+                                    const isChecked = activeLabels?.some(l => l && (l.id === label.id || l.labelID === label.id));
+                                    return (
+                                        <LabelItem
+                                            key={label.id}
+                                            color={label.color}
+                                            hoverColor={label.color}
+                                            text={label.name}
+                                            isChecked={isChecked}
+                                            onToggle={() => handleToggleLabel(label)}
+                                        />
+                                    )
+                                })}
+                            </Flex>
+                            <Button
+                                size="xs"
+                                variant="subtle"
+                                w="full"
+                                mt={4}
+                                fontSize="sm"
+                                fontWeight="semibold"
+                                bg="gray.700"
+                                color="gray.300"
+                                _hover={{ bg: "gray.600" }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    setIsCreating(true);
+                                }}
+                            >
+                                Create A new label
+                            </Button>
                         </Box>
-                    </Popover.Body>
-                </Popover.Content>
-            </Box>
-        </Portal>
+                    </Box>
+                </Popover.Body>
+            </Popover.Content>
+        </Popover.Positioner>
     )
 }
 

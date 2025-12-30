@@ -39,7 +39,7 @@ type Storer interface {
 	DeleteCard(ctx context.Context, cardID string) error
 	ToggleCardMembership(ctx context.Context, member *types.ToggleCardMembership) error
 
-	CreateLabel(ctx context.Context, label *types.CreateLabel) error
+	CreateLabel(ctx context.Context, label *types.CreateLabel) (*types.ListLabels, error)
 	UpdateLabel(ctx context.Context, label *types.ModifyLabel) error
 	DeleteLabel(ctx context.Context, label *types.ModifyLabel) error
 	AddLabelToCard(ctx context.Context, label *types.ToggleLabelToCard) error

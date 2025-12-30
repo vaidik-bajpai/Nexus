@@ -111,7 +111,13 @@ export default function SignupForm() {
                     <Separator flex="1" />
                 </Flex>
 
-                <Button variant="outline" width="full">
+                <Button
+                    variant="outline"
+                    width="full"
+                    onClick={() => {
+                        window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/users/google`;
+                    }}
+                >
                     <FcGoogle />
                     <Text>Google</Text>
                 </Button>

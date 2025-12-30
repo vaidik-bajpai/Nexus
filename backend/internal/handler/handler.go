@@ -80,6 +80,7 @@ func (h *handler) SetupRoutes() *chi.Mux {
 			r.Post("/reset-password", h.handlePasswordResetFlow)
 			r.Post("/password/reset", h.handlePasswordReset)
 			r.Post("/refresh-token", h.handleRefreshToken)
+			r.With(h.middleware.VerifyAccessToken).Get("/me", h.handleGetMe)
 		})
 
 		r.Route("/boards", func(r chi.Router) {
