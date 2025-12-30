@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { BoardMetadata } from "../types/board.types";
-import { Card } from "../types/cards.types";
+import { Card, Checklist } from "../types/cards.types";
 import { List } from "../types/list.types";
 
 interface BoardState {
@@ -9,10 +9,12 @@ interface BoardState {
     lists: List[];
     cards: Card[];
 
+    checklists: Record<string, Checklist>;
     setMetadata: (metadata: BoardMetadata) => void;
     setCardsAndLists: (id: string, cards: Card[], lists: List[]) => void;
     enrichCards: (cardId: string, fullCard: Partial<Card>) => void;
     addLabelToBoard: (label: any) => void;
+    upsertChecklist: (checklist: Checklist) => void;
 }
 
 export const useBoardStore = create<BoardState>()((set) => ({
@@ -26,6 +28,7 @@ export const useBoardStore = create<BoardState>()((set) => ({
     },
     lists: [],
     cards: [],
+    checklists: {},
 
     setMetadata: (metadata: BoardMetadata) => set({ metadata }),
     setCardsAndLists: (id: string, cards: Card[], lists: List[]) => set({ id, cards, lists }),
@@ -40,6 +43,12 @@ export const useBoardStore = create<BoardState>()((set) => ({
         metadata: {
             ...state.metadata,
             labels: [...(state.metadata.labels || []), label]
+        }
+    })),
+    upsertChecklist: (checklist: Checklist) => set((state) => ({
+        checklists: {
+            ...state.checklists,
+            [checklist.id]: checklist
         }
     }))
 }))

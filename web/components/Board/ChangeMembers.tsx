@@ -11,17 +11,15 @@ interface ChangeMembersProps {
     cardID: string;
     listID: string;
     boardID: string;
-    onUpdate?: () => void;
 }
 
-const ChangeMembers = ({ memberIds, cardID, listID, boardID, onUpdate }: ChangeMembersProps) => {
+const ChangeMembers = ({ memberIds, cardID, listID, boardID }: ChangeMembersProps) => {
     const { metadata, enrichCards } = useBoardStore();
     const [searchQuery, setSearchQuery] = useState("");
 
-    // Derived state
+
     const boardMembers = metadata?.members || [];
 
-    // Filter members
     const assignedMembers = boardMembers.filter(bm =>
         memberIds.includes(bm.id)
     );
@@ -43,14 +41,12 @@ const ChangeMembers = ({ memberIds, cardID, listID, boardID, onUpdate }: ChangeM
             newMemberIds.push(memberId);
         }
 
-        // Optimistic update
+
         enrichCards(cardID, { member_ids: newMemberIds });
 
         try {
             await cardService.toggleMemberToCard({ cardID, userID: memberId, listID, boardID });
-            if (onUpdate) onUpdate();
         } catch (error) {
-            // Revert on error
             enrichCards(cardID, { member_ids: memberIds });
         }
     }

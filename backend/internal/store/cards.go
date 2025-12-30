@@ -53,6 +53,9 @@ func (s *Store) GetCardDetail(ctx context.Context, cardID string) (*types.Comple
 			db.CardLabel.Label.Fetch(),
 		),
 		db.Card.CardMembers.Fetch(),
+		db.Card.Checklists.Fetch().Select(
+			db.Checklist.ID.Field(),
+		),
 	).Exec(ctx)
 	if err != nil {
 		return nil, err
@@ -99,6 +102,10 @@ func (s *Store) GetCardDetail(ctx context.Context, cardID string) (*types.Comple
 			Name:    label.Label().Name,
 			Color:   label.Label().Color,
 		})
+	}
+	card.ChecklistIDs = make([]string, 0)
+	for _, checklist := range dbCard.Checklists() {
+		card.ChecklistIDs = append(card.ChecklistIDs, checklist.ID)
 	}
 	return &card, nil
 }

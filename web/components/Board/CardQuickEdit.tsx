@@ -78,7 +78,7 @@ export default function CardQuickEdit({ isOpen, onClose, card, position, onSave,
     const menuItems = [
         { icon: FiLayout, label: "Open card" },
         { icon: FiTag, label: "Edit labels" },
-        { icon: FiUser, label: "Change members", portal: <ChangeMembers memberIds={card.member_ids || []} cardID={card.id} listID={listId} boardID={boardId} onUpdate={onUpdate} /> },
+        { icon: FiUser, label: "Change members", portal: <ChangeMembers memberIds={card.member_ids || []} cardID={card.id} listID={listId} boardID={boardId} /> },
         {
             icon: FiImage,
             label: "Change cover",

@@ -30,19 +30,20 @@ type List struct {
 }
 
 type MinimalCard struct {
-	ID          string        `json:"id"`
-	BoardID     string        `json:"board_id"`
-	ListID      string        `json:"list_id"`
-	Title       string        `json:"title"`
-	Description string        `json:"description"`
-	Cover       string        `json:"cover"`
-	CoverSize   string        `json:"coverSize"`
-	Due         time.Time     `json:"due"`
-	Completed   bool          `json:"completed"`
-	Position    float64       `json:"position"`
-	LabelIDs    []string      `json:"label_ids"`
-	MemberIDs   []string      `json:"member_ids"`
-	Labels      []*BoardLabel `json:"labels"`
+	ID          string           `json:"id"`
+	BoardID     string           `json:"board_id"`
+	ListID      string           `json:"list_id"`
+	Title       string           `json:"title"`
+	Description string           `json:"description"`
+	Cover       string           `json:"cover"`
+	CoverSize   string           `json:"coverSize"`
+	Due         time.Time        `json:"due"`
+	Completed   bool             `json:"completed"`
+	Position    float64          `json:"position"`
+	LabelIDs    []string         `json:"label_ids"`
+	MemberIDs   []string         `json:"member_ids"`
+	Checklists  []*CardChecklist `json:"checklists"`
+	Labels      []*BoardLabel    `json:"labels"`
 	// Checklists
 	// Attachments
 }

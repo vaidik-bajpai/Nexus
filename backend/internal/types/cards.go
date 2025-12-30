@@ -34,9 +34,8 @@ type Card struct {
 	Archived    bool    `json:"archived"`
 	Completed   bool    `json:"completed"`
 
-	Members   []CardMember `json:"members,omitempty"`
-	Labels    []CardLabel  `json:"labels,omitempty"`
-	Checklist []Checklists `json:"checklist,omitempty"`
+	Members []CardMember `json:"members,omitempty"`
+	Labels  []CardLabel  `json:"labels,omitempty"`
 	// Attachments []Attachment `json:"attachments"`
 }
 
@@ -52,18 +51,6 @@ type CardLabel struct {
 	LabelID string `json:"labelID"`
 	Name    string `json:"name"`
 	Color   string `json:"color"`
-}
-
-type Checklists struct {
-	Title string          `json:"title"`
-	Items []ChecklistItem `json:"items"`
-}
-
-type ChecklistItem struct {
-	ID     string `json:"id"`
-	Title  string `json:"title"`
-	Done   bool   `json:"done"`
-	UserID string `json:"userID"`
 }
 
 type ToggleCardMembership struct {
@@ -83,8 +70,36 @@ type CompleteCard struct {
 	Start       time.Time `json:"start"`
 	Due         time.Time `json:"due"`
 
-	MemberIDs []string      `json:"member_ids"`
-	Labels    []*BoardLabel `json:"labels"`
+	MemberIDs    []string      `json:"member_ids"`
+	Labels       []*BoardLabel `json:"labels"`
+	ChecklistIDs []string      `json:"checklist_ids"`
 	// Checklist []Checklists `json:"checklist"`
 	// Attachments []Attachment `json:"attachments"`
+}
+
+type AddChecklist struct {
+	CardID string `json:"-" validate:"required,uuid"`
+	Name   string `json:"name" validate:"required"`
+}
+
+type CardChecklist struct {
+	ID       string  `json:"id"`
+	Name     string  `json:"name"`
+	BoardID  string  `json:"boardID"`
+	CardID   string  `json:"cardID"`
+	Position float64 `json:"position"`
+}
+
+type Checklist struct {
+	ID         string           `json:"id"`
+	Name       string           `json:"name"`
+	Position   float64          `json:"position"`
+	CheckItems []*ChecklistItem `json:"checkItems"`
+}
+
+type ChecklistItem struct {
+	ID        string  `json:"id"`
+	Name      string  `json:"name"`
+	Completed bool    `json:"completed"`
+	Position  float64 `json:"position"`
 }

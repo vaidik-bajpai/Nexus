@@ -1,57 +1,48 @@
 import { Box, Button, Checkbox, Flex, Icon, Input, Progress, Text } from "@chakra-ui/react";
 import { useState } from "react";
-import { FiCheckSquare, FiClock, FiTrash2 } from "react-icons/fi";
-
-export interface ChecklistItem {
-    id: string;
-    title: string;
-    done: boolean;
-}
-
-export interface ChecklistData {
-    id: string;
-    title: string;
-    items: ChecklistItem[];
-}
+import { FiCheckSquare } from "react-icons/fi";
+import { Checklist as ChecklistType, ChecklistItem } from "@/lib/types/cards.types";
 
 interface ChecklistProps {
-    checklist: ChecklistData;
+    checklist: ChecklistType;
     onDelete: (id: string) => void;
-    onUpdate: (id: string, data: Partial<ChecklistData>) => void;
+    onUpdate: (id: string, data: Partial<ChecklistType>) => void;
 }
 
 const Checklist = ({ checklist, onDelete, onUpdate }: ChecklistProps) => {
     const [newItemTitle, setNewItemTitle] = useState("");
     const [isAddingItem, setIsAddingItem] = useState(false);
 
-    const completedCount = checklist.items.filter(i => i.done).length;
-    const totalCount = checklist.items.length;
+    const items = checklist.checkItems || [];
+    const completedCount = items.filter(i => i.completed).length;
+    const totalCount = items.length;
     const progress = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
 
     const handleAddItem = () => {
         if (newItemTitle.trim()) {
             const newItem: ChecklistItem = {
                 id: crypto.randomUUID(),
-                title: newItemTitle,
-                done: false
+                name: newItemTitle,
+                completed: false,
+                position: items.length + 1
             };
             onUpdate(checklist.id, {
-                items: [...checklist.items, newItem]
+                checkItems: [...items, newItem]
             });
             setNewItemTitle("");
         }
     };
 
     const handleToggleItem = (itemId: string) => {
-        const newItems = checklist.items.map(item =>
-            item.id === itemId ? { ...item, done: !item.done } : item
+        const newItems = items.map(item =>
+            item.id === itemId ? { ...item, completed: !item.completed } : item
         );
-        onUpdate(checklist.id, { items: newItems });
+        onUpdate(checklist.id, { checkItems: newItems });
     };
 
     const handleDeleteItem = (itemId: string) => {
-        const newItems = checklist.items.filter(item => item.id !== itemId);
-        onUpdate(checklist.id, { items: newItems });
+        const newItems = items.filter(item => item.id !== itemId);
+        onUpdate(checklist.id, { checkItems: newItems });
     };
 
     return (
@@ -60,7 +51,7 @@ const Checklist = ({ checklist, onDelete, onUpdate }: ChecklistProps) => {
                 <Flex align="center" gap={3}>
                     <Icon as={FiCheckSquare} boxSize={5} color="gray.400" />
                     <Text fontWeight="bold" fontSize="md" color="gray.300">
-                        {checklist.title}
+                        {checklist.name}
                     </Text>
                 </Flex>
                 <Button
@@ -87,10 +78,10 @@ const Checklist = ({ checklist, onDelete, onUpdate }: ChecklistProps) => {
             </Flex>
 
             <Box pl={8}>
-                {checklist.items.map((item) => (
+                {items.map((item) => (
                     <Flex key={item.id} align="center" gap={2} mb={1.5}>
                         <Checkbox.Root
-                            checked={item.done}
+                            checked={item.completed}
                             onCheckedChange={() => handleToggleItem(item.id)}
                             size="md"
                             variant="subtle"
@@ -105,13 +96,13 @@ const Checklist = ({ checklist, onDelete, onUpdate }: ChecklistProps) => {
                         <Text
                             fontSize="sm"
                             color="gray.300"
-                            textDecoration={item.done ? "line-through" : "none"}
-                            opacity={item.done ? 0.7 : 1}
+                            textDecoration={item.completed ? "line-through" : "none"}
+                            opacity={item.completed ? 0.7 : 1}
                             flex={1}
                             onClick={() => handleToggleItem(item.id)}
                             cursor="pointer"
                         >
-                            {item.title}
+                            {item.name}
                         </Text>
                     </Flex>
                 ))}

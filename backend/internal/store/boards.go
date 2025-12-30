@@ -179,6 +179,11 @@ func (s *Store) GetCardsAndLists(ctx context.Context, boardID string) (*types.Bo
 				db.Card.CardMembers.Fetch().Select(
 					db.CardMember.UserID.Field(),
 				),
+				db.Card.Checklists.Fetch().Select(
+					db.Checklist.ID.Field(),
+					db.Checklist.Name.Field(),
+					db.Checklist.Position.Field(),
+				),
 			).OrderBy(
 				db.Card.Position.Order(db.SortOrder("asc")),
 			),
@@ -235,6 +240,17 @@ func (s *Store) GetCardsAndLists(ctx context.Context, boardID string) (*types.Bo
 				memberIDs = append(memberIDs, member.UserID)
 			}
 
+			var checklists []*types.CardChecklist
+			for _, checklist := range card.Checklists() {
+				checklists = append(checklists, &types.CardChecklist{
+					ID:       checklist.ID,
+					Name:     checklist.Name,
+					BoardID:  boardID,
+					CardID:   card.ID,
+					Position: checklist.Position,
+				})
+			}
+
 			board.Cards = append(board.Cards, &types.MinimalCard{
 				ID:          card.ID,
 				ListID:      list.ID,
@@ -248,6 +264,7 @@ func (s *Store) GetCardsAndLists(ctx context.Context, boardID string) (*types.Bo
 				Position:    card.Position,
 				Labels:      cardLabels,
 				MemberIDs:   memberIDs,
+				Checklists:  checklists,
 			})
 		}
 	}

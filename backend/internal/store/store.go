@@ -46,6 +46,8 @@ type Storer interface {
 	RemoveLabelFromCard(ctx context.Context, label *types.ToggleLabelToCard) error
 	ListBoardLabels(ctx context.Context, boardID string) ([]*types.ListLabels, error)
 	ListCardLabels(ctx context.Context, boardID, cardID string) ([]*types.ListCardLabels, error)
+	AddChecklistToCard(ctx context.Context, addChecklist *types.AddChecklist) error
+	GetChecklist(ctx context.Context, checklistID string) (*types.Checklist, error)
 }
 
 type Store struct {

@@ -47,3 +47,23 @@ export const toggleMemberToCard = async (member: { cardID: string, userID: strin
         throw error;
     }
 }
+
+export const addChecklistToCard = async (checklist: { cardID: string, name: string, listID: string, boardID: string }) => {
+    try {
+        const response = await apiClient.post(`/boards/${checklist.boardID}/lists/${checklist.listID}/cards/${checklist.cardID}/checklists/create`, { name: checklist.name });
+        return response.data;
+    } catch (error) {
+        console.error("Error adding checklist to card:", error);
+        throw error;
+    }
+}
+
+export const getChecklist = async (checklist: { cardID: string, checklistID: string, listID: string, boardID: string }) => {
+    try {
+        const response = await apiClient.get(`/boards/${checklist.boardID}/lists/${checklist.listID}/cards/${checklist.cardID}/checklists/${checklist.checklistID}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error getting checklist:", error);
+        throw error;
+    }
+}

@@ -22,9 +22,10 @@ import ChangeCover from "../Board/ChangeCover"
 import CardActionButton from "./CardActionButton"
 import ChangeMembers from "../Board/ChangeMembers"
 import AddCheckList from "../Board/AddCheckList"
-import Checklist, { ChecklistData } from "./Checklist"
+import Checklist from "./Checklist"
 import LabelPortal from "../LabelPortal"
 import { useBoardStore } from "@/lib/store/board"
+import { Checklist as ChecklistType } from "@/lib/types/cards.types"
 
 interface CardModalProps {
     isOpen: boolean
@@ -36,30 +37,18 @@ interface CardModalProps {
 }
 
 export default function CardModal({ isOpen, onClose, cardId, listName, boardId, listId }: CardModalProps) {
-    const { cards, enrichCards, metadata } = useBoardStore()
+    const { cards, enrichCards, metadata, checklists: storeChecklists, upsertChecklist } = useBoardStore()
     const card = cards.find(c => c.id === cardId)
 
     const [description, setDescription] = useState(card?.description || "")
     const [isEditingDesc, setIsEditingDesc] = useState(false)
     const [title, setTitle] = useState(card?.title || "")
-    const [checklists, setChecklists] = useState<ChecklistData[]>([])
+
+    const cardChecklists = card?.checklist_ids?.map(id => storeChecklists[id]).filter(Boolean) || []
 
     useEffect(() => {
         if (card?.title) setTitle(card.title)
-        if (card?.checklist) {
-            setChecklists(card.checklist.map(cl => ({
-                id: crypto.randomUUID(),
-                title: cl.title,
-                items: cl.items.map(item => ({
-                    id: item.id,
-                    title: item.title,
-                    done: item.done
-                }))
-            })));
-        } else {
-            setChecklists([]);
-        }
-    }, [card?.title, card?.checklist])
+    }, [card?.title])
 
     const handleTitleSave = () => {
         if (card && title !== card.title) {
@@ -68,45 +57,67 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
     }
 
     const handleAddChecklist = (title: string) => {
-        const newChecklist: ChecklistData = {
-            id: crypto.randomUUID(),
-            title,
-            items: []
-        }
-        setChecklists([...checklists, newChecklist])
+        cardsService.addChecklistToCard({ cardID: cardId, name: title, listID: listId, boardID: boardId })
+            .then((res) => {
+                cardsService.getCardDetail({ cardId, boardId, listId }).then(res => {
+                    const detail = res.data;
+                    enrichCards(cardId, { checklist_ids: detail.checklist_ids });
+                });
+            })
     }
 
     const handleDeleteChecklist = (id: string) => {
-        setChecklists(checklists.filter(c => c.id !== id))
+        // TODO: Implement delete API
     }
 
-    const handleUpdateChecklist = (id: string, data: Partial<ChecklistData>) => {
-        setChecklists(checklists.map(c => c.id === id ? { ...c, ...data } : c))
+    const handleUpdateChecklist = (id: string, data: Partial<ChecklistType>) => {
+        const checklist = storeChecklists[id];
+        if (checklist) {
+            upsertChecklist({ ...checklist, ...data } as any);
+            // TODO: Sync with backend
+        }
+    }
+
+    const fetchCardDetails = () => {
+        cardsService.getCardDetail({
+            cardId: cardId,
+            boardId: boardId,
+            listId: listId
+        }).then((res) => {
+            const detail = res.data;
+            enrichCards(cardId, {
+                description: detail.description,
+                member_ids: detail.member_ids,
+                checklist_ids: detail.checklist_ids,
+                archived: detail.archived,
+                start: detail.start ? detail.start.toString() : undefined,
+                labels: detail.labels,
+                completed: detail.completed,
+                cover: detail.cover,
+                coverSize: detail.coverSize
+            })
+
+            // Fetch checklists
+            if (detail.checklist_ids) {
+                detail.checklist_ids.forEach((checklistId: string) => {
+                    cardsService.getChecklist({
+                        cardID: cardId,
+                        checklistID: checklistId,
+                        listID: listId,
+                        boardID: boardId
+                    }).then((res) => {
+                        upsertChecklist(res.data);
+                    })
+                })
+            }
+        })
     }
 
     useEffect(() => {
         if (isOpen && cardId) {
-            cardsService.getCardDetail({
-                cardId: cardId,
-                boardId: boardId,
-                listId: listId
-            }).then((res) => {
-                const detail = res.data;
-                enrichCards(cardId, {
-                    description: detail.description,
-                    member_ids: detail.member_ids,
-                    checklist: detail.checklist,
-                    archived: detail.archived,
-                    start: detail.start ? detail.start.toString() : undefined,
-                    // due: detail.due ? detail.due.toString() : undefined, // Already in Card
-                    labels: detail.labels,
-                    completed: detail.completed,
-                    cover: detail.cover,
-                    coverSize: detail.coverSize
-                })
-            })
+            fetchCardDetails();
         }
-    }, [isOpen, cardId, boardId, listId, enrichCards])
+    }, [isOpen, cardId, boardId, listId, enrichCards, upsertChecklist])
 
     if (!card) return null
 
@@ -216,7 +227,7 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
                         <CardActionButton icon={<Plus />} text="Add" />
                         <CardActionButton isHidden={!card.labels || card.labels.length === 0} icon={<Tag />} text="Label" portal={<LabelPortal boardId={boardId} cardId={cardId} listId={listId} activeLabels={card.labels} />} />
                         <CardActionButton icon={<Calendar />} text="Dates" />
-                        <CardActionButton icon={<Check />} text="Checklist" portal={<AddCheckList onAdd={handleAddChecklist} />} />
+                        <CardActionButton icon={<Check />} text="Checklist" portal={<AddCheckList cardID={cardId} listID={listId} boardID={boardId} onAdded={fetchCardDetails} />} />
                         <CardActionButton isHidden={displayMembers.length > 0} icon={<User />} text="Members" portal={<ChangeMembers memberIds={card.member_ids || []} cardID={card.id} listID={listId} boardID={boardId} />} />
                     </Flex>
                 </DialogBody>
@@ -319,7 +330,7 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
                             {/* Description Section */}
                             <Flex align="center" gap={4} mb={4}>
                                 <Icon as={FiList} boxSize={6} color="gray.400" />
-                                <Text fontSize="lg" fontWeight="semibold">Description</Text>
+                                <Text fontSize="md" fontWeight="semibold">Description</Text>
                             </Flex>
 
                             <Box ml={10} mb={8}>
@@ -362,8 +373,7 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
                                 )}
                             </Box>
 
-                            {/* Checklists Section */}
-                            {checklists.map(checklist => (
+                            {cardChecklists.map(checklist => (
                                 <Checklist
                                     key={checklist.id}
                                     checklist={checklist}

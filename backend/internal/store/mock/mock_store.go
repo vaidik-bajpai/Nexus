@@ -204,3 +204,16 @@ func (m *MockStore) GetBoard(ctx context.Context, boardID string) (*types.Comple
 	}
 	return args.Get(0).(*types.CompleteBoard), args.Error(1)
 }
+
+func (m *MockStore) AddChecklistToCard(ctx context.Context, addChecklist *types.AddChecklist) error {
+	args := m.Called(ctx, addChecklist)
+	return args.Error(0)
+}
+
+func (m *MockStore) GetChecklist(ctx context.Context, checklistID string) (*types.Checklist, error) {
+	args := m.Called(ctx, checklistID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*types.Checklist), args.Error(1)
+}

@@ -1,21 +1,35 @@
 import { Box, Button, Flex, Heading, Icon, Input, Popover, Portal, Text } from "@chakra-ui/react";
 import { useState } from "react";
 import { FiX } from "react-icons/fi";
+import { addChecklistToCard } from "@/lib/services/cards";
+import { toaster } from "../ui/toaster";
 
 interface AddCheckListProps {
-    onAdd?: (title: string) => void;
-    onClose?: () => void;
+    cardID: string;
+    listID: string;
+    boardID: string;
+    onAdded?: () => void;
 }
 
-const AddCheckList = ({ onAdd, onClose }: AddCheckListProps) => {
-    const [title, setTitle] = useState("Checklist");
+const AddCheckList = ({ cardID, listID, boardID, onAdded }: AddCheckListProps) => {
+    const [name, setName] = useState("Checklist");
 
-    const handleAdd = () => {
-        if (title.trim()) {
-            onAdd?.(title);
-            onClose?.();
+    const handleAddChecklist = async () => {
+        try {
+            await addChecklistToCard({
+                cardID,
+                listID,
+                boardID,
+                name,
+            })
+            onAdded?.();
+        } catch (error) {
+            toaster.create({
+                title: "Failed to add checklist",
+                type: "error",
+            })
         }
-    };
+    }
 
     return (
         <Portal>
@@ -59,7 +73,6 @@ const AddCheckList = ({ onAdd, onClose }: AddCheckListProps) => {
                                         minW={8}
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            onClose?.();
                                         }}
                                     >
                                         <Icon as={FiX} boxSize={4} />
@@ -70,8 +83,8 @@ const AddCheckList = ({ onAdd, onClose }: AddCheckListProps) => {
                             <Box>
                                 <Text fontSize="xs" fontWeight="bold" color="gray.500" mb={1.5}>Title</Text>
                                 <Input
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
                                     bg="gray.900"
                                     border="1px solid"
                                     borderColor="gray.700"
@@ -81,7 +94,7 @@ const AddCheckList = ({ onAdd, onClose }: AddCheckListProps) => {
                                     autoFocus
                                     onKeyDown={(e) => {
                                         if (e.key === "Enter") {
-                                            handleAdd();
+                                            handleAddChecklist();
                                         }
                                     }}
                                 />
@@ -94,7 +107,7 @@ const AddCheckList = ({ onAdd, onClose }: AddCheckListProps) => {
                                 mt={3}
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    handleAdd();
+                                    handleAddChecklist();
                                 }}
                             >
                                 Add

@@ -11,7 +11,7 @@ export interface Card {
     labels: BoardLabel[];
     description?: string;
     member_ids?: string[];
-    checklist?: Checklists[];
+    checklist_ids?: string[];
     archived?: boolean;
     start?: string;
 }
@@ -27,7 +27,7 @@ export interface CardDetail {
     completed: boolean;
     member_ids: string[];
     labels: CardLabel[];
-    checklist: Checklists[];
+    checklist_ids: string[];
 }
 
 export interface CardMember {
@@ -44,14 +44,16 @@ export interface CardLabel {
     color: string;
 }
 
-export interface Checklists {
-    title: string;
-    items: ChecklistItem[];
+export interface Checklist {
+    id: string;
+    name: string;
+    position: number;
+    checkItems: ChecklistItem[];
 }
 
 export interface ChecklistItem {
     id: string;
-    title: string;
-    done: boolean;
-    userID: string;
+    name: string;
+    completed: boolean;
+    position: number;
 }
