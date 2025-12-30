@@ -49,6 +49,9 @@ type Storer interface {
 	AddChecklistToCard(ctx context.Context, addChecklist *types.AddChecklist) error
 	GetChecklist(ctx context.Context, checklistID string) (*types.Checklist, error)
 	DeleteChecklist(ctx context.Context, checklistID string) error
+	AddChecklistItem(ctx context.Context, addItem *types.AddChecklistItem) (*types.ChecklistItem, error)
+	DeleteChecklistItem(ctx context.Context, itemID string) error
+	UpdateChecklistItem(ctx context.Context, updateItem *types.UpdateChecklistItem) error
 }
 
 type Store struct {

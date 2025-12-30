@@ -222,3 +222,21 @@ func (m *MockStore) DeleteChecklist(ctx context.Context, checklistID string) err
 	args := m.Called(ctx, checklistID)
 	return args.Error(0)
 }
+
+func (m *MockStore) AddChecklistItem(ctx context.Context, addItem *types.AddChecklistItem) (*types.ChecklistItem, error) {
+	args := m.Called(ctx, addItem)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*types.ChecklistItem), args.Error(1)
+}
+
+func (m *MockStore) DeleteChecklistItem(ctx context.Context, itemID string) error {
+	args := m.Called(ctx, itemID)
+	return args.Error(0)
+}
+
+func (m *MockStore) UpdateChecklistItem(ctx context.Context, updateItem *types.UpdateChecklistItem) error {
+	args := m.Called(ctx, updateItem)
+	return args.Error(0)
+}

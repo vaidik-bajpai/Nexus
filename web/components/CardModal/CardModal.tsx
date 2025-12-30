@@ -390,6 +390,9 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
                                     checklist={checklist}
                                     onDelete={handleDeleteChecklist}
                                     onUpdate={handleUpdateChecklist}
+                                    boardId={boardId}
+                                    listId={listId}
+                                    cardId={cardId}
                                 />
                             ))}
                         </Box>

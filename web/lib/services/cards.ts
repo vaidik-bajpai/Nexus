@@ -77,3 +77,33 @@ export const deleteChecklist = async (checklist: { cardID: string, checklistID: 
         throw error;
     }
 }
+
+export const addChecklistItem = async (item: { cardID: string, checklistID: string, listID: string, boardID: string, name: string }) => {
+    try {
+        const response = await apiClient.post(`/boards/${item.boardID}/lists/${item.listID}/cards/${item.cardID}/checklists/${item.checklistID}/items/create`, { name: item.name });
+        return response.data;
+    } catch (error) {
+        console.error("Error adding checklist item:", error);
+        throw error;
+    }
+}
+
+export const deleteChecklistItem = async (item: { cardID: string, checklistID: string, listID: string, boardID: string, itemID: string }) => {
+    try {
+        const response = await apiClient.delete(`/boards/${item.boardID}/lists/${item.listID}/cards/${item.cardID}/checklists/${item.checklistID}/items/${item.itemID}/delete`);
+        return response.data;
+    } catch (error) {
+        console.error("Error deleting checklist item:", error);
+        throw error;
+    }
+}
+
+export const updateChecklistItem = async (item: { cardID: string, checklistID: string, listID: string, boardID: string, itemID: string, name?: string, completed?: boolean }) => {
+    try {
+        const response = await apiClient.put(`/boards/${item.boardID}/lists/${item.listID}/cards/${item.cardID}/checklists/${item.checklistID}/items/${item.itemID}/update`, { name: item.name, completed: item.completed });
+        return response.data;
+    } catch (error) {
+        console.error("Error updating checklist item:", error);
+        throw error;
+    }
+}

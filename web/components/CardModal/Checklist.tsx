@@ -1,15 +1,20 @@
 import { Box, Button, Checkbox, Flex, Icon, Input, Popover, Portal, Progress, Text } from "@chakra-ui/react";
 import { useState } from "react";
-import { FiCheckSquare, FiX } from "react-icons/fi";
+import { FiCheckSquare, FiX, FiMoreHorizontal } from "react-icons/fi";
 import { Checklist as ChecklistType, ChecklistItem } from "@/lib/types/cards.types";
+import * as cardsService from "@/lib/services/cards";
+import { toaster } from "@/components/ui/toaster";
 
 interface ChecklistProps {
     checklist: ChecklistType;
     onDelete: (id: string) => void;
     onUpdate: (id: string, data: Partial<ChecklistType>) => void;
+    boardId: string;
+    listId: string;
+    cardId: string;
 }
 
-const Checklist = ({ checklist, onDelete, onUpdate }: ChecklistProps) => {
+const Checklist = ({ checklist, onDelete, onUpdate, boardId, listId, cardId }: ChecklistProps) => {
     const [newItemTitle, setNewItemTitle] = useState("");
     const [isAddingItem, setIsAddingItem] = useState(false);
 
@@ -20,29 +25,71 @@ const Checklist = ({ checklist, onDelete, onUpdate }: ChecklistProps) => {
 
     const handleAddItem = () => {
         if (newItemTitle.trim()) {
-            const newItem: ChecklistItem = {
-                id: crypto.randomUUID(),
-                name: newItemTitle,
-                completed: false,
-                position: items.length + 1
-            };
-            onUpdate(checklist.id, {
-                checkItems: [...items, newItem]
+            cardsService.addChecklistItem({
+                cardID: cardId,
+                checklistID: checklist.id,
+                listID: listId,
+                boardID: boardId,
+                name: newItemTitle
+            }).then((res) => {
+                const newItem = res.data;
+                onUpdate(checklist.id, {
+                    checkItems: [...items, newItem]
+                });
+                setNewItemTitle("");
+                // Keep input open for adding more items
+            }).catch(() => {
+                toaster.create({
+                    title: "Failed to add item",
+                    type: "error",
+                });
             });
-            setNewItemTitle("");
         }
     };
 
-    const handleToggleItem = (itemId: string) => {
+    const handleToggleItem = (itemId: string, currentCompleted: boolean) => {
+        // Optimistic update
         const newItems = items.map(item =>
-            item.id === itemId ? { ...item, completed: !item.completed } : item
+            item.id === itemId ? { ...item, completed: !currentCompleted } : item
         );
         onUpdate(checklist.id, { checkItems: newItems });
+
+        cardsService.updateChecklistItem({
+            cardID: cardId,
+            checklistID: checklist.id,
+            listID: listId,
+            boardID: boardId,
+            itemID: itemId,
+            completed: !currentCompleted
+        }).catch(() => {
+            // Revert on failure
+            onUpdate(checklist.id, { checkItems: items });
+            toaster.create({
+                title: "Failed to update item",
+                type: "error",
+            });
+        });
     };
 
     const handleDeleteItem = (itemId: string) => {
+        // Optimistic update
         const newItems = items.filter(item => item.id !== itemId);
         onUpdate(checklist.id, { checkItems: newItems });
+
+        cardsService.deleteChecklistItem({
+            cardID: cardId,
+            checklistID: checklist.id,
+            listID: listId,
+            boardID: boardId,
+            itemID: itemId
+        }).catch(() => {
+            // Revert on failure
+            onUpdate(checklist.id, { checkItems: items });
+            toaster.create({
+                title: "Failed to delete item",
+                type: "error",
+            });
+        });
     };
 
     return (
@@ -54,7 +101,7 @@ const Checklist = ({ checklist, onDelete, onUpdate }: ChecklistProps) => {
                         {checklist.name}
                     </Text>
                 </Flex>
-                <Popover.Root positioning={{ placement: "bottom-start" }}>
+                <Popover.Root positioning={{ placement: "bottom-end" }}>
                     <Popover.Trigger asChild>
                         <Button
                             size="xs"
@@ -69,6 +116,7 @@ const Checklist = ({ checklist, onDelete, onUpdate }: ChecklistProps) => {
                     <Portal>
                         <Popover.Positioner>
                             <Popover.Content bg="gray.800" borderColor="gray.700" color="white" w="300px">
+                                <Popover.Arrow bg="gray.800" borderColor="gray.700" />
                                 <Popover.Body p={4}>
                                     <Flex justify="space-between" align="center" mb={2}>
                                         <Text fontWeight="semibold">Delete Checklist?</Text>
@@ -97,7 +145,7 @@ const Checklist = ({ checklist, onDelete, onUpdate }: ChecklistProps) => {
             </Flex>
 
             <Flex align="center" gap={3} mb={3}>
-                <Text fontSize="xs" color="gray.500" w="20px" textAlign="right">
+                <Text fontSize="xs" color="gray.500" textAlign="right">
                     {progress}%
                 </Text>
                 <Progress.Root value={progress} size="sm" flex={1} colorPalette="blue">
@@ -107,12 +155,12 @@ const Checklist = ({ checklist, onDelete, onUpdate }: ChecklistProps) => {
                 </Progress.Root>
             </Flex>
 
-            <Box pl={8}>
+            <Box pl={0}>
                 {items.map((item) => (
-                    <Flex key={item.id} align="center" gap={2} mb={1.5}>
+                    <Flex key={item.id} align="center" gap={2} mb={1.5} role="group">
                         <Checkbox.Root
                             checked={item.completed}
-                            onCheckedChange={() => handleToggleItem(item.id)}
+                            onCheckedChange={() => handleToggleItem(item.id, item.completed)}
                             size="md"
                             variant="subtle"
                         >
@@ -129,11 +177,63 @@ const Checklist = ({ checklist, onDelete, onUpdate }: ChecklistProps) => {
                             textDecoration={item.completed ? "line-through" : "none"}
                             opacity={item.completed ? 0.7 : 1}
                             flex={1}
-                            onClick={() => handleToggleItem(item.id)}
+                            onClick={() => handleToggleItem(item.id, item.completed)}
                             cursor="pointer"
                         >
                             {item.name}
                         </Text>
+                        <Popover.Root positioning={{ placement: "bottom-end" }}>
+                            <Popover.Trigger asChild>
+                                <Button
+                                    size="xs"
+                                    variant="ghost"
+                                    color="gray.400"
+                                    _hover={{ bg: "gray.700", color: "white" }}
+                                >
+                                    <Icon as={FiMoreHorizontal} />
+                                </Button>
+                            </Popover.Trigger>
+                            <Portal>
+                                <Popover.Positioner>
+                                    <Popover.Content bg="gray.800" borderColor="gray.700" color="white" w="200px">
+                                        <Popover.Body p={1}>
+                                            <Flex justify="space-between" align="center" px={3} py={2} borderBottom="1px solid" borderColor="gray.700" mb={1}>
+                                                <Text fontSize="xs" fontWeight="semibold" color="gray.400" textAlign="center" flex={1}>Item actions</Text>
+                                                <Popover.CloseTrigger asChild>
+                                                    <Box as="button" color="gray.400" _hover={{ color: "white" }} cursor="pointer">
+                                                        <Icon as={FiX} boxSize={3} />
+                                                    </Box>
+                                                </Popover.CloseTrigger>
+                                            </Flex>
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                justifyContent="flex-start"
+                                                w="full"
+                                                fontWeight="normal"
+                                                color="gray.300"
+                                                _hover={{ bg: "gray.700" }}
+                                                onClick={() => console.log("Convert to card")}
+                                            >
+                                                Convert to card
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                justifyContent="flex-start"
+                                                w="full"
+                                                fontWeight="normal"
+                                                color="gray.300"
+                                                _hover={{ bg: "gray.700" }}
+                                                onClick={() => handleDeleteItem(item.id)}
+                                            >
+                                                Delete
+                                            </Button>
+                                        </Popover.Body>
+                                    </Popover.Content>
+                                </Popover.Positioner>
+                            </Portal>
+                        </Popover.Root>
                     </Flex>
                 ))}
 
@@ -192,7 +292,7 @@ const Checklist = ({ checklist, onDelete, onUpdate }: ChecklistProps) => {
                     </Box>
                 )}
             </Box>
-        </Box>
+        </Box >
     );
 };
 

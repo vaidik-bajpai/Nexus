@@ -103,3 +103,14 @@ type ChecklistItem struct {
 	Completed bool    `json:"completed"`
 	Position  float64 `json:"position"`
 }
+
+type AddChecklistItem struct {
+	ChecklistID string `json:"-" validate:"required,uuid"`
+	Name        string `json:"name" validate:"required"`
+}
+
+type UpdateChecklistItem struct {
+	ItemID    string  `json:"-" validate:"required,uuid"`
+	Name      *string `json:"name" validate:"omitempty"`
+	Completed *bool   `json:"completed" validate:"omitempty"`
+}
