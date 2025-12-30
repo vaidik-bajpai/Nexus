@@ -217,3 +217,8 @@ func (m *MockStore) GetChecklist(ctx context.Context, checklistID string) (*type
 	}
 	return args.Get(0).(*types.Checklist), args.Error(1)
 }
+
+func (m *MockStore) DeleteChecklist(ctx context.Context, checklistID string) error {
+	args := m.Called(ctx, checklistID)
+	return args.Error(0)
+}

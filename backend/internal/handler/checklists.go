@@ -45,3 +45,18 @@ func (h *handler) handleGetChecklist(w http.ResponseWriter, r *http.Request) {
 
 	helper.OK(h.logger, w, "Checklist retrieved successfully", checklist)
 }
+
+func (h *handler) handleDeleteChecklist(w http.ResponseWriter, r *http.Request) {
+	checklistID := r.PathValue("checklistID")
+	if err := h.validator.Var(checklistID, "required,uuid"); err != nil {
+		helper.BadRequest(h.logger, w, "invalid checklist id", nil)
+		return
+	}
+
+	if err := h.store.DeleteChecklist(r.Context(), checklistID); err != nil {
+		helper.InternalServerError(h.logger, w, nil, err)
+		return
+	}
+
+	helper.OK(h.logger, w, "Checklist deleted successfully", nil)
+}

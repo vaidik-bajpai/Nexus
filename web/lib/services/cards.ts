@@ -60,10 +60,20 @@ export const addChecklistToCard = async (checklist: { cardID: string, name: stri
 
 export const getChecklist = async (checklist: { cardID: string, checklistID: string, listID: string, boardID: string }) => {
     try {
-        const response = await apiClient.get(`/boards/${checklist.boardID}/lists/${checklist.listID}/cards/${checklist.cardID}/checklists/${checklist.checklistID}`);
+        const response = await apiClient.get(`/boards/${checklist.boardID}/lists/${checklist.listID}/cards/${checklist.cardID}/checklists/${checklist.checklistID}/detail`);
         return response.data;
     } catch (error) {
         console.error("Error getting checklist:", error);
+        throw error;
+    }
+}
+
+export const deleteChecklist = async (checklist: { cardID: string, checklistID: string, listID: string, boardID: string }) => {
+    try {
+        const response = await apiClient.delete(`/boards/${checklist.boardID}/lists/${checklist.listID}/cards/${checklist.cardID}/checklists/${checklist.checklistID}/delete`);
+        return response.data;
+    } catch (error) {
+        console.error("Error deleting checklist:", error);
         throw error;
     }
 }

@@ -50,3 +50,10 @@ func (s *Store) GetChecklist(ctx context.Context, checklistID string) (*types.Ch
 	checklist.CheckItems = checkItems
 	return &checklist, nil
 }
+
+func (s *Store) DeleteChecklist(ctx context.Context, checklistID string) error {
+	_, err := s.db.Checklist.FindUnique(
+		db.Checklist.ID.Equals(checklistID),
+	).Delete().Exec(ctx)
+	return err
+}

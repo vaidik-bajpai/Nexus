@@ -67,7 +67,19 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
     }
 
     const handleDeleteChecklist = (id: string) => {
-        // TODO: Implement delete API
+        cardsService.deleteChecklist({
+            cardID: cardId,
+            checklistID: id,
+            listID: listId,
+            boardID: boardId
+        }).then(() => {
+            fetchCardDetails();
+        }).catch(() => {
+            toaster.create({
+                title: "Failed to delete checklist",
+                type: "error",
+            });
+        });
     }
 
     const handleUpdateChecklist = (id: string, data: Partial<ChecklistType>) => {
@@ -327,7 +339,6 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
                                 )}
                             </Flex>
 
-                            {/* Description Section */}
                             <Flex align="center" gap={4} mb={4}>
                                 <Icon as={FiList} boxSize={6} color="gray.400" />
                                 <Text fontSize="md" fontWeight="semibold">Description</Text>

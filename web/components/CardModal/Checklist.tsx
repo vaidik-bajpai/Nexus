@@ -1,6 +1,6 @@
-import { Box, Button, Checkbox, Flex, Icon, Input, Progress, Text } from "@chakra-ui/react";
+import { Box, Button, Checkbox, Flex, Icon, Input, Popover, Portal, Progress, Text } from "@chakra-ui/react";
 import { useState } from "react";
-import { FiCheckSquare } from "react-icons/fi";
+import { FiCheckSquare, FiX } from "react-icons/fi";
 import { Checklist as ChecklistType, ChecklistItem } from "@/lib/types/cards.types";
 
 interface ChecklistProps {
@@ -54,16 +54,46 @@ const Checklist = ({ checklist, onDelete, onUpdate }: ChecklistProps) => {
                         {checklist.name}
                     </Text>
                 </Flex>
-                <Button
-                    size="xs"
-                    variant="subtle"
-                    bg="gray.700"
-                    color="gray.300"
-                    _hover={{ bg: "gray.600" }}
-                    onClick={() => onDelete(checklist.id)}
-                >
-                    Delete
-                </Button>
+                <Popover.Root positioning={{ placement: "bottom-start" }}>
+                    <Popover.Trigger asChild>
+                        <Button
+                            size="xs"
+                            variant="subtle"
+                            bg="gray.700"
+                            color="gray.300"
+                            _hover={{ bg: "gray.600" }}
+                        >
+                            Delete
+                        </Button>
+                    </Popover.Trigger>
+                    <Portal>
+                        <Popover.Positioner>
+                            <Popover.Content bg="gray.800" borderColor="gray.700" color="white" w="300px">
+                                <Popover.Body p={4}>
+                                    <Flex justify="space-between" align="center" mb={2}>
+                                        <Text fontWeight="semibold">Delete Checklist?</Text>
+                                        <Popover.CloseTrigger asChild>
+                                            <Box as="button" color="gray.400" _hover={{ color: "white" }} cursor="pointer">
+                                                <Icon as={FiX} />
+                                            </Box>
+                                        </Popover.CloseTrigger>
+                                    </Flex>
+                                    <Text fontSize="sm" color="gray.400" mb={4}>
+                                        Deleting a checklist is permanent and there is no way to get it back.
+                                    </Text>
+                                    <Button
+                                        size="sm"
+                                        colorPalette="red"
+                                        w="full"
+                                        onClick={() => onDelete(checklist.id)}
+                                    >
+                                        Delete checklist
+                                    </Button>
+                                </Popover.Body>
+                            </Popover.Content>
+                        </Popover.Positioner>
+                    </Portal>
+                </Popover.Root>
             </Flex>
 
             <Flex align="center" gap={3} mb={3}>

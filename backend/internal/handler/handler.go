@@ -133,7 +133,10 @@ func (h *handler) SetupRoutes() *chi.Mux {
 
 								r.Route("/checklists", func(r chi.Router) {
 									r.Post("/create", h.handleAddChecklistToCard)
-									r.Get("/{checklistID}", h.handleGetChecklist)
+									r.Route("/{checklistID}", func(r chi.Router) {
+										r.Get("/detail", h.handleGetChecklist)
+										r.Delete("/delete", h.handleDeleteChecklist)
+									})
 								})
 							})
 						})
