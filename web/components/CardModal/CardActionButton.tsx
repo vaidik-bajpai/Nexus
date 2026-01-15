@@ -10,7 +10,7 @@ interface CardActionButtonProps {
 
 const CardActionButton = ({ icon, text, portal, isHidden = true }: CardActionButtonProps) => {
     return (
-        <Popover.Root positioning={{ placement: "bottom-start" }} lazyMount unmountOnExit>
+        <Popover.Root positioning={{ placement: "bottom-start", flip: false, overlap: true }} lazyMount unmountOnExit>
             <Popover.Trigger asChild>
                 <Box>
                     <Button size="xs" variant={"outline"} _hover={{ bg: "gray.700" }} fontSize={"sm"} fontWeight={"medium"} hidden={!isHidden}>

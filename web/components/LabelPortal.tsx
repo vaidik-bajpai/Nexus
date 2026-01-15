@@ -6,16 +6,36 @@ import { toaster } from "@/components/ui/toaster"
 import { useBoardStore } from "@/lib/store/board"
 
 const colors = [
-    { normal: "#116932", hover: "#124a28" },
-    { normal: "#845209", hover: "#713f12" },
-    { normal: "#92310a", hover: "#6c2710" },
-    { normal: "#991919", hover: "#511111" },
-    { normal: "#641ba3", hover: "#4a1772" },
-    { normal: "#173da6", hover: "#1a3478" },
-    { normal: "#0c5c72", hover: "#134152" },
-    { normal: "#0c5d56", hover: "#114240" },
-    { normal: "#a41752", hover: "#6d0e34" },
-    { normal: "#3f3f46", hover: "#27272a" },
+    { normal: "#164b35", hover: "#0f3f2a" },
+    { normal: "#533f04", hover: "#423206" },
+    { normal: "#692f00", hover: "#502502" },
+    { normal: "#5d1f1a", hover: "#4a1713" },
+    { normal: "#48245d", hover: "#361a43" },
+    { normal: "#216e4e", hover: "#185a3d" },
+    { normal: "#7f5f01", hover: "#644c01" },
+    { normal: "#9e4c00", hover: "#7d3a00" },
+    { normal: "#ae2e24", hover: "#8b241d" },
+    { normal: "#803fa5", hover: "#642f82" },
+    { normal: "#4bce97", hover: "#3ba675" },
+    { normal: "#ddb30e", hover: "#b2900a" },
+    { normal: "#fc8b0d", hover: "#c87009" },
+    { normal: "#f87168", hover: "#c85f54" },
+    { normal: "#c97cec", hover: "#a16bc1" },
+    { normal: "#123263", hover: "#0d244f" },
+    { normal: "#164555", hover: "#113542" },
+    { normal: "#37471f", hover: "#2c3819" },
+    { normal: "#50273d", hover: "#3e1f30" },
+    { normal: "#4b4d51", hover: "#3c3e42" },
+    { normal: "#1558bc", hover: "#11468b" },
+    { normal: "#206a83", hover: "#185266" },
+    { normal: "#4c6b1f", hover: "#3b5519" },
+    { normal: "#943d73", hover: "#712f59" },
+    { normal: "#636669", hover: "#4e5052" },
+    { normal: "#669df1", hover: "#4f80c5" },
+    { normal: "#6cc3e0", hover: "#569ab1" },
+    { normal: "#94c748", hover: "#719537" },
+    { normal: "#e774bb", hover: "#b55b92" },
+    { normal: "#969e9e", hover: "#767c7c" },
 ]
 
 interface LabelPortalProps {
@@ -106,7 +126,7 @@ const LabelPortal = ({ boardId, cardId, listId, activeLabels }: LabelPortalProps
         <Popover.Positioner>
             <Popover.Content
                 width="300px"
-                maxH="calc(100vh - 5rem)"
+                maxH="80vh"
                 overflowY="auto"
                 p={0}
                 borderRadius="md"

@@ -167,17 +167,18 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
 
     return (
         <DialogRoot open={isOpen} onOpenChange={(e) => !e.open && onClose()} size="md" placement="center" >
-            <DialogContent bg="gray.900" color="white" maxW="2xl" borderRadius="xl" overflow={"hidden"}>
+            <DialogContent bg="gray.900" color="white" maxW="2xl" borderRadius="xl">
                 <Flex
                     justify="space-between"
                     align={"center"}
                     p={4}
                     borderBottom={"1px solid"}
                     borderColor="gray.700"
-                    backgroundColor={card.cover}
+                    backgroundColor={card.cover.startsWith("#") ? card.cover : "transparent"}
                     bgImage={card.cover.startsWith("http") ? `url(${card.cover})` : undefined}
                     bgSize="cover"
-                    pb={card.cover.startsWith("#") ? "20" : ""}
+                    pb={card.cover.startsWith("#") ? 20 : card.cover.startsWith("http") ? 28 : ""}
+                    borderTopRadius="xl"
                 >
                     <Button size="xs" variant={"surface"} w={"fit-content"} px={2} bg={"gray.700"}>
                         {listName}
@@ -307,7 +308,7 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
                                 )}
 
                                 {card.labels && card.labels.length > 0 && (
-                                    <Popover.Root lazyMount unmountOnExit positioning={{ placement: "bottom-start" }}>
+                                    <Popover.Root lazyMount unmountOnExit positioning={{ placement: "bottom-start", flip: false, overlap: true }}>
                                         <Box>
                                             <Text fontSize="xs" fontWeight="semibold" color="gray.400" mb={2}>Labels</Text>
                                             <Popover.Anchor asChild>
@@ -419,6 +420,6 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
                     </Flex>
                 </DialogBody>
             </DialogContent>
-        </DialogRoot >
+        </DialogRoot>
     )
 }

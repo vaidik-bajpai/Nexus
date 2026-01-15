@@ -91,7 +91,6 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
         }
     };
 
-    // Derived state for members
     const displayMembers = (storeCard.member_ids || []).map(id => {
         const member = metadata?.members.find(m => m.id === id);
         return member ? {
@@ -99,7 +98,7 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
             username: member.username,
             fullName: member.fullName,
             email: member.email,
-            avatar: "", // Avatar not in BoardMember yet
+            avatar: "",
             isCardMember: true
         } : null;
     }).filter(Boolean) as any[];
@@ -143,18 +142,26 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
                     />
                 )}
                 {storeCard.cover && storeCard.coverSize !== "full" && (
-                    <Box
-                        h="120px"
-                        w="full"
-                        bg={storeCard.cover.startsWith("#") ? storeCard.cover : undefined}
-                        bgImage={!storeCard.cover.startsWith("#") ? `url(${storeCard.cover})` : undefined}
-                        bgSize="cover"
-                        backgroundPosition="center"
-                        borderTopRadius="md"
-                        mb={2}
-                    />
+                    storeCard.cover.startsWith("#") ? (
+                        <Box
+                            h={10}
+                            w="full"
+                            bg={storeCard.cover}
+                            borderTopRadius="md"
+                            mb={2}
+                        />
+                    ) : (
+                        <Image
+                            src={storeCard.cover}
+                            w="full"
+                            h="auto"
+                            display="block"
+                            alt="Cover"
+                            borderTopRadius="md"
+                            mb={2}
+                        />
+                    )
                 )}
-
                 {storeCard.coverSize === "full" && storeCard.cover && !storeCard.cover.startsWith("#") && (
                     <Box
                         position="absolute"
@@ -254,8 +261,7 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
                         )}
                     </Flex>
 
-                    {/* Footer: Description Icon & Members */}
-                    {(storeCard.description || displayMembers.length > 0) && (
+                    {(storeCard.description || displayMembers.length > 0) && storeCard.coverSize !== "full" && (
                         <Flex w="full" justify="space-between" align="center" mt={2}>
                             <Flex gap={3} align="center">
                                 {storeCard.description && (
@@ -313,25 +319,6 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
                 </Flex>
 
             </Box>
-            {
-                // card.completed && (
-                //     <HStack gap={2} mt={1}>
-                //         <Badge
-                //             colorPalette="green"
-                //             variant="solid"
-                //             size="xs"
-                //             animation="pulse 2s infinite 0.5s"
-                //         >
-                //             <Icon
-                //                 as={FiCheckSquare}
-                //                 mr={1}
-                //                 animation="checkBounce 0.6s ease-out"
-                //             />
-                //             Done
-                //         </Badge>
-                //     </HStack>
-                // )
-            }
 
             <CardQuickEdit
                 isOpen={isEditing}
