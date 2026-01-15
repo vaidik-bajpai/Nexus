@@ -108,13 +108,16 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
         <div ref={setNodeRef} {...attributes} style={style} {...listeners}>
             <Box
                 ref={cardRef}
-
                 borderRadius="md"
                 boxShadow="sm"
                 mb={2}
                 cursor="pointer"
+                height="auto"
+                minHeight="0"
                 _hover={{
-                    bg: storeCard.coverSize === "full" && storeCard.cover ? (storeCard.cover.startsWith("#") ? storeCard.cover : "gray.700") : "gray.600",
+                    bg: storeCard.coverSize === "full" && storeCard.cover
+                        ? (storeCard.cover.startsWith("#") ? storeCard.cover : "gray.700")
+                        : "gray.600",
                     boxShadow: "md",
                     borderColor: "blue.400"
                 }}
@@ -124,18 +127,21 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 role="group"
-                opacity={isEditing ? 0 : 1} // Hide original card when editing
+                opacity={isEditing ? 0 : 1}
                 onClick={onClick}
                 position="relative"
                 overflow="hidden"
-                h={storeCard.coverSize === "full" && storeCard.cover ? "250px" : "auto"}
-                minH={storeCard.coverSize === "full" && storeCard.cover ? "250px" : "auto"}
                 bg={storeCard.coverSize === "full" && storeCard.cover && storeCard.cover.startsWith("#") ? storeCard.cover : "gray.700"}
-                bgImage={storeCard.coverSize === "full" && storeCard.cover && !storeCard.cover.startsWith("#") ? `url(${storeCard.cover})` : undefined}
-                bgSize="cover"
-                backgroundPosition="center"
             >
-                {/* Normal Cover (Top Strip) */}
+                {storeCard.coverSize === "full" && storeCard.cover && !storeCard.cover.startsWith("#") && (
+                    <Image
+                        src={storeCard.cover}
+                        w="full"
+                        h="auto"
+                        display="block"
+                        alt="Cover"
+                    />
+                )}
                 {storeCard.cover && storeCard.coverSize !== "full" && (
                     <Box
                         h="120px"
@@ -149,7 +155,6 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
                     />
                 )}
 
-                {/* Gradient Overlay for Full Image Cover */}
                 {storeCard.coverSize === "full" && storeCard.cover && !storeCard.cover.startsWith("#") && (
                     <Box
                         position="absolute"
@@ -162,9 +167,18 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
                     />
                 )}
 
-                {/* Labels */}
-                {storeCard.labels && storeCard.labels.length > 0 && (
-                    <Flex gap={1} px={2} pt={storeCard.cover && storeCard.coverSize !== "full" ? 0 : 2} wrap="wrap" mb={1} position="relative" zIndex={1}>
+                {storeCard.coverSize != "full" && storeCard.labels && storeCard.labels.length > 0 && (
+                    <Flex
+                        gap={1}
+                        px={2}
+                        pt={storeCard.cover && storeCard.coverSize !== "full" ? 0 : 2}
+                        wrap="wrap"
+                        mb={1}
+                        position={storeCard.coverSize === "full" && storeCard.cover && !storeCard.cover.startsWith("#") ? "absolute" : "relative"}
+                        top={storeCard.coverSize === "full" && storeCard.cover && !storeCard.cover.startsWith("#") ? 0 : undefined}
+                        left={storeCard.coverSize === "full" && storeCard.cover && !storeCard.cover.startsWith("#") ? 0 : undefined}
+                        zIndex={1}
+                    >
                         {storeCard.labels.map((label: any) => (
                             <Box
                                 key={label.labelID || label.id}
@@ -183,8 +197,11 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
                     align="start"
                     gap={2}
                     p={2}
-                    h={storeCard.coverSize === "full" && storeCard.cover ? "100%" : "auto"}
-                    position="relative"
+                    h={storeCard.coverSize === "full" && storeCard.cover && !storeCard.cover.startsWith("#") ? "100%" : "auto"}
+                    position={storeCard.coverSize === "full" && storeCard.cover && !storeCard.cover.startsWith("#") ? "absolute" : "relative"}
+                    bottom={0}
+                    left={0}
+                    right={0}
                     zIndex={1}
                     direction="column"
                 >
@@ -213,14 +230,14 @@ export default function BoardCard({ card, listId, boardId, onUpdate, onClick }: 
                             />
                         )}
                         <Text
-                            fontSize={storeCard.coverSize === "full" && storeCard.cover ? "md" : "sm"}
-                            fontWeight={storeCard.coverSize === "full" && storeCard.cover ? "bold" : "normal"}
+                            fontSize={storeCard.coverSize === "full" && storeCard.cover && !storeCard.cover.startsWith("#") ? "md" : "sm"}
+                            fontWeight={storeCard.coverSize === "full" && storeCard.cover && !storeCard.cover.startsWith("#") ? "bold" : "normal"}
                             color="white"
                             flex={1}
                             textDecoration={storeCard.completed ? "line-through" : "none"}
                             opacity={storeCard.completed ? 0.7 : 1}
                             animation={isHovered ? "slideIn 0.4s ease-out 0.2s both" : "none"}
-                            textShadow={storeCard.coverSize === "full" && storeCard.cover ? "0 1px 2px rgba(0,0,0,0.8)" : "none"}
+                            textShadow={storeCard.coverSize === "full" && storeCard.cover && !storeCard.cover.startsWith("#") ? "0 1px 2px rgba(0,0,0,0.8)" : "none"}
                         >
                             {storeCard.title}
                         </Text>

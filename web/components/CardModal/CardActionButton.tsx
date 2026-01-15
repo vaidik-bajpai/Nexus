@@ -1,4 +1,5 @@
 import { Box, Button, Popover, Tooltip } from "@chakra-ui/react";
+import { useRef } from "react";
 
 interface CardActionButtonProps {
     icon: React.ReactNode;

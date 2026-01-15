@@ -116,7 +116,6 @@ const Checklist = ({ checklist, onDelete, onUpdate, boardId, listId, cardId }: C
                     <Portal>
                         <Popover.Positioner>
                             <Popover.Content bg="gray.800" borderColor="gray.700" color="white" w="300px">
-                                <Popover.Arrow bg="gray.800" borderColor="gray.700" />
                                 <Popover.Body p={4}>
                                     <Flex justify="space-between" align="center" mb={2}>
                                         <Text fontWeight="semibold">Delete Checklist?</Text>

@@ -6,7 +6,7 @@ import {
     DialogTitle,
     DialogCloseTrigger,
 } from "@/components/ui/dialog"
-import { Box, Flex, Text, Button, Textarea, Icon, HStack, VStack, Separator, Dialog, Input, Popover } from "@chakra-ui/react"
+import { Box, Flex, Text, Button, Textarea, Icon, HStack, VStack, Separator, Dialog, Input, Popover, PopoverAnchor } from "@chakra-ui/react"
 import { Card, CardDetail } from "@/lib/types/cards.types"
 import { useState, useEffect } from "react"
 import ReactMarkdown from "react-markdown"
@@ -167,8 +167,18 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
 
     return (
         <DialogRoot open={isOpen} onOpenChange={(e) => !e.open && onClose()} size="md" placement="center" >
-            <DialogContent bg="gray.900" color="white" maxW="2xl" borderRadius="xl">
-                <Flex justify="space-between" align={"center"} p={4} borderBottom={"1px solid"} borderColor="gray.700">
+            <DialogContent bg="gray.900" color="white" maxW="2xl" borderRadius="xl" overflow={"hidden"}>
+                <Flex
+                    justify="space-between"
+                    align={"center"}
+                    p={4}
+                    borderBottom={"1px solid"}
+                    borderColor="gray.700"
+                    backgroundColor={card.cover}
+                    bgImage={card.cover.startsWith("http") ? `url(${card.cover})` : undefined}
+                    bgSize="cover"
+                    pb={card.cover.startsWith("#") ? "20" : ""}
+                >
                     <Button size="xs" variant={"surface"} w={"fit-content"} px={2} bg={"gray.700"}>
                         {listName}
                     </Button>
@@ -245,50 +255,55 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
 
                             <Flex gap={4} mb={6} wrap="wrap" px={2}>
                                 {displayMembers.length > 0 && (
-                                    <Box>
-                                        <Text fontSize="xs" fontWeight="semibold" color="gray.400" mb={2}>Members</Text>
-                                        <Flex gap={2} wrap="wrap">
-                                            {displayMembers.map((member) => (
-                                                <Tooltip
-                                                    key={member.userID}
-                                                    content={member.fullName || member.username}
-                                                    positioning={{ placement: "top" }}
-                                                >
-                                                    <Box
-                                                        bg="gray.700"
-                                                        borderRadius="full"
-                                                        w={8}
-                                                        h={8}
-                                                        display="flex"
-                                                        alignItems="center"
-                                                        justifyContent="center"
-                                                        cursor="default"
-                                                    >
-                                                        <Text fontSize="xs" fontWeight="bold">{member.username.charAt(0).toUpperCase()}</Text>
-                                                    </Box>
-                                                </Tooltip>
-                                            ))}
-                                            <Popover.Root positioning={{ placement: "bottom-start" }}>
-                                                <Popover.Trigger asChild>
-                                                    <Box
-                                                        as="button"
-                                                        bg="gray.700"
-                                                        w={8}
-                                                        h={8}
-                                                        borderRadius="full"
-                                                        cursor="pointer"
-                                                        _hover={{ bg: "gray.600" }}
-                                                        display="flex"
-                                                        alignItems="center"
-                                                        justifyContent="center"
-                                                    >
-                                                        <Icon as={Plus} boxSize={4} color="gray.400" />
-                                                    </Box>
-                                                </Popover.Trigger>
-                                                <ChangeMembers memberIds={card.member_ids || []} cardID={card.id} listID={listId} boardID={boardId} />
-                                            </Popover.Root>
-                                        </Flex>
-                                    </Box>
+                                    <Popover.Root>
+                                        <Box>
+                                            <Text fontSize="xs" fontWeight="semibold" color="gray.400" mb={2}>Members</Text>
+                                            <PopoverAnchor>
+                                                <Flex gap={2} wrap="wrap">
+                                                    {displayMembers.map((member) => (
+                                                        <Tooltip
+                                                            key={member.userID}
+                                                            content={member.fullName || member.username}
+                                                            positioning={{ placement: "top" }}
+                                                        >
+                                                            <Box
+                                                                bg="gray.700"
+                                                                borderRadius="full"
+                                                                w={8}
+                                                                h={8}
+                                                                display="flex"
+                                                                alignItems="center"
+                                                                justifyContent="center"
+                                                                cursor="default"
+                                                            >
+                                                                <Text fontSize="xs" fontWeight="bold">{member.username.charAt(0).toUpperCase()}</Text>
+                                                            </Box>
+                                                        </Tooltip>
+                                                    ))}
+                                                    <Popover.Root>
+                                                        <Popover.Trigger asChild>
+                                                            <Box
+                                                                as="button"
+                                                                bg="gray.700"
+                                                                w={8}
+                                                                h={8}
+                                                                borderRadius="full"
+                                                                cursor="pointer"
+                                                                _hover={{ bg: "gray.600" }}
+                                                                display="flex"
+                                                                alignItems="center"
+                                                                justifyContent="center"
+                                                            >
+                                                                <Icon as={Plus} boxSize={4} color="gray.400" />
+                                                            </Box>
+                                                        </Popover.Trigger>
+                                                        <ChangeMembers memberIds={card.member_ids || []} cardID={card.id} listID={listId} boardID={boardId} />
+                                                    </Popover.Root>
+                                                </Flex>
+                                            </PopoverAnchor>
+                                        </Box>
+                                    </Popover.Root>
+
                                 )}
 
                                 {card.labels && card.labels.length > 0 && (
@@ -344,9 +359,6 @@ export default function CardModal({ isOpen, onClose, cardId, listName, boardId, 
                 <DialogBody>
                     <Flex gap={8} direction={{ base: "column", md: "row" }}>
                         <Box flex={1}>
-                            {/* Members and Labels Section */}
-
-
                             <Flex align="center" gap={4} mb={4}>
                                 <Icon as={FiList} boxSize={6} color="gray.400" />
                                 <Text fontSize="md" fontWeight="semibold">Description</Text>

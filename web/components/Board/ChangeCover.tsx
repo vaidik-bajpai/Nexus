@@ -12,8 +12,8 @@ interface ChangeCoverProps {
 }
 
 const COLORS = [
-    "#219653", "#F2C94C", "#F2994A", "#EB5757", "#9B51E0",
-    "#2F80ED", "#56CCF2", "#6FCF97", "#BB6BD9", "#828282"
+    "#216e4e", "#7f5f01", "#9e4c00", "#ae2e24", "#803fa5",
+    "#1558bc", "#206a83", "#4c6b1f", "#943d73", "#63666b"
 ];
 
 const UNSPLASH_PHOTOS = [
@@ -97,15 +97,24 @@ const ChangeCover = ({ onClose, onUpdate, currentCover, currentSize = "normal" }
                                             borderWidth="2px"
                                             borderColor={currentSize === "normal" ? "blue.500" : "gray.200"}
                                             borderRadius="md"
-                                            p={1}
                                             cursor="pointer"
                                             onClick={() => handleSizeSelect("normal")}
                                             opacity={currentSize === "normal" ? 1 : 0.6}
+                                            transition="opacity 0.2s ease-in-out"
+                                            backgroundColor="gray.700"
                                             _hover={{ opacity: 1 }}
+                                            overflow={"hidden"}
                                         >
-                                            <Box bg="gray.300" h="20px" borderRadius="sm" mb={1} />
-                                            <Box bg="gray.200" h="4px" w="80%" borderRadius="sm" mb={1} />
-                                            <Box bg="gray.200" h="4px" w="60%" borderRadius="sm" />
+                                            <Box {...(currentCover ? (currentCover.startsWith("http") || currentCover.startsWith("data:") ? { bgImage: `url(${currentCover})`, bgSize: "cover" } : { bg: currentCover }) : { bg: "gray.300" })} h="24px" mb={1} />
+                                            <Box bg="gray.200" h="4px" w="80%" borderRadius="sm" mb={1} mx={2} />
+                                            <Box bg="gray.200" h="4px" w="60%" borderRadius="sm" mx={2} />
+                                            <Flex mt={1.5} justify={"space-between"} mx={2}>
+                                                <Flex gap={1}>
+                                                    <Box bg="gray.200" h="6px" w={3} borderRadius="xs" />
+                                                    <Box bg="gray.200" h="6px" w={3} borderRadius="xs" />
+                                                </Flex>
+                                                <Box bg="gray.200" h="6px" w={2} borderRadius="sm" />
+                                            </Flex>
                                         </Box>
                                         <Box
                                             borderWidth="2px"
@@ -119,7 +128,7 @@ const ChangeCover = ({ onClose, onUpdate, currentCover, currentSize = "normal" }
                                             overflow="hidden"
                                             position="relative"
                                         >
-                                            <Box bg="gray.300" w="full" h="full" />
+                                            <Box {...(currentCover ? (currentCover.startsWith("http") || currentCover.startsWith("data:") ? { bgImage: `url(${currentCover})`, bgSize: "cover" } : { bg: currentCover }) : { bg: "gray.300" })} w="full" h="full" />
                                             <Box position="absolute" bottom={1} left={1} right={1}>
                                                 <Box bg="whiteAlpha.600" h="4px" w="80%" borderRadius="sm" mb={1} />
                                                 <Box bg="whiteAlpha.600" h="4px" w="60%" borderRadius="sm" />
